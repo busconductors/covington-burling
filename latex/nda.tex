@@ -1,0 +1,223 @@
+% nda.tex
+% COVINGTON & BURLING LLP — MUTUAL NON-DISCLOSURE AGREEMENT
+\def\ClientName{CLIENT NAME HERE}
+\def\ClientAddress{CLIENT ADDRESS HERE}
+\def\EffectiveDate{DATE HERE}
+%
+
+\documentclass[11pt,letterpaper]{article}
+
+% ---- PACKAGES ----
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{mathptmx}          % Times New Roman — classic legal look
+\usepackage[margin=1in]{geometry}
+\usepackage{fancyhdr}          % Headers and footers
+\usepackage{lastpage}          % "Page X of Y"
+\usepackage{xcolor}            % Colors for accents and rules
+\usepackage{setspace}
+\setstretch{1.15}              % Elegant line spacing
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black!70!blue,
+  urlcolor=black!70!blue,
+}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\setlist{nosep, leftmargin=1.5em}
+
+% ---- COLOR PALETTE ----
+\definecolor{DarkNavy}{HTML}{0A1628}
+\definecolor{Burgundy}{HTML}{6B1C2E}
+\definecolor{MutedGold}{HTML}{C2A44F}
+
+% ---- HEADER / FOOTER ----
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.5pt}
+
+\fancyhead[L]{\small \textcolor{DarkNavy}{\textbf{PRIVILEGED AND CONFIDENTIAL}}}
+\fancyhead[R]{\small \textcolor{DarkNavy}{\textbf{DRAFT v1.0}}}
+
+\fancyfoot[L]{\small \textcolor{DarkNavy}{\textbf{Non-Disclosure Agreement}}}
+\fancyfoot[C]{\small \textcolor{DarkNavy}{--- \thepage{} of \pageref{LastPage} ---}}
+\fancyfoot[R]{\small \textcolor{DarkNavy}{\textbf{\EffectiveDate}}}
+
+% ---- LETTERHEAD BLOCK ----
+\newcommand{\letterhead}{%
+  \begin{center}
+    \textcolor{DarkNavy}{\Huge \textbf{Covington \& Burling LLP}} \\[2pt]
+    \textcolor{MutedGold}{\rule{0.6\textwidth}{0.5pt}} \\[4pt]
+    \textcolor{DarkNavy!70!black}{\small 850 Tenth Street NW, Washington, DC 20001 \\
+    Tel: 202-662-6000 \\
+    \texttt{www.covbur.com}}
+  \end{center}
+  \vspace{0.4cm}
+  \textcolor{MutedGold}{\rule{\textwidth}{1pt}}
+  \vspace{0.3cm}
+}
+
+% ---- DOCUMENT BORDER ----
+\usepackage{tikz}
+\usepackage{eso-pic}
+\AddToShipoutPictureBG{%
+  \begin{tikzpicture}[overlay,remember picture]
+    \draw [color=DarkNavy!15!white, line width=2pt]
+      (1cm, 1cm) rectangle (\paperwidth-1cm, \paperheight-1cm);
+  \end{tikzpicture}%
+}
+
+\begin{document}
+
+% ---- WATERMARK (DIAGONAL DRAFT) ----
+\begin{tikzpicture}[overlay,remember picture]
+  \node[rotate=45, font=\fontsize{3cm}{3cm}\selectfont,
+        text=DarkNavy!4!white] at (current page.center) {CONFIDENTIAL};
+\end{tikzpicture}
+
+% ---- LETTERHEAD ----
+\letterhead
+
+% ---- TITLE ----
+\begin{center}
+  \vspace{0.2cm}
+  \textcolor{DarkNavy}{\LARGE \textbf{Non-Disclosure Agreement}} \\[4pt]
+  \textcolor{DarkNavy!60!black}{\large (Mutual)}
+\end{center}
+\vspace{0.3cm}
+
+% ---- INTRO ----
+\noindent THIS NON-DISCLOSURE AGREEMENT (the ``Agreement'') is made as of
+\EffectiveDate\ (the ``Effective Date''), by and between
+\textbf{Covington \& Burling LLP}, with offices at 850 Tenth Street NW,
+Washington, DC 20001 (the ``Firm''), and \textbf{\ClientName}, with an address
+at \textbf{\ClientAddress} (the ``Client''). Each may be referred to as a
+``Party'' and collectively as the ``Parties.''
+
+\vspace{0.4cm}
+% ---- RECITALS ----
+\noindent \textcolor{DarkNavy}{\large \textbf{RECITALS}}
+
+\vspace{0.2cm}
+\noindent \textcolor{DarkNavy!70!black}{\textbf{WHEREAS}}, the Parties wish to
+explore a potential business relationship (the ``Purpose'') and may disclose
+certain proprietary information to each other in furtherance thereof;
+
+\noindent \textcolor{DarkNavy!70!black}{\textbf{WHEREAS}}, the Parties wish to
+ensure that any such information remains confidential and is used solely for
+the Purpose;
+
+\noindent \textcolor{DarkNavy!70!black}{\textbf{NOW, THEREFORE}}, in
+consideration of the mutual covenants contained herein, the Parties agree as
+follows:
+
+\vspace{0.4cm}
+% ---- SECTION 1 ----
+\noindent \textcolor{DarkNavy}{\large \textbf{1. Definition of Confidential Information}}
+
+\noindent \textbf{1.1 Confidential Information.} For purposes of this
+Agreement, ``Confidential Information'' means any information, whether oral,
+written, or electronic, disclosed by one Party (the ``Disclosing Party'') to
+the other (the ``Receiving Party'') that is designated as confidential or that
+reasonably should be understood to be confidential given the nature of the
+information and the circumstances of disclosure. Confidential Information
+includes but is not limited to: business plans, financial data, customer lists,
+technical data, trade secrets, product roadmaps, and proprietary methodologies.
+
+\noindent \textbf{1.2 Exclusions.} Confidential Information does not include
+information that:
+\begin{enumerate}
+  \item is or becomes publicly known through no fault of the Receiving Party;
+  \item was rightfully in the Receiving Party's possession prior to disclosure;
+  \item is independently developed by the Receiving Party without use of the
+        Disclosing Party's Confidential Information;
+  \item is required to be disclosed by law or court order, provided the
+        Receiving Party gives prompt notice to the Disclosing Party.
+\end{enumerate}
+
+\vspace{0.3cm}
+% ---- SECTION 2 ----
+\noindent \textcolor{DarkNavy}{\large \textbf{2. Obligations of the Receiving Party}}
+
+\noindent The Receiving Party shall:
+\begin{enumerate}
+  \item hold all Confidential Information in strict confidence;
+  \item not disclose Confidential Information to any third party without the
+        Disclosing Party's prior written consent;
+  \item use Confidential Information solely for the Purpose;
+  \item exercise at least a reasonable degree of care in protecting the
+        Confidential Information.
+\end{enumerate}
+
+\vspace{0.3cm}
+% ---- SECTION 3 ----
+\noindent \textcolor{DarkNavy}{\large \textbf{3. Term and Termination}}
+
+\noindent \textbf{3.1 Term.} This Agreement shall commence on the Effective
+Date and continue for a period of two (2) years, unless terminated earlier by
+mutual written agreement.
+
+\noindent \textbf{3.2 Survival.} The obligations of confidentiality and non-use
+shall survive termination of this Agreement for a period of three (3) years.
+
+\vspace{0.3cm}
+% ---- SECTION 4 ----
+\noindent \textcolor{DarkNavy}{\large \textbf{4. Governing Law}}
+
+\noindent This Agreement shall be governed by and construed in accordance with
+the laws of the District of Columbia. Any disputes arising hereunder shall be
+resolved exclusively in the federal or state courts located in the District of
+Columbia, and each Party consents to the personal jurisdiction and venue of such
+courts.
+
+\vspace{0.3cm}
+% ---- SECTION 5 ----
+\noindent \textcolor{DarkNavy}{\large \textbf{5. Miscellaneous}}
+
+\noindent \textbf{5.1 Entire Agreement.} This Agreement constitutes the entire
+understanding between the Parties with respect to the subject matter hereof and
+supersedes all prior agreements and understandings, whether oral or written.
+
+\noindent \textbf{5.2 Amendments.} No amendment shall be binding unless in
+writing and signed by both Parties.
+
+\noindent \textbf{5.3 Severability.} If any provision is held invalid, the
+remainder shall continue in full force and effect.
+
+\noindent \textbf{5.4 No Waiver.} The failure of either Party to enforce any
+provision of this Agreement shall not constitute a waiver of such provision or
+any other provision.
+
+\vfill
+% ---- SIGNATURE BLOCK (elegant) ----
+\begin{center}
+  \textcolor{MutedGold}{\rule{0.4\textwidth}{0.5pt}} \\[4pt]
+  \textcolor{DarkNavy}{\textbf{IN WITNESS WHEREOF}}, the Parties have executed
+  this Agreement as of the Effective Date.
+\end{center}
+
+\vspace{0.5cm}
+\begin{minipage}[t]{0.45\textwidth}
+  \textcolor{DarkNavy}{\textbf{COVINGTON \& BURLING LLP}} \\[0.3cm]
+  \textcolor{DarkNavy!60!black}{\small Signature:} \rule{5cm}{0.4pt} \\[0.2cm]
+  \textcolor{DarkNavy!60!black}{\small Print Name:} \rule{5cm}{0.4pt} \\[0.2cm]
+  \textcolor{DarkNavy!60!black}{\small Title:} \rule{5cm}{0.4pt} \\[0.2cm]
+  \textcolor{DarkNavy!60!black}{\small Date:} \rule{4cm}{0.4pt}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+  \textcolor{DarkNavy}{\textbf{CLIENT: \ClientName}} \\[0.3cm]
+  \textcolor{DarkNavy!60!black}{\small Signature:} \rule{5cm}{0.4pt} \\[0.2cm]
+  \textcolor{DarkNavy!60!black}{\small Print Name:} \rule{5cm}{0.4pt} \\[0.2cm]
+  \textcolor{DarkNavy!60!black}{\small Title:} \rule{5cm}{0.4pt} \\[0.2cm]
+  \textcolor{DarkNavy!60!black}{\small Date:} \rule{4cm}{0.4pt}
+\end{minipage}
+
+\vspace{0.3cm}
+\begin{center}
+  \textcolor{DarkNavy!30!white}{\small [Covington \& Burling LLP — Official Seal]}
+\end{center}
+
+\end{document}

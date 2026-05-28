@@ -1,0 +1,16 @@
+{
+  "name": "covington-burling-llp",
+  "version": "1.0.0",
+  "description": "Covington & Burling LLP — Professional law firm website",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "pdfmake": "^0.2.18"
+  }
+}
