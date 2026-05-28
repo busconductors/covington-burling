@@ -1,6 +1,6 @@
+const { onRequest } = require('firebase-functions/v2/https');
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const PdfPrinter = require('pdfmake');
 
 const fonts = {
@@ -8,19 +8,17 @@ const fonts = {
     normal: 'Times-Roman',
     bold: 'Times-Bold',
     italics: 'Times-Italic',
-    bolditalics: 'Times-BoldItalic'
-  }
+    bolditalics: 'Times-BoldItalic',
+  },
 };
 
 const printer = new PdfPrinter(fonts);
+const waiverDefinition = require('./waiver-definition');
+const ndaDefinition = require('./nda-definition');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-
-const waiverDefinition = require('./pdf-templates/waiver-definition');
-const ndaDefinition = require('./pdf-templates/nda-definition');
 
 app.post('/api/generate-waiver', (req, res) => {
   const { clientName, date, matter } = req.body || {};
@@ -42,12 +40,4 @@ app.post('/api/generate-nda', (req, res) => {
   pdfDoc.end();
 });
 
-// Serve index.html for root
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log('Covington & Burling LLP server running on port ' + PORT);
-});
+exports.api = onRequest({ cors: true }, app);

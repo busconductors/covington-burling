@@ -1186,6 +1186,30 @@ h4 { font-size: 1.125rem; }
   margin-top: 0.5rem;
 }
 
+.download-card__features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  max-width: 400px;
+}
+
+.download-card__feature {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--cream);
+  border: 1px solid var(--cream-dark);
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.download-card__actions .btn--primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 /* ----- 20. BIO SECTION ----- */
 .bio-detail {
   display: grid;
