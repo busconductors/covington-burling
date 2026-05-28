@@ -1,0 +1,12 @@
+{
+  "name": "covington-burling-llp-functions",
+  "description": "Cloud Functions for Covington & Burling LLP PDF generation",
+  "private": true,
+  "main": "index.js",
+  "engines": { "node": "20" },
+  "dependencies": {
+    "express": "^4.21.0",
+    "pdfmake": "^0.2.18",
+    "cors": "^2.8.5"
+  }
+}

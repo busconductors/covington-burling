@@ -7,26 +7,30 @@ Professional law firm website for **Covington & Burling LLP**, a preeminent inte
 ```
 covington-burling/
 ├── public/
-│   ├── index.html           # Home page
-│   ├── about.html           # Firm history + attorney bio
-│   ├── practice.html        # 7 practice areas
-│   ├── contact.html         # Contact form + HQ details
-│   ├── waiver-nda.html      # Waiver & NDA download page
-│   ├── 404.html             # Custom 404 page
+│   ├── index.html              # Home page
+│   ├── about.html              # Firm history + attorney bio
+│   ├── practice.html           # 7 practice areas
+│   ├── contact.html            # Contact form + HQ details
+│   ├── waiver-nda.html         # Fillable PDF downloads
+│   ├── 404.html                # Custom 404 page
 │   ├── css/
-│   │   └── styles.css       # Complete stylesheet (WCAG AA compliant)
+│   │   └── styles.css          # Complete stylesheet (WCAG AA compliant)
 │   ├── js/
-│   │   ├── main.js           # Navigation, scroll, accordion
-│   │   ├── contact-form.js   # Form validation
-│   │   └── pdf-generation.js # PDF download handler
-│   └── images/              # Image assets (placeholder headshot)
-├── server.js                # Express server (PDF generation)
+│   │   ├── main.js             # Navigation, scroll, accordion
+│   │   └── contact-form.js     # Form validation
+│   ├── forms/
+│   │   ├── waiver-fillable.pdf # Fillable Waiver form
+│   │   └── nda-fillable.pdf    # Fillable NDA form
+│   └── images/                 # Image assets (placeholder headshot)
+├── server.js                   # Express server (PDF generation)
+├── functions/                  # Firebase Cloud Functions
+│   ├── index.js                # PDF generation endpoints
+│   └── package.json
 ├── pdf-templates/
-│   ├── waiver-definition.js # pdfmake waiver definition
-│   └── nda-definition.js    # pdfmake NDA definition
-├── latex/
-│   ├── waiver.tex           # LaTeX source: Waiver & Release of Liability
-│   └── nda.tex              # LaTeX source: Mutual NDA
+│   ├── waiver-definition.js    # pdfmake waiver definition
+│   └── nda-definition.js       # pdfmake NDA definition
+├── scripts/
+│   └── generate-fillable-pdfs.js  # One-off script to create fillable PDFs
 ├── package.json
 ├── .gitignore
 ├── firebase.json
@@ -51,6 +55,7 @@ All firm and lawyer details verified. Covington & Burling LLP is an active Am La
 
 ```bash
 npm install
+cd functions && npm install && cd ..
 ```
 
 ### Run PDF Server Locally
@@ -72,47 +77,35 @@ Just open `public/index.html` in a browser, or use a static server:
 npx serve public
 ```
 
+### Generate Fillable PDFs
+
+The fillable PDF forms are pre-generated in `public/forms/`. To regenerate them:
+
+```bash
+node scripts/generate-fillable-pdfs.js
+```
+
 ## Deployment
 
 ### Firebase Hosting
 
 ```bash
-npm install -g firebase-tools
-firebase login
-firebase init hosting   # Select existing project or create new
 firebase deploy --only hosting
 ```
 
-### Netlify
+Live at: **https://covington-burling-llp.web.app**
 
-Drag the `public/` folder to Netlify Drop, or create a `netlify.toml`:
+### Firebase Cloud Functions (PDF server)
 
-```toml
-[build]
-  publish = "public"
-
-[[redirects]]
-  from = "/api/*"
-  to = "https://your-server-url.com/api/:splat"
-  status = 200
-```
-
-## LaTeX Documents
-
-Two LaTeX source files are provided for download and editing:
-
-- **waiver.tex** — WAIVER AND RELEASE OF LIABILITY (5 clauses, signature blocks)
-- **nda.tex** — MUTUAL NON-DISCLOSURE AGREEMENT (5 clauses, dual signature blocks)
-
-### Compile with pdflatex
+Requires Firebase Blaze (pay-as-you-go) plan. Once upgraded:
 
 ```bash
-cd latex
-pdflatex waiver.tex
-pdflatex nda.tex
+firebase deploy --only functions
 ```
 
-Both templates use Covington & Burling LLP as the firm name throughout.
+The API endpoints will be available at:
+- `POST /api/generate-waiver`
+- `POST /api/generate-nda`
 
 ## Accessibility
 
@@ -132,9 +125,7 @@ This site is designed to meet WCAG 2.1 AA standards:
 - [ ] Replace placeholder headshot image for David M. Gottesman
 - [ ] Verify phone number 202-662-6000 before publishing
 - [ ] Set up contact form email integration (currently logs to console)
-- [ ] Configure Firebase or Netlify deployment
+- [ ] Upgrade Firebase to Blaze plan for Cloud Functions
 - [ ] Review all content with firm stakeholders
-- [ ] Verify LaTeX documents compile with pdflatex before distribution
 - [ ] Set up CAPTCHA or spam protection on the contact form
 - [ ] Add a privacy policy page
-- [ ] Replace favicon.ico with the firm's actual icon

@@ -4,13 +4,19 @@
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "cleanUrls": true,
     "trailingSlash": false,
+    "rewrites": [
+      { "source": "/api/**", "function": "api" }
+    ],
     "headers": [
       {
-        "source": "**/*.@(css|js|svg|png|jpg|jpeg|gif|ico|woff|woff2|tex)",
+        "source": "**/*.@(css|js|svg|png|jpg|jpeg|gif|ico|woff|woff2|pdf)",
         "headers": [
           { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
         ]
       }
     ]
+  },
+  "functions": {
+    "source": "functions"
   }
 }
