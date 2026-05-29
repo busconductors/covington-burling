@@ -1210,6 +1210,193 @@ h4 { font-size: 1.125rem; }
   gap: 0.5rem;
 }
 
+/* ----- 20a. FORM DOWNLOAD BLOCKS (Waiver/NDA page) ----- */
+.form-download-block {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.form-download-block:last-child { margin-bottom: 0; }
+
+.form-download-block__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.form-download-block__icon {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  background: var(--cream);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--navy);
+}
+
+.form-download-block__title {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 0.375rem;
+}
+
+.form-download-block__desc {
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.form-download-block__features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.form-download-block__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* ----- 20b. HOW IT WORKS STEPS ----- */
+.steps-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.step-item {
+  text-align: center;
+}
+
+.step-item__number {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--white);
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.step-item__title {
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 0.5rem;
+}
+
+.step-item__desc {
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+
+/* ----- 20c. INSTRUCTION PANELS ----- */
+.instructions-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.instruction-panel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.instruction-panel__title {
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.instruction-panel__title svg {
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.instruction-list {
+  list-style: decimal;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+
+.instruction-list li { padding-left: 0.25rem; }
+.instruction-list li strong { color: var(--text-body); }
+
+/* ----- 20d. SUBMISSION BOX ----- */
+.submission-box {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2rem;
+  margin-top: 2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.submission-box__methods {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.submission-method {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  padding: 1.25rem;
+  background: var(--cream);
+  border-radius: 6px;
+}
+
+.submission-method__icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  color: var(--navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submission-method__contact {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--burgundy);
+}
+
 /* ----- 20. BIO SECTION ----- */
 .bio-detail {
   display: grid;
@@ -1451,6 +1638,18 @@ h4 { font-size: 1.125rem; }
     grid-template-columns: 2fr 1fr 1fr;
     gap: 3rem;
   }
+
+  .form-download-block__actions {
+    flex-direction: row;
+  }
+
+  .form-download-block__actions .btn {
+    width: auto;
+  }
+
+  .steps-row { grid-template-columns: repeat(3, 1fr); }
+  .instructions-grid { grid-template-columns: repeat(2, 1fr); }
+  .submission-box__methods { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* 1024px */
