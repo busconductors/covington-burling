@@ -10,8 +10,8 @@
   --burgundy: #6B1C2E;
   --burgundy-dark: #521524;
   --burgundy-light: #852536;
-  --gold: #C2A44F;
-  --gold-dark: #A88B3A;
+  --gold: #B08D57;
+  --gold-dark: #9A7A3E;
   --cream: #FAF8F5;
   --cream-dark: #EFECE7;
   --white: #FFFFFF;
@@ -26,9 +26,9 @@
   --error: #C62828;
   --focus-ring: #2B5EA7;
 
-  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
-  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-  --font-sans: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-display: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
+  --font-serif: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
+  --font-sans: 'Montserrat', Arial, sans-serif;
   --container-narrow: 860px;
   --nav-height: 72px;
   --radius: 4px;
@@ -146,7 +146,7 @@ h4 { font-size: 1.125rem; }
   margin-bottom: 0.75rem;
 }
 
-.eyebrow--gold { color: var(--gold); }
+.eyebrow--gold { color: #C9A66B; }
 .eyebrow--light { color: var(--text-on-dark-muted); }
 
 .section-title {
@@ -163,6 +163,10 @@ h4 { font-size: 1.125rem; }
 .body-large {
   font-size: 1.125rem;
   line-height: 1.75;
+}
+
+.body-large + .body-large {
+  margin-top: 1rem;
 }
 
 .text-muted { color: var(--text-muted); }
@@ -279,16 +283,15 @@ h4 { font-size: 1.125rem; }
 }
 
 .site-logo__mark {
-  width: 36px;
-  height: 36px;
-  background: var(--burgundy);
-  color: var(--white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  font-weight: 700;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
+}
+
+.site-logo__mark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 /* Desktop Nav */
@@ -496,6 +499,15 @@ h4 { font-size: 1.125rem; }
   line-height: 1.7;
   margin-top: 1rem;
   max-width: 300px;
+}
+
+.footer-logo {
+  margin-bottom: 1rem;
+}
+
+.footer-address {
+  font-style: normal;
+  line-height: 1.7;
 }
 
 .site-footer__links {
@@ -814,6 +826,16 @@ h4 { font-size: 1.125rem; }
   font-size: 0.875rem;
 }
 
+.attorney-spotlight__name {
+  margin-top: 0.5rem;
+}
+
+.attorney-spotlight__role {
+  color: var(--burgundy);
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
 .attorney-spotlight__credentials {
   margin-top: 1.25rem;
   display: flex;
@@ -1057,6 +1079,10 @@ h4 { font-size: 1.125rem; }
   color: var(--gold);
 }
 
+.contact-split__detail a {
+  color: inherit;
+}
+
 .contact-split__form-wrap {
   padding: 2.5rem;
 }
@@ -1186,6 +1212,10 @@ h4 { font-size: 1.125rem; }
   font-size: 0.9375rem;
 }
 
+.form-success .btn {
+  margin-top: 1.5rem;
+}
+
 /* ----- 19. DOWNLOAD CARDS (Waiver/NDA) ----- */
 .download-cards {
   display: grid;
@@ -1272,6 +1302,11 @@ h4 { font-size: 1.125rem; }
 }
 
 .form-download-block:last-child { margin-bottom: 0; }
+
+.form-download-block__intro {
+  max-width: 640px;
+  margin-bottom: 3rem;
+}
 
 .form-download-block__header {
   display: flex;
@@ -1448,6 +1483,11 @@ h4 { font-size: 1.125rem; }
   color: var(--burgundy);
 }
 
+.submission-note {
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+}
+
 /* ----- 20. BIO SECTION ----- */
 .bio-detail {
   display: grid;
@@ -1457,6 +1497,10 @@ h4 { font-size: 1.125rem; }
 
 .bio-detail__info h3 {
   margin-bottom: 0.5rem;
+}
+
+.bio-detail__note {
+  margin-bottom: 1.25rem;
 }
 
 .bio-detail__title {
@@ -1627,6 +1671,10 @@ h4 { font-size: 1.125rem; }
 .verification-link:hover {
   background: var(--cream-dark);
   text-decoration: none;
+}
+
+.bio-detail__info .verification-link {
+  margin-top: 1.25rem;
 }
 
 .verification-link__icon {

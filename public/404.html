@@ -7,7 +7,7 @@
   <title>Page Not Found | Covington &amp; Burling LLP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Source+Serif+4:ital,wght@0,300..600;1,300..600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400..700;1,400..700&family=Montserrat:ital,wght@0,300..600;1,300..600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
@@ -17,29 +17,94 @@
   <header class="site-header" role="banner">
     <div class="site-header__inner">
       <a href="/index.html" class="site-logo" aria-label="Covington &amp; Burling LLP Home">
-        <span class="site-logo__mark" aria-hidden="true">CB</span>
-        <span>Covington &amp; Burling LLP</span>
+        <span class="site-logo__mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><g transform="translate(20,20)"><circle cx="60" cy="60" r="56" fill="none" stroke="#0A1628" stroke-width="1.5"/><circle cx="60" cy="60" r="50" fill="none" stroke="#B08D57" stroke-width="2.5"/><text x="60" y="60" text-anchor="middle" dominant-baseline="central" font-family="Cormorant Garamond, Garamond, 'Times New Roman', serif" font-weight="600" font-size="46" letter-spacing="-2" fill="#0A1628">C<tspan fill="#B08D57">B</tspan></text></g></svg></span>
+        <span>Covington <span style="color:#B08D57;">&amp;</span> Burling LLP</span>
       </a>
+      <nav class="nav-desktop" aria-label="Primary navigation">
+        <ul class="nav-desktop__list">
+          <li><a href="/index.html" class="nav-desktop__link">Home</a></li>
+          <li><a href="/about.html" class="nav-desktop__link">About</a></li>
+          <li><a href="/practice.html" class="nav-desktop__link">Practice Areas</a></li>
+          <li><a href="/contact.html" class="nav-desktop__link">Contact</a></li>
+          <li><a href="/waiver-nda.html" class="nav-desktop__link">Waiver &amp; NDA</a></li>
+          <li><a href="/contact.html" class="nav-desktop__cta">Get Legal Counsel</a></li>
+        </ul>
+      </nav>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="nav-drawer" aria-label="Toggle navigation">
+        <span class="nav-toggle__icon">
+          <span></span>
+          <span></span>
+          <span></span>
+        </span>
+      </button>
     </div>
   </header>
 
+  <div class="nav-drawer__overlay"></div>
+  <div class="nav-drawer" id="nav-drawer" aria-hidden="true">
+    <a href="/index.html" class="nav-drawer__link">Home</a>
+    <a href="/about.html" class="nav-drawer__link">About</a>
+    <a href="/practice.html" class="nav-drawer__link">Practice Areas</a>
+    <a href="/contact.html" class="nav-drawer__link">Contact</a>
+    <a href="/waiver-nda.html" class="nav-drawer__link">Waiver &amp; NDA</a>
+    <a href="/contact.html" class="nav-drawer__cta">Get Legal Counsel</a>
+  </div>
+
   <main id="main-content">
-    <div style="min-height:60vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:2rem;">
-      <div>
-        <h1 style="font-size:clamp(3rem,8vw,6rem);color:var(--burgundy);margin-bottom:0.5rem;">404</h1>
-        <h2 style="margin-bottom:1rem;">Page Not Found</h2>
-        <p class="text-muted body-large" style="margin-bottom:2rem;">The page you are looking for does not exist or has been moved.</p>
-        <a href="/index.html" class="btn btn--primary">Return to Home</a>
+    <div class="page-header">
+      <div class="container">
+        <h1 class="page-header__title">Page Not Found</h1>
+        <p class="page-header__subtitle">The page you are looking for does not exist or has been moved.</p>
       </div>
+    </div>
+    <div style="text-align:center;padding:3rem 1.5rem;">
+      <p class="body-large text-muted" style="margin-bottom:2rem;">Please check the URL or navigate to another page using the links above.</p>
+      <a href="/index.html" class="btn btn--primary">Return to Home</a>
     </div>
   </main>
 
   <footer class="site-footer" role="contentinfo">
     <div class="container">
-      <div class="site-footer__bottom" style="border-top:none;">
+      <div class="site-footer__grid">
+        <div>
+          <a href="/index.html" class="site-logo footer-logo">
+            <span class="site-logo__mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><g transform="translate(20,20)"><circle cx="60" cy="60" r="56" fill="none" stroke="#0A1628" stroke-width="1.5"/><circle cx="60" cy="60" r="50" fill="none" stroke="#B08D57" stroke-width="2.5"/><text x="60" y="60" text-anchor="middle" dominant-baseline="central" font-family="Cormorant Garamond, Garamond, 'Times New Roman', serif" font-weight="600" font-size="46" letter-spacing="-2" fill="#0A1628">C<tspan fill="#B08D57">B</tspan></text></g></svg></span>
+            <span>Covington <span style="color:#B08D57;">&amp;</span> Burling LLP</span>
+          </a>
+          <p class="site-footer__brand-desc">An international law firm with offices in 13 cities worldwide. Chambers-ranked and Am Law 100. Trusted counsel since 1919.</p>
+        </div>
+        <div>
+          <h4 class="site-footer__heading">Navigation</h4>
+          <div class="site-footer__links">
+            <a href="/index.html">Home</a>
+            <a href="/about.html">About</a>
+            <a href="/practice.html">Practice Areas</a>
+            <a href="/contact.html">Contact</a>
+            <a href="/waiver-nda.html">Waiver &amp; NDA</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="site-footer__heading">Contact</h4>
+          <address class="footer-address">
+            850 Tenth Street NW<br>
+            Washington, DC 20001<br>
+            <a href="tel:+12026626000">202-662-6000</a>
+          </address>
+        </div>
+      </div>
+      <div class="site-footer__bottom">
         <p>&copy; 2026 Covington &amp; Burling LLP. All rights reserved.</p>
+        <div class="site-footer__credentials">
+          <span>Chambers USA</span>
+          <span>Am Law 100</span>
+          <span>DC Bar</span>
+          <span>US Supreme Court</span>
+          <span>Founded 1919</span>
+        </div>
       </div>
     </div>
   </footer>
+
+  <script src="/js/main.js" defer></script>
 </body>
 </html>
