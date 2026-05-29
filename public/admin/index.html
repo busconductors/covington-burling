@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Document Builder — Covington &amp; Burling LLP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..600;1,14..32,300..600&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+  <script src="/js/template-presets.js" defer></script>
+  <script src="/js/covington-template.js" defer></script>
+</head>
+<body>
+
+<header class="admin-header" role="banner">
+  <div class="admin-header__inner">
+    <a href="/index.html" class="admin-header__logo">
+      <span class="admin-header__logo-mark" aria-hidden="true">CB</span>
+      <span>Covington &amp; Burling LLP — Document Builder</span>
+    </a>
+    <a href="/index.html" class="admin-header__home">&#8592; Back to Site</a>
+    <a href="/forms/covington-admin-playbook.pdf" class="admin-header__home" style="margin-left:1.25rem;" download>Playbook</a>
+  </div>
+</header>
+
+<!-- Password Gate -->
+<div class="admin-gate" id="adminGate">
+  <div class="admin-gate__box">
+    <h1 class="admin-gate__title">Document Builder</h1>
+    <p class="admin-gate__desc">Enter the access key to manage firm document templates.</p>
+    <form class="admin-gate__form" id="gateForm">
+      <input type="password" id="gatePassword" class="admin-gate__input" placeholder="Access Key" autocomplete="off" required>
+      <button type="submit" class="btn btn--primary btn--full">Unlock</button>
+    </form>
+    <p class="admin-gate__error" id="gateError" role="alert"></p>
+  </div>
+</div>
+
+<!-- Builder (hidden until authenticated) -->
+<main class="admin-builder" id="adminBuilder" style="display:none;">
+  <div class="admin-builder__layout">
+
+    <!-- Left Sidebar: Document Definition -->
+    <aside class="admin-sidebar" role="complementary">
+      <div class="admin-sidebar__section">
+        <label class="admin-label" for="presetSelect">Load Preset</label>
+        <select id="presetSelect" class="admin-select">
+          <option value="blank">Blank Template</option>
+          <option value="waiver">Waiver and Release of Liability</option>
+          <option value="nda">Mutual Non-Disclosure Agreement</option>
+          <option value="custom">— Custom (current) —</option>
+        </select>
+      </div>
+
+      <div class="admin-sidebar__section">
+        <label class="admin-label" for="docTitle">Document Title</label>
+        <input type="text" id="docTitle" class="admin-input" value="NEW DOCUMENT" placeholder="e.g. ENGAGEMENT LETTER">
+      </div>
+
+      <div class="admin-sidebar__section">
+        <label class="admin-label">Output Filename</label>
+        <input type="text" id="outputName" class="admin-input" value="document.pdf" placeholder="document.pdf">
+      </div>
+
+      <div class="admin-sidebar__section">
+        <label class="admin-label">Witness Preamble</label>
+        <input type="text" id="witnessText" class="admin-input" value="IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above.">
+      </div>
+
+      <hr class="admin-divider">
+
+      <!-- Form Fields -->
+      <div class="admin-sidebar__section">
+        <div class="admin-section-header">
+          <label class="admin-label">Form Fields</label>
+          <button type="button" class="admin-btn--sm" id="addFieldBtn" title="Add field">+ Add</button>
+        </div>
+        <div id="fieldsList" class="admin-editable-list"></div>
+      </div>
+
+      <hr class="admin-divider">
+
+      <!-- Clauses -->
+      <div class="admin-sidebar__section">
+        <div class="admin-section-header">
+          <label class="admin-label">Clauses</label>
+          <button type="button" class="admin-btn--sm" id="addClauseBtn" title="Add clause">+ Add</button>
+        </div>
+        <div id="clausesList" class="admin-editable-list"></div>
+      </div>
+
+      <hr class="admin-divider">
+
+      <!-- Clause Library -->
+      <div class="admin-sidebar__section">
+        <div class="admin-section-header">
+          <label class="admin-label">Clause Library</label>
+          <button type="button" class="admin-btn--sm" id="toggleClauseLib" title="Toggle library">Show</button>
+        </div>
+        <div id="clauseLibrary" style="display:none;">
+          <input type="text" id="clauseLibSearch" class="admin-input" placeholder="Search clauses..." style="margin-bottom:0.5rem;">
+          <div id="clauseLibCategories"></div>
+        </div>
+      </div>
+
+      <hr class="admin-divider">
+
+      <!-- Signature Blocks -->
+      <div class="admin-sidebar__section">
+        <label class="admin-label">Signature Blocks (max 2, side-by-side)</label>
+        <div id="sigBlocksList"></div>
+      </div>
+
+      <hr class="admin-divider">
+
+      <!-- Intro (optional) -->
+      <div class="admin-sidebar__section">
+        <label class="admin-label" for="introText">Introduction Paragraph (optional)</label>
+        <textarea id="introText" class="admin-textarea" rows="3" placeholder="Optional introductory paragraph..."></textarea>
+      </div>
+    </aside>
+
+    <!-- Main: Preview + Actions -->
+    <div class="admin-main">
+      <div class="admin-main__toolbar">
+        <button type="button" class="btn btn--primary" id="generateBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Generate PDF
+        </button>
+        <button type="button" class="btn btn--outline-dark" id="exportJsonBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Export as Preset
+        </button>
+        <span class="admin-status" id="generationStatus"></span>
+      </div>
+
+      <div class="admin-preview">
+        <div class="admin-preview__header">
+          <h2 class="admin-preview__title">Live Preview</h2>
+          <div class="admin-preview__controls" id="previewControls">
+            <button class="admin-preview__ctrl-btn" id="zoomOutBtn" title="Zoom out" disabled>&minus;</button>
+            <span class="admin-preview__zoom" id="zoomLabel">100%</span>
+            <button class="admin-preview__ctrl-btn" id="zoomInBtn" title="Zoom in">+</button>
+            <span class="admin-preview__sep">|</span>
+            <button class="admin-preview__ctrl-btn" id="prevPageBtn" title="Previous page" disabled>&#9650;</button>
+            <span class="admin-preview__page-info" id="pageInfo">—</span>
+            <button class="admin-preview__ctrl-btn" id="nextPageBtn" title="Next page" disabled>&#9660;</button>
+          </div>
+          <span class="admin-preview__badge" id="previewBadge">Bordered Traditional</span>
+        </div>
+        <div class="admin-preview__body" id="previewBody">
+          <div id="previewPages" class="admin-preview__pages"></div>
+          <div class="admin-preview__placeholder" id="previewPlaceholder">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+            <p>Loading preview&hellip;</p>
+          </div>
+        </div>
+        <div class="admin-preview__summary" id="previewSummary">
+          <div class="admin-summary-grid">
+            <div class="admin-summary-item"><strong>Template:</strong> Bordered Traditional (Variant C)</div>
+            <div class="admin-summary-item"><strong>Title:</strong> <span id="sumTitle">—</span></div>
+            <div class="admin-summary-item"><strong>Fields:</strong> <span id="sumFields">0</span></div>
+            <div class="admin-summary-item"><strong>Clauses:</strong> <span id="sumClauses">0</span></div>
+            <div class="admin-summary-item"><strong>Signature Blocks:</strong> <span id="sumSigs">0</span></div>
+            <div class="admin-summary-item"><strong>Pages:</strong> <span id="sumPages">—</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ── Password Gate ──────────────────────────────────────────────────────
+const ACCESS_KEY = 'covbur1919';
+const gate = document.getElementById('adminGate');
+const builder = document.getElementById('adminBuilder');
+const gateForm = document.getElementById('gateForm');
+const gateError = document.getElementById('gateError');
+
+// Check if already authenticated this session
+if (sessionStorage.getItem('adminAuth') === '1') {
+  gate.style.display = 'none';
+  builder.style.display = 'block';
+}
+
+gateForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  if (document.getElementById('gatePassword').value === ACCESS_KEY) {
+    sessionStorage.setItem('adminAuth', '1');
+    gate.style.display = 'none';
+    builder.style.display = 'block';
+    updatePreview();
+  } else {
+    gateError.textContent = 'Incorrect access key. Please try again.';
+  }
+});
+
+// ── Document State ─────────────────────────────────────────────────────
+let docState = {
+  title: 'NEW DOCUMENT',
+  fields: [{ label: 'Date:', name: 'date', width: 200 }],
+  intro: '',
+  witnessText: 'IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above.',
+  clauses: [{ num: '1.', title: 'Section Title.', body: 'Enter clause text here.' }],
+  signatureBlocks: [
+    { label: 'Party A', fields: [
+      { label: 'Signature', name: 'partyASig' },
+      { label: 'Print Name', name: 'partyAPrintName' },
+      { label: 'Date', name: 'partyADate' },
+    ]},
+    { label: 'For Covington & Burling LLP', fields: [
+      { label: 'Signature', name: 'firmSignature' },
+      { label: 'Print Name', name: 'firmPrintName' },
+      { label: 'Date', name: 'firmDate' },
+    ]},
+  ],
+};
+
+// ── Load Preset ────────────────────────────────────────────────────────
+function loadPreset(name) {
+  let preset;
+  if (name === 'waiver' || name === 'nda' || name === 'blank') {
+    preset = window.CovingtonPresets[name];
+  }
+  if (!preset) return;
+
+  docState = JSON.parse(JSON.stringify(preset)); // deep clone
+  document.getElementById('docTitle').value = docState.title;
+  document.getElementById('introText').value = docState.intro || '';
+  document.getElementById('witnessText').value = docState.witnessText || '';
+  document.getElementById('outputName').value = (name === 'waiver' ? 'waiver-form.pdf' : name === 'nda' ? 'nda-form.pdf' : 'document.pdf');
+  renderAll();
+  updatePreview();
+}
+
+document.getElementById('presetSelect').addEventListener('change', function() {
+  if (this.value === 'custom') return;
+  loadPreset(this.value);
+  this.value = 'custom';
+});
+
+// ── Render Functions ───────────────────────────────────────────────────
+function renderAll() {
+  renderFields();
+  renderClauses();
+  renderSigBlocks();
+  syncState();
+}
+
+function syncState() {
+  docState.title = document.getElementById('docTitle').value;
+  docState.intro = document.getElementById('introText').value;
+  docState.witnessText = document.getElementById('witnessText').value;
+}
+
+function renderFields() {
+  const container = document.getElementById('fieldsList');
+  container.innerHTML = docState.fields.map((f, i) =>
+    '<div class="admin-editable-item">' +
+      '<input class="admin-input--sm" value="' + esc(f.label) + '" placeholder="Label" data-type="field" data-idx="' + i + '" data-prop="label">' +
+      '<input class="admin-input--sm" value="' + esc(f.name) + '" placeholder="name" data-type="field" data-idx="' + i + '" data-prop="name">' +
+      '<input class="admin-input--xs" value="' + (f.width || 370) + '" placeholder="width" data-type="field" data-idx="' + i + '" data-prop="width" type="number">' +
+      '<button class="admin-btn--del" data-type="field" data-idx="' + i + '" data-action="remove" title="Remove">&times;</button>' +
+    '</div>'
+  ).join('');
+}
+
+function renderClauses() {
+  const container = document.getElementById('clausesList');
+  container.innerHTML = docState.clauses.map((c, i) =>
+    '<div class="admin-editable-item admin-editable-item--clause">' +
+      '<div class="admin-clause-header">' +
+        '<input class="admin-input--xs" value="' + esc(c.num) + '" placeholder="#" data-type="clause" data-idx="' + i + '" data-prop="num">' +
+        '<input class="admin-input--sm" style="flex:1" value="' + esc(c.title) + '" placeholder="Title" data-type="clause" data-idx="' + i + '" data-prop="title">' +
+        '<button class="admin-btn--del" data-type="clause" data-idx="' + i + '" data-action="remove" title="Remove">&times;</button>' +
+      '</div>' +
+      '<textarea class="admin-textarea--sm" placeholder="Clause body text..." data-type="clause" data-idx="' + i + '" data-prop="body">' + esc(c.body) + '</textarea>' +
+    '</div>'
+  ).join('');
+}
+
+function renderSigBlocks() {
+  const container = document.getElementById('sigBlocksList');
+  container.innerHTML = docState.signatureBlocks.map((block, bi) =>
+    '<div class="admin-sig-block">' +
+      '<div class="admin-section-header">' +
+        '<input class="admin-input--sm" value="' + esc(block.label) + '" placeholder="Block label" data-type="sigBlock" data-idx="' + bi + '" data-prop="label">' +
+        (bi >= 2 ? '<button class="admin-btn--del" data-type="sigBlock" data-idx="' + bi + '" data-action="remove" title="Remove">&times;</button>' : '') +
+      '</div>' +
+      block.fields.map((f, fi) =>
+        '<div class="admin-editable-item" style="padding-left:0.5rem;">' +
+          '<input class="admin-input--sm" value="' + esc(f.label) + '" placeholder="Label" data-type="sigField" data-bi="' + bi + '" data-fi="' + fi + '" data-prop="label">' +
+          '<input class="admin-input--sm" value="' + esc(f.name) + '" placeholder="name" data-type="sigField" data-bi="' + bi + '" data-fi="' + fi + '" data-prop="name">' +
+          '<button class="admin-btn--del" data-type="sigField" data-bi="' + bi + '" data-fi="' + fi + '" data-action="remove" title="Remove">&times;</button>' +
+        '</div>'
+      ).join('') +
+      '<button class="admin-btn--sm" style="margin-top:0.5rem;" data-type="sigField" data-bi="' + bi + '" data-action="add">+ Add Field</button>' +
+    '</div>'
+  ).join('') +
+  (docState.signatureBlocks.length < 2
+    ? '<button class="admin-btn--sm" style="margin-top:0.75rem;" id="addSigBlockBtn">+ Add Signature Block</button>'
+    : '');
+}
+
+function esc(s) {
+  if (!s) return '';
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ── Event Delegation: Edit/Remove/Add ──────────────────────────────────
+document.getElementById('fieldsList').addEventListener('click', function(e) {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const idx = parseInt(btn.dataset.idx);
+  if (btn.dataset.action === 'remove' && confirm('Remove this field?')) {
+    docState.fields.splice(idx, 1);
+    syncState(); renderAll(); updatePreview();
+  }
+});
+document.getElementById('clausesList').addEventListener('click', function(e) {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const idx = parseInt(btn.dataset.idx);
+  if (btn.dataset.action === 'remove' && confirm('Remove this clause?')) {
+    docState.clauses.splice(idx, 1);
+    syncState(); renderAll(); updatePreview();
+  }
+});
+document.getElementById('sigBlocksList').addEventListener('click', function(e) {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  if (btn.dataset.action === 'add') {
+    const bi = parseInt(btn.dataset.bi);
+    docState.signatureBlocks[bi].fields.push({ label: 'New Field', name: 'newField' + Date.now() });
+    syncState(); renderAll(); updatePreview();
+  } else if (btn.dataset.action === 'remove' && confirm('Remove this?')) {
+    if (btn.dataset.type === 'sigField') {
+      docState.signatureBlocks[parseInt(btn.dataset.bi)].fields.splice(parseInt(btn.dataset.fi), 1);
+    } else if (btn.dataset.type === 'sigBlock') {
+      docState.signatureBlocks.splice(parseInt(btn.dataset.idx), 1);
+    }
+    syncState(); renderAll(); updatePreview();
+  }
+});
+
+// Change events for all inputs
+document.addEventListener('input', function(e) {
+  const el = e.target;
+  if (!el.dataset.type) return;
+  syncStateFromInput(el);
+  updatePreview();
+});
+
+function syncStateFromInput(el) {
+  const t = el.dataset.type;
+  const val = el.type === 'number' ? parseInt(el.value) || 200 : el.value;
+  if (t === 'field') {
+    docState.fields[parseInt(el.dataset.idx)][el.dataset.prop] = val;
+  } else if (t === 'clause') {
+    docState.clauses[parseInt(el.dataset.idx)][el.dataset.prop] = val;
+  } else if (t === 'sigBlock') {
+    docState.signatureBlocks[parseInt(el.dataset.idx)][el.dataset.prop] = val;
+  } else if (t === 'sigField') {
+    docState.signatureBlocks[parseInt(el.dataset.bi)].fields[parseInt(el.dataset.fi)][el.dataset.prop] = val;
+  }
+}
+
+// ── Add Buttons ────────────────────────────────────────────────────────
+document.getElementById('addFieldBtn').addEventListener('click', function() {
+  docState.fields.push({ label: 'New Field:', name: 'newField' + Date.now(), width: 370 });
+  renderAll(); updatePreview();
+});
+document.getElementById('addClauseBtn').addEventListener('click', function() {
+  const next = docState.clauses.length + 1;
+  docState.clauses.push({ num: next + '.', title: 'New Section.', body: 'Enter clause body text.' });
+  renderAll(); updatePreview();
+});
+document.getElementById('sigBlocksList').addEventListener('click', function(e) {
+  if (e.target.id === 'addSigBlockBtn') {
+    docState.signatureBlocks.push({ label: 'New Party', fields: [{ label: 'Signature', name: 'sig' + Date.now() }] });
+    renderAll(); updatePreview();
+  }
+});
+
+// ── Preview Summary ────────────────────────────────────────────────────
+function updatePreview() {
+  syncState();
+  document.getElementById('sumTitle').textContent = docState.title;
+  document.getElementById('sumFields').textContent = docState.fields.length;
+  document.getElementById('sumClauses').textContent = docState.clauses.length;
+  document.getElementById('sumSigs').textContent = docState.signatureBlocks.length;
+  scheduleAutoSave();
+  schedulePreviewRefresh();
+}
+
+// ── Live PDF Preview (pdfjs-dist) ──────────────────────────────────────
+let previewTimer = null;
+let previewBlobUrl = null;
+let previewPdfDoc = null;
+let previewPageCount = 0;
+let previewCurrentPage = 1;
+let previewZoom = 1.0;
+let previewBaseScale = 1.0; // "fit to width" scale
+
+const ZOOM_FACTORS = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+let zoomStepIdx = 2; // start at 1.0 (100% of base/fit)
+
+function ensurePdfJs() {
+  return typeof pdfjsLib !== 'undefined';
+}
+
+function schedulePreviewRefresh() {
+  if (previewTimer) clearTimeout(previewTimer);
+  previewTimer = setTimeout(refreshPreview, 600);
+}
+
+async function refreshPreview() {
+  syncState();
+  if (!ensurePdfJs()) return;
+
+  // Skip if the preview container is not visible yet (e.g. before auth)
+  const containerW = document.getElementById('previewBody').clientWidth - 48;
+  if (containerW < 100) return;
+
+  const placeholder = document.getElementById('previewPlaceholder');
+  const badge = document.getElementById('previewBadge');
+
+  try {
+    const pdfBytes = await window.CovingtonTemplate.generate({
+      title: docState.title,
+      fields: docState.fields,
+      intro: docState.intro || undefined,
+      witnessText: docState.witnessText,
+      clauses: docState.clauses,
+      signatureBlocks: docState.signatureBlocks,
+    });
+
+    if (previewBlobUrl) URL.revokeObjectURL(previewBlobUrl);
+    previewBlobUrl = URL.createObjectURL(new Blob([pdfBytes], { type: 'application/pdf' }));
+
+    const loadingTask = pdfjsLib.getDocument({ url: previewBlobUrl, cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/', cMapPacked: true });
+    previewPdfDoc = await loadingTask.promise;
+    previewPageCount = previewPdfDoc.numPages;
+    previewCurrentPage = 1;
+
+    // Calculate fit-to-width base scale
+    const firstPage = await previewPdfDoc.getPage(1);
+    const pageW = firstPage.getViewport({ scale: 1 }).width;
+    const containerW = document.getElementById('previewBody').clientWidth - 48; // padding
+    previewBaseScale = containerW / pageW;
+
+    document.getElementById('sumPages').textContent = previewPageCount;
+    badge.textContent = 'Live — ' + previewPageCount + ' pages';
+    placeholder.style.display = 'none';
+
+    renderAllPages();
+    updatePreviewControls();
+  } catch (err) {
+    console.warn('Preview refresh failed:', err.message);
+    badge.textContent = 'Preview unavailable';
+  }
+}
+
+async function renderAllPages() {
+  if (!previewPdfDoc) return;
+  const container = document.getElementById('previewPages');
+  container.innerHTML = '';
+
+  const scale = previewBaseScale * previewZoom;
+
+  for (let i = 1; i <= previewPdfDoc.numPages; i++) {
+    const pageWrapper = document.createElement('div');
+    pageWrapper.className = 'admin-preview__page-wrapper';
+    pageWrapper.dataset.page = i;
+
+    const canvas = document.createElement('canvas');
+    canvas.className = 'admin-preview__page-canvas';
+    pageWrapper.appendChild(canvas);
+
+    const pageLabel = document.createElement('div');
+    pageLabel.className = 'admin-preview__page-label';
+    pageLabel.textContent = 'Page ' + i;
+    pageWrapper.appendChild(pageLabel);
+
+    container.appendChild(pageWrapper);
+
+    try {
+      const page = await previewPdfDoc.getPage(i);
+      const viewport = page.getViewport({ scale });
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      await page.render({
+        canvasContext: canvas.getContext('2d'),
+        viewport: viewport,
+      }).promise;
+    } catch (e) {
+      console.warn('Failed to render page ' + i, e);
+    }
+  }
+}
+
+function updatePreviewControls() {
+  document.getElementById('pageInfo').textContent = previewPageCount
+    ? previewCurrentPage + ' / ' + previewPageCount
+    : '—';
+
+  const displayZoom = Math.round(previewBaseScale * previewZoom * 100);
+  document.getElementById('zoomLabel').textContent = displayZoom + '%';
+
+  document.getElementById('zoomOutBtn').disabled = zoomStepIdx <= 0;
+  document.getElementById('zoomInBtn').disabled = zoomStepIdx >= ZOOM_FACTORS.length - 1;
+  document.getElementById('prevPageBtn').disabled = previewCurrentPage <= 1;
+  document.getElementById('nextPageBtn').disabled = previewCurrentPage >= previewPageCount;
+}
+
+// Recalculate fit when window resizes
+let resizeDebounce = null;
+window.addEventListener('resize', function() {
+  if (!previewPdfDoc) return;
+  if (resizeDebounce) clearTimeout(resizeDebounce);
+  resizeDebounce = setTimeout(async function() {
+    const firstPage = await previewPdfDoc.getPage(1);
+    const pageW = firstPage.getViewport({ scale: 1 }).width;
+    const containerW = document.getElementById('previewBody').clientWidth - 48;
+    previewBaseScale = containerW / pageW;
+    renderAllPages();
+    updatePreviewControls();
+  }, 300);
+});
+
+// ── Preview Control Events ──────────────────────────────────────────────
+document.getElementById('zoomInBtn').addEventListener('click', function() {
+  if (zoomStepIdx < ZOOM_FACTORS.length - 1) {
+    zoomStepIdx++;
+    previewZoom = ZOOM_FACTORS[zoomStepIdx];
+    if (previewPdfDoc) renderAllPages();
+    updatePreviewControls();
+  }
+});
+
+document.getElementById('zoomOutBtn').addEventListener('click', function() {
+  if (zoomStepIdx > 0) {
+    zoomStepIdx--;
+    previewZoom = ZOOM_FACTORS[zoomStepIdx];
+    if (previewPdfDoc) renderAllPages();
+    updatePreviewControls();
+  }
+});
+
+document.getElementById('prevPageBtn').addEventListener('click', function() {
+  if (previewCurrentPage > 1) {
+    previewCurrentPage--;
+    scrollToPage(previewCurrentPage);
+    updatePreviewControls();
+  }
+});
+
+document.getElementById('nextPageBtn').addEventListener('click', function() {
+  if (previewCurrentPage < previewPageCount) {
+    previewCurrentPage++;
+    scrollToPage(previewCurrentPage);
+    updatePreviewControls();
+  }
+});
+
+function scrollToPage(num) {
+  const pageEl = document.querySelector('.admin-preview__page-wrapper[data-page="' + num + '"]');
+  if (pageEl) pageEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Track visible page on scroll
+document.getElementById('previewBody').addEventListener('scroll', function() {
+  if (!previewPdfDoc) return;
+  const pages = this.querySelectorAll('.admin-preview__page-wrapper');
+  const bodyRect = this.getBoundingClientRect();
+  let closestPage = 1;
+  let closestDist = Infinity;
+
+  pages.forEach(function(wrapper) {
+    const rect = wrapper.getBoundingClientRect();
+    const dist = Math.abs(rect.top - bodyRect.top - 20);
+    if (dist < closestDist) {
+      closestDist = dist;
+      closestPage = parseInt(wrapper.dataset.page);
+    }
+  });
+
+  if (closestPage !== previewCurrentPage) {
+    previewCurrentPage = closestPage;
+    updatePreviewControls();
+  }
+});
+
+// ── Generate PDF ───────────────────────────────────────────────────────
+document.getElementById('generateBtn').addEventListener('click', async function() {
+  syncState();
+  const status = document.getElementById('generationStatus');
+  status.textContent = 'Generating...';
+  status.className = 'admin-status admin-status--loading';
+
+  try {
+    const pdfBytes = await window.CovingtonTemplate.generate({
+      title: docState.title,
+      fields: docState.fields,
+      intro: docState.intro || undefined,
+      witnessText: docState.witnessText,
+      clauses: docState.clauses,
+      signatureBlocks: docState.signatureBlocks,
+    });
+
+    const filename = document.getElementById('outputName').value || 'document.pdf';
+    window.CovingtonTemplate.download(pdfBytes, filename);
+
+    status.textContent = 'PDF downloaded successfully.';
+    status.className = 'admin-status admin-status--success';
+  } catch (err) {
+    console.error(err);
+    status.textContent = 'Error: ' + err.message;
+    status.className = 'admin-status admin-status--error';
+  }
+});
+
+// ── Export as Preset JSON ──────────────────────────────────────────────
+document.getElementById('exportJsonBtn').addEventListener('click', function() {
+  syncState();
+  const preset = {
+    title: docState.title,
+    fields: docState.fields,
+    intro: docState.intro || '',
+    witnessText: docState.witnessText,
+    clauses: docState.clauses,
+    signatureBlocks: docState.signatureBlocks,
+  };
+  const blob = new Blob([JSON.stringify(preset, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (document.getElementById('outputName').value || 'document').replace('.pdf', '.preset.json');
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+// ── Auto-Save ───────────────────────────────────────────────────────────
+const DRAFT_KEY = 'covington-admin-draft';
+const DRAFT_TS_KEY = 'covington-admin-draft-ts';
+let autoSaveTimer = null;
+
+function scheduleAutoSave() {
+  if (autoSaveTimer) clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(saveDraft, 800);
+}
+
+function saveDraft() {
+  syncState();
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(docState));
+    localStorage.setItem(DRAFT_TS_KEY, Date.now().toString());
+  } catch (e) { /* quota exceeded — ignore */ }
+}
+
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const ts = parseInt(localStorage.getItem(DRAFT_TS_KEY) || '0');
+    const data = JSON.parse(raw);
+    return { data, ts };
+  } catch (e) { return null; }
+}
+
+function clearDraft() {
+  localStorage.removeItem(DRAFT_KEY);
+  localStorage.removeItem(DRAFT_TS_KEY);
+}
+
+function restoreDraft(draft) {
+  docState = draft.data;
+  document.getElementById('docTitle').value = docState.title || '';
+  document.getElementById('introText').value = docState.intro || '';
+  document.getElementById('witnessText').value = docState.witnessText || '';
+  document.getElementById('outputName').value = 'document.pdf';
+  document.getElementById('presetSelect').value = 'custom';
+  renderAll();
+  updatePreview();
+}
+
+// Auto-save is triggered by updatePreview() which is called after every mutation
+
+// ── Clause Library ──────────────────────────────────────────────────────
+const boilerplateClauses = [
+  // General
+  { cat: 'General', num: '', title: 'Governing Law.',
+    body: 'This Agreement shall be governed by and construed in accordance with the laws of the District of Columbia, without regard to its conflict of laws principles. Any dispute arising out of or relating to this Agreement shall be brought exclusively in the federal or state courts located in the District of Columbia.' },
+  { cat: 'General', num: '', title: 'Entire Agreement.',
+    body: 'This document constitutes the entire agreement between the parties with respect to the subject matter hereof and supersedes all prior and contemporaneous agreements, understandings, and representations, whether oral or written. No modification or amendment to this Agreement shall be effective unless in writing and signed by both parties.' },
+  { cat: 'General', num: '', title: 'Severability.',
+    body: 'If any provision of this Agreement is held to be invalid, illegal, or unenforceable by a court of competent jurisdiction, such provision shall be modified to the minimum extent necessary to make it enforceable, or if modification is not possible, severed from this Agreement. The remaining provisions shall continue in full force and effect.' },
+  { cat: 'General', num: '', title: 'Amendments.',
+    body: 'No amendment, modification, or supplement to this Agreement shall be effective unless in writing and signed by an authorized representative of each party. No course of dealing, course of performance, or failure to enforce any provision shall constitute a waiver or amendment.' },
+  { cat: 'General', num: '', title: 'Notices.',
+    body: 'All notices, requests, demands, and other communications required or permitted under this Agreement shall be in writing and shall be deemed delivered: (a) upon personal delivery, (b) three business days after deposit with a nationally recognized overnight courier, or (c) upon confirmation of receipt when sent by email to the addresses set forth above.' },
+  { cat: 'General', num: '', title: 'Assignment.',
+    body: 'Neither party may assign or transfer this Agreement, or any of its rights or obligations hereunder, without the prior written consent of the other party. Any attempted assignment in violation of this provision shall be null and void. This Agreement shall be binding upon and inure to the benefit of the parties and their permitted successors and assigns.' },
+  { cat: 'General', num: '', title: 'Waiver.',
+    body: 'No waiver of any provision of this Agreement shall be effective unless in writing and signed by the waiving party. The failure of either party to enforce any right or provision of this Agreement shall not constitute a waiver of such right or provision or of any other right or provision. A waiver of any breach shall not constitute a waiver of any subsequent breach.' },
+  { cat: 'General', num: '', title: 'Counterparts.',
+    body: 'This Agreement may be executed in counterparts, each of which shall be deemed an original, and all of which together shall constitute one and the same instrument. Electronic signatures and scanned copies shall have the same force and effect as original signatures.' },
+  { cat: 'General', num: '', title: 'Force Majeure.',
+    body: 'Neither party shall be liable for any failure or delay in performance under this Agreement to the extent such failure or delay is caused by circumstances beyond its reasonable control, including acts of God, war, terrorism, civil disturbance, fire, flood, earthquake, epidemic, governmental action, or failure of utilities or communication systems.' },
+
+  // Litigation
+  { cat: 'Litigation', num: '', title: 'Arbitration.',
+    body: 'Any dispute, controversy, or claim arising out of or relating to this Agreement, or the breach, termination, or validity thereof, shall be finally resolved by binding arbitration administered by the American Arbitration Association in accordance with its Commercial Arbitration Rules. The arbitration shall be conducted in Washington, District of Columbia, before a single arbitrator. Judgment on the award may be entered in any court having jurisdiction.' },
+  { cat: 'Litigation', num: '', title: 'Jury Trial Waiver.',
+    body: 'Each party hereby knowingly, voluntarily, and irrevocably waives any right to trial by jury in any action, proceeding, or counterclaim arising out of or relating to this Agreement. This waiver is a material inducement for the parties to enter into this Agreement.' },
+  { cat: 'Litigation', num: '', title: 'Venue and Jurisdiction.',
+    body: 'The parties agree that any legal action or proceeding arising out of or relating to this Agreement shall be brought exclusively in the federal or state courts located in the District of Columbia. Each party irrevocably submits to the personal jurisdiction of such courts and waives any objection based on improper venue or forum non conveniens.' },
+
+  // Corporate
+  { cat: 'Corporate', num: '', title: 'Representations and Warranties.',
+    body: 'Each party represents and warrants that: (a) it is duly organized and validly existing under the laws of its jurisdiction of formation; (b) it has the full power and authority to enter into and perform its obligations under this Agreement; (c) the execution and delivery of this Agreement has been duly authorized; and (d) this Agreement constitutes a legal, valid, and binding obligation enforceable against it in accordance with its terms.' },
+  { cat: 'Corporate', num: '', title: 'Indemnification.',
+    body: 'Each party (the "Indemnifying Party") agrees to indemnify, defend, and hold harmless the other party and its affiliates, officers, directors, employees, and agents from and against any and all third-party claims, liabilities, damages, losses, and expenses (including reasonable attorneys\' fees) arising out of or in connection with: (a) the Indemnifying Party\'s breach of any representation, warranty, or covenant set forth in this Agreement; or (b) the Indemnifying Party\'s gross negligence or willful misconduct.' },
+  { cat: 'Corporate', num: '', title: 'Limitation of Liability.',
+    body: 'Except for liability arising from a party\'s gross negligence, willful misconduct, fraud, or breach of confidentiality obligations, neither party shall be liable to the other for any indirect, incidental, special, consequential, or punitive damages, including lost profits or loss of business, arising out of or relating to this Agreement, regardless of the theory of liability and even if advised of the possibility of such damages.' },
+
+  // Intellectual Property
+  { cat: 'Intellectual Property', num: '', title: 'IP Ownership.',
+    body: 'All right, title, and interest in and to any intellectual property created, developed, or reduced to practice in the course of performing services under this Agreement shall be and remain the sole and exclusive property of the Client. The Firm hereby assigns to the Client all of its right, title, and interest in and to such intellectual property and agrees to execute all documents and take all actions reasonably necessary to perfect the Client\'s ownership rights.' },
+  { cat: 'Intellectual Property', num: '', title: 'Confidentiality.',
+    body: 'Each party agrees to maintain the confidentiality of all non-public information disclosed by the other party in connection with this Agreement, using at least the same degree of care it uses to protect its own confidential information, but in no event less than reasonable care. The receiving party shall not disclose such confidential information to any third party without the prior written consent of the disclosing party, except as required by law.' },
+
+  // White Collar & Investigations
+  { cat: 'White Collar', num: '', title: 'Cooperation Obligations.',
+    body: 'The Client agrees to cooperate fully with the Firm in connection with the representation, including by: (a) providing complete and accurate information; (b) making employees and documents available as reasonably requested; (c) responding promptly to Firm communications; and (d) preserving all potentially relevant documents and data. The Client acknowledges that failure to cooperate may compromise the Firm\'s ability to provide effective representation.' },
+  { cat: 'White Collar', num: '', title: 'Document Preservation.',
+    body: 'The Client acknowledges that it has been advised of its obligation to preserve all documents, communications, and electronically stored information that may be relevant to this matter. The Client agrees to immediately implement a comprehensive litigation hold and to suspend any routine document destruction policies. The Firm will provide guidance on the scope and implementation of the preservation hold.' },
+
+  // Health Care
+  { cat: 'Health Care', num: '', title: 'HIPAA Compliance.',
+    body: 'The parties acknowledge that certain information exchanged in connection with this Agreement may constitute Protected Health Information ("PHI") under the Health Insurance Portability and Accountability Act of 1996 ("HIPAA"). To the extent the Firm is a Business Associate of the Client, the parties shall enter into a separate Business Associate Agreement and the Firm shall implement appropriate administrative, physical, and technical safeguards to protect such PHI.' },
+  { cat: 'Health Care', num: '', title: 'FDA Regulatory Compliance.',
+    body: 'All activities conducted under this Agreement shall comply with applicable requirements of the U.S. Food and Drug Administration, including current Good Manufacturing Practice regulations, adverse event reporting requirements, and labeling and promotional standards. Each party represents that it maintains adequate compliance programs and has not been subject to any FDA enforcement action that would materially affect its ability to perform hereunder.' },
+
+  // Privacy & Cybersecurity
+  { cat: 'Privacy', num: '', title: 'Data Protection and Security.',
+    body: 'Each party shall implement and maintain appropriate technical and organizational measures to protect personal data against unauthorized or unlawful processing, accidental loss, destruction, or damage. Such measures shall be commensurate with the sensitivity of the data and the risks to data subjects. Each party shall promptly notify the other of any actual or suspected data breach affecting the other party\'s data.' },
+  { cat: 'Privacy', num: '', title: 'Breach Notification.',
+    body: 'In the event of a security breach involving personal data subject to this Agreement, the affected party shall notify the other party without undue delay and in any event within 48 hours of discovery. The notification shall describe the nature of the breach, the categories and approximate number of data subjects affected, the likely consequences, and the measures taken or proposed to address the breach and mitigate its effects.' },
+];
+
+const clauseLib = {
+  visible: false,
+  searchTerm: '',
+
+  renderCategories() {
+    const container = document.getElementById('clauseLibCategories');
+    const search = this.searchTerm.toLowerCase();
+
+    // Group by category
+    const grouped = {};
+    for (const clause of boilerplateClauses) {
+      if (search) {
+        const haystack = (clause.cat + ' ' + clause.title + ' ' + clause.body).toLowerCase();
+        if (!haystack.includes(search)) continue;
+      }
+      if (!grouped[clause.cat]) grouped[clause.cat] = [];
+      grouped[clause.cat].push(clause);
+    }
+
+    let html = '';
+    for (const cat of Object.keys(grouped)) {
+      html += '<div class="clause-lib-cat">';
+      html += '<div class="clause-lib-cat__title">' + esc(cat) + '</div>';
+      for (const clause of grouped[cat]) {
+        html += '<button class="clause-lib-item" data-title="' + esc(clause.title) + '" data-body="' + esc(clause.body) + '" title="Click to insert"><span class="clause-lib-item__title">' + esc(clause.title) + '</span><span class="clause-lib-item__preview">' + esc(clause.body.substring(0, 80)) + '&hellip;</span></button>';
+      }
+      html += '</div>';
+    }
+
+    container.innerHTML = html || '<p style="font-size:0.8125rem;color:var(--text-muted);padding:0.5rem;">No clauses match your search.</p>';
+
+    // Wire click handlers
+    container.querySelectorAll('.clause-lib-item').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const next = docState.clauses.length + 1;
+        docState.clauses.push({
+          num: next + '.',
+          title: this.dataset.title,
+          body: this.dataset.body,
+        });
+        renderAll();
+        updatePreview();
+        document.getElementById('clausesList').scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  },
+};
+
+document.getElementById('toggleClauseLib').addEventListener('click', function() {
+  clauseLib.visible = !clauseLib.visible;
+  const lib = document.getElementById('clauseLibrary');
+  lib.style.display = clauseLib.visible ? 'block' : 'none';
+  this.textContent = clauseLib.visible ? 'Hide' : 'Show';
+  if (clauseLib.visible) clauseLib.renderCategories();
+});
+
+document.getElementById('clauseLibSearch').addEventListener('input', function() {
+  clauseLib.searchTerm = this.value;
+  clauseLib.renderCategories();
+});
+
+// ── Init ───────────────────────────────────────────────────────────────
+// Deferred external scripts (pdf-lib, pdf.js, template-presets.js,
+// covington-template.js) execute after HTML parse but before
+// DOMContentLoaded. This inline script executes during parsing, so
+// dependencies are not available yet. Defer init to DOMContentLoaded.
+window.addEventListener('DOMContentLoaded', function() {
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  loadPreset('blank');
+  document.getElementById('presetSelect').value = 'blank';
+
+  // Check for saved draft
+  const saved = loadDraft();
+  if (saved) {
+    const age = Math.round((Date.now() - saved.ts) / 60000);
+    const ageStr = age < 1 ? 'just now' : age < 60 ? age + ' min ago' : Math.round(age / 60) + ' hours ago';
+    if (confirm('You have an unsaved draft from ' + ageStr + '. Restore it?')) {
+      restoreDraft(saved);
+    } else {
+      clearDraft();
+    }
+  }
+});
+</script>
+</body>
+</html>
