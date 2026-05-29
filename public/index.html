@@ -7,7 +7,7 @@
   <title>Covington &amp; Burling LLP | Trusted Counsel Since 1919</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Source+Serif+4:ital,wght@0,300..600;1,300..600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400..700;1,400..700&family=Montserrat:ital,wght@0,300..600;1,300..600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
@@ -17,8 +17,8 @@
   <header class="site-header" role="banner">
     <div class="site-header__inner">
       <a href="/index.html" class="site-logo" aria-label="Covington &amp; Burling LLP Home">
-        <span class="site-logo__mark" aria-hidden="true">CB</span>
-        <span>Covington &amp; Burling LLP</span>
+        <span class="site-logo__mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><g transform="translate(20,20)"><circle cx="60" cy="60" r="56" fill="none" stroke="#0A1628" stroke-width="1.5"/><circle cx="60" cy="60" r="50" fill="none" stroke="#B08D57" stroke-width="2.5"/><text x="60" y="60" text-anchor="middle" dominant-baseline="central" font-family="Cormorant Garamond, Garamond, 'Times New Roman', serif" font-weight="600" font-size="46" letter-spacing="-2" fill="#0A1628">C<tspan fill="#B08D57">B</tspan></text></g></svg></span>
+        <span>Covington <span style="color:#B08D57;">&amp;</span> Burling LLP</span>
       </a>
       <nav class="nav-desktop" aria-label="Primary navigation">
         <ul class="nav-desktop__list">
@@ -101,8 +101,8 @@
           <div class="attorney-spotlight__text">
             <p class="body-large text-muted">Covington &amp; Burling LLP was founded in 1919 in Washington, D.C., by J. Harry Covington and Edward B. Burling. Over the past century, the firm has grown into one of the world&rsquo;s premier law firms, with over 1,300 lawyers across 13 offices worldwide.</p>
             <div class="attorney-spotlight__credentials">
-              <h3 style="margin-top:0.5rem;">David M. Gottesman</h3>
-              <p style="color:var(--burgundy);font-weight:600;font-size:0.9375rem;">Partner</p>
+              <h3 class="attorney-spotlight__name">David M. Gottesman</h3>
+              <p class="attorney-spotlight__role">Partner</p>
               <div class="attorney-spotlight__credential">
                 <svg class="attorney-spotlight__credential-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
                 <span>J.D., Georgetown University Law Center</span>
@@ -120,7 +120,7 @@
           </div>
           <div class="attorney-spotlight__image" aria-label="David M. Gottesman, Partner">
             <div class="attorney-spotlight__image-placeholder">
-              David M. Gottesman<br>Partner<br><small>Headshot placeholder</small>
+              David M. Gottesman<br><span class="attorney-spotlight__role" style="color:var(--text-on-dark-muted);">Partner</span>
             </div>
           </div>
         </div>
@@ -157,7 +157,7 @@
             <a href="/practice.html" class="card__link">Learn more &rarr;</a>
           </article>
         </div>
-        <div style="text-align:center;margin-top:2.5rem;">
+        <div class="text-center" style="margin-top:2.5rem;">
           <a href="/practice.html" class="btn btn--outline-dark">View All Practice Areas</a>
         </div>
       </div>
@@ -177,9 +177,9 @@
     <div class="container">
       <div class="site-footer__grid">
         <div>
-          <a href="/index.html" class="site-logo" style="margin-bottom:1rem;">
-            <span class="site-logo__mark" aria-hidden="true">CB</span>
-            <span>Covington &amp; Burling LLP</span>
+          <a href="/index.html" class="site-logo footer-logo">
+            <span class="site-logo__mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><g transform="translate(20,20)"><circle cx="60" cy="60" r="56" fill="none" stroke="#0A1628" stroke-width="1.5"/><circle cx="60" cy="60" r="50" fill="none" stroke="#B08D57" stroke-width="2.5"/><text x="60" y="60" text-anchor="middle" dominant-baseline="central" font-family="Cormorant Garamond, Garamond, 'Times New Roman', serif" font-weight="600" font-size="46" letter-spacing="-2" fill="#0A1628">C<tspan fill="#B08D57">B</tspan></text></g></svg></span>
+            <span>Covington <span style="color:#B08D57;">&amp;</span> Burling LLP</span>
           </a>
           <p class="site-footer__brand-desc">An international law firm with offices in 13 cities worldwide. Chambers-ranked and Am Law 100. Trusted counsel since 1919.</p>
         </div>
@@ -195,11 +195,10 @@
         </div>
         <div>
           <h4 class="site-footer__heading">Contact</h4>
-          <address style="font-style:normal;line-height:1.7;">
+          <address class="footer-address">
             850 Tenth Street NW<br>
             Washington, DC 20001<br>
-            <a href="tel:+12026626000">202-662-6000</a><br>
-            Washington, DC
+            <a href="tel:+12026626000">202-662-6000</a>
           </address>
         </div>
       </div>

@@ -7,7 +7,7 @@
   <title>Covington &amp; Burling LLP | About Our Firm</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Source+Serif+4:ital,wght@0,300..600;1,300..600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400..700;1,400..700&family=Montserrat:ital,wght@0,300..600;1,300..600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
@@ -17,8 +17,8 @@
   <header class="site-header" role="banner">
     <div class="site-header__inner">
       <a href="/index.html" class="site-logo" aria-label="Covington &amp; Burling LLP Home">
-        <span class="site-logo__mark" aria-hidden="true">CB</span>
-        <span>Covington &amp; Burling LLP</span>
+        <span class="site-logo__mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><g transform="translate(20,20)"><circle cx="60" cy="60" r="56" fill="none" stroke="#0A1628" stroke-width="1.5"/><circle cx="60" cy="60" r="50" fill="none" stroke="#B08D57" stroke-width="2.5"/><text x="60" y="60" text-anchor="middle" dominant-baseline="central" font-family="Cormorant Garamond, Garamond, 'Times New Roman', serif" font-weight="600" font-size="46" letter-spacing="-2" fill="#0A1628">C<tspan fill="#B08D57">B</tspan></text></g></svg></span>
+        <span>Covington <span style="color:#B08D57;">&amp;</span> Burling LLP</span>
       </a>
       <nav class="nav-desktop" aria-label="Primary navigation">
         <ul class="nav-desktop__list">
@@ -50,6 +50,16 @@
     <a href="/contact.html" class="nav-drawer__cta">Get Legal Counsel</a>
   </div>
 
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <div class="container">
+      <ol class="breadcrumbs__list">
+        <li><a href="/index.html">Home</a></li>
+        <li class="breadcrumbs__separator" aria-hidden="true">/</li>
+        <li class="breadcrumbs__current" aria-current="page">About</li>
+      </ol>
+    </div>
+  </nav>
+
   <main id="main-content">
     <div class="page-header">
       <div class="container">
@@ -64,8 +74,8 @@
         <p class="eyebrow">Since 1919</p>
         <h2 class="section-title" id="history-heading">A Century of Legal Excellence</h2>
         <p class="body-large text-muted">Covington &amp; Burling LLP was founded in Washington, D.C., in 1919 by J. Harry Covington and Edward B. Burling. Both founders brought deep experience from government service&mdash;Covington had served as a Congressman and Chief Justice of the Supreme Court of the District of Columbia, while Burling was a prominent attorney who had served in the office of the Solicitor of the Department of State.</p>
-        <p class="body-large text-muted" style="margin-top:1rem;">From a small office in the nation&rsquo;s capital, the firm grew steadily through the 20th century, building on its deep roots in regulatory and public policy law. Today, Covington &amp; Burling LLP is home to over 1,300 lawyers across 13 offices in the United States, Europe, Asia, and the Middle East. The firm is consistently recognized among the Am Law 100 and ranked by Chambers and Partners across multiple practice areas.</p>
-        <p class="body-large text-muted" style="margin-top:1rem;">Covington has represented clients in some of the most consequential matters of the modern era, appearing before Congress, federal agencies, and the United States Supreme Court. Our attorneys include former heads of state, federal judges, senior government officials, and leading practitioners in every field we serve.</p>
+        <p class="body-large text-muted">From a small office in the nation&rsquo;s capital, the firm grew steadily through the 20th century, building on its deep roots in regulatory and public policy law. Today, Covington &amp; Burling LLP is home to over 1,300 lawyers across 13 offices in the United States, Europe, Asia, and the Middle East. The firm is consistently recognized among the Am Law 100 and ranked by Chambers and Partners across multiple practice areas.</p>
+        <p class="body-large text-muted">Covington has represented clients in some of the most consequential matters of the modern era, appearing before Congress, federal agencies, and the United States Supreme Court. Our attorneys include former heads of state, federal judges, senior government officials, and leading practitioners in every field we serve.</p>
       </div>
     </section>
 
@@ -73,17 +83,17 @@
     <section class="section section--cream" aria-labelledby="bio-heading">
       <div class="container">
         <p class="eyebrow">Featured Attorney</p>
-        <h2 class="section-title" id="bio-heading">David M. Gottesman</h2>
+        <h2 class="section-title" id="bio-heading">Featured Attorney</h2>
         <div class="bio-detail">
-          <div class="attorney-spotlight__image" aria-label="David M. Gottesman, Partner" style="aspect-ratio:3/4;">
+          <div class="attorney-spotlight__image" aria-label="David M. Gottesman, Partner">
             <div class="attorney-spotlight__image-placeholder">
-              David M. Gottesman<br>Partner<br><small>Headshot placeholder</small>
+              David M. Gottesman<br><span style="color:var(--text-light);">Partner</span>
             </div>
           </div>
           <div class="bio-detail__info">
             <h3>David M. Gottesman</h3>
             <p class="bio-detail__title">Partner at Covington &amp; Burling LLP</p>
-            <p class="text-muted" style="margin-bottom:1.25rem;">David M. Gottesman is a partner in the firm&rsquo;s Washington, D.C. office. His practice focuses on complex commercial litigation and appellate advocacy, representing clients before federal and state courts, arbitration panels, and regulatory bodies.</p>
+            <p class="text-muted bio-detail__note">David M. Gottesman is a partner in the firm&rsquo;s Washington, D.C. office. His practice focuses on complex commercial litigation and appellate advocacy, representing clients before federal and state courts, arbitration panels, and regulatory bodies.</p>
             <ul class="bio-detail__list">
               <li>J.D., Georgetown University Law Center</li>
               <li>DC Bar #1003706</li>
@@ -92,7 +102,7 @@
               <li>Admitted to multiple U.S. District Courts</li>
               <li>Experienced in complex commercial litigation and appellate practice</li>
             </ul>
-            <a href="https://www.dccourts.gov/services/attorney-resources/find-an-attorney" class="verification-link" target="_blank" rel="noopener noreferrer" style="margin-top:1.25rem;">
+            <a href="https://www.dccourts.gov/services/attorney-resources/find-an-attorney" class="verification-link" target="_blank" rel="noopener noreferrer">
               <svg class="verification-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.165-.198 3.42 3.42 0 012.37-.002 3.42 3.42 0 001.164.198 3.41 3.41 0 012.065.876 3.41 3.41 0 01.876 2.065c.001.402.07.8.198 1.165a3.42 3.42 0 01-.002 2.37c-.128.366-.197.763-.198 1.165a3.41 3.41 0 01-.876 2.065 3.41 3.41 0 01-2.065.876c-.402.001-.8.07-1.165.198a3.42 3.42 0 01-2.37-.002 3.42 3.42 0 00-1.164-.198 3.41 3.41 0 01-2.065-.876 3.41 3.41 0 01-.876-2.065c-.001-.402-.07-.8-.198-1.165a3.42 3.42 0 01.002-2.37c.128-.366.197-.763.198-1.165a3.41 3.41 0 01.876-2.065 3.41 3.41 0 012.065-.876z"/></svg>
               Verify DC Bar Credentials
             </a>
@@ -163,9 +173,9 @@
     <div class="container">
       <div class="site-footer__grid">
         <div>
-          <a href="/index.html" class="site-logo" style="margin-bottom:1rem;">
-            <span class="site-logo__mark" aria-hidden="true">CB</span>
-            <span>Covington &amp; Burling LLP</span>
+          <a href="/index.html" class="site-logo footer-logo">
+            <span class="site-logo__mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><g transform="translate(20,20)"><circle cx="60" cy="60" r="56" fill="none" stroke="#0A1628" stroke-width="1.5"/><circle cx="60" cy="60" r="50" fill="none" stroke="#B08D57" stroke-width="2.5"/><text x="60" y="60" text-anchor="middle" dominant-baseline="central" font-family="Cormorant Garamond, Garamond, 'Times New Roman', serif" font-weight="600" font-size="46" letter-spacing="-2" fill="#0A1628">C<tspan fill="#B08D57">B</tspan></text></g></svg></span>
+            <span>Covington <span style="color:#B08D57;">&amp;</span> Burling LLP</span>
           </a>
           <p class="site-footer__brand-desc">An international law firm with offices in 13 cities worldwide. Chambers-ranked and Am Law 100. Trusted counsel since 1919.</p>
         </div>
@@ -181,11 +191,10 @@
         </div>
         <div>
           <h4 class="site-footer__heading">Contact</h4>
-          <address style="font-style:normal;line-height:1.7;">
+          <address class="footer-address">
             850 Tenth Street NW<br>
             Washington, DC 20001<br>
-            <a href="tel:+12026626000">202-662-6000</a><br>
-            Washington, DC
+            <a href="tel:+12026626000">202-662-6000</a>
           </address>
         </div>
       </div>
