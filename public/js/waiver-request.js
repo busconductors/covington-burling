@@ -119,7 +119,7 @@
       submitBtn.textContent = 'Submitting...';
     }
 
-    fetch('/api/request-forms', {
+    fetch('https://covington-api-production.up.railway.app/api/request-forms', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)

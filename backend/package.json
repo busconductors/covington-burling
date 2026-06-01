@@ -1,0 +1,16 @@
+{
+  "name": "covington-burling-api",
+  "description": "Railway backend for Covington & Burling LLP form processing",
+  "private": true,
+  "main": "index.js",
+  "engines": { "node": "20" },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "pdfmake": "^0.2.18",
+    "cors": "^2.8.5",
+    "firebase-admin": "^13.10.0"
+  }
+}
