@@ -9,6 +9,7 @@
   var dashboard = document.getElementById('adminDashboard');
   var loginForm = document.getElementById('loginForm');
   var loginError = document.getElementById('login-error');
+  var adminError = document.getElementById('adminError');
   var adminTable = document.getElementById('adminTable');
   var adminTableBody = document.getElementById('adminTableBody');
   var adminLoading = document.getElementById('adminLoading');
@@ -151,6 +152,15 @@
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
+  function showError(msg) {
+    if (!adminError) return;
+    adminError.textContent = msg;
+    adminError.classList.add('form-error-msg--visible');
+    setTimeout(function () {
+      adminError.classList.remove('form-error-msg--visible');
+    }, 5000);
+  }
+
   // Delegate click events for approve/reject
   adminTableBody.addEventListener('click', function (e) {
     var btn = e.target.closest('button');
@@ -161,27 +171,27 @@
     if (btn.classList.contains('admin-approve-btn')) {
       if (!confirm('Approve this request? An email will be sent to the client with download links.')) return;
       btn.disabled = true;
-      btn.textContent = 'Sending...';
+      btn.textContent = 'Sending…';
       fetch(API_BASE + '/requests/' + id + '/approve', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
       })
         .then(function (r) { return r.json().then(function (d) { if (!r.ok) throw d; return d; }); })
         .then(function () { loadRequests(); })
-        .catch(function () { alert('Failed to approve. Please try again.'); btn.disabled = false; btn.textContent = 'Approve'; });
+        .catch(function () { showError('Failed to approve. Please try again.'); btn.disabled = false; btn.textContent = 'Approve'; });
     }
 
     if (btn.classList.contains('admin-reject-btn')) {
       if (!confirm('Reject this request?')) return;
       btn.disabled = true;
-      btn.textContent = 'Rejecting...';
+      btn.textContent = 'Rejecting…';
       fetch(API_BASE + '/requests/' + id + '/reject', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
       })
         .then(function (r) { return r.json().then(function (d) { if (!r.ok) throw d; return d; }); })
         .then(function () { loadRequests(); })
-        .catch(function () { alert('Failed to reject. Please try again.'); btn.disabled = false; btn.textContent = 'Reject'; });
+        .catch(function () { showError('Failed to reject. Please try again.'); btn.disabled = false; btn.textContent = 'Reject'; });
     }
   });
 })();
