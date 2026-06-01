@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const PdfPrinter = require('pdfmake');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const admin = require('firebase-admin');
 
 // ── Config from environment ──────────────────────────────────────────
@@ -16,18 +18,42 @@ const config = {
 
 // ── Firebase Admin init ──────────────────────────────────────────────
 let db = null;
+let dbInitError = null;
 
 function getDb() {
-  if (!db) {
-    // Service account from env var (JSON string) or ADC
-    if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-      const sa = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
-      admin.initializeApp({ credential: admin.credential.cert(sa) });
-    } else {
-      admin.initializeApp();
+  if (!db && !dbInitError) {
+    try {
+      let cred = null;
+
+      // 1) GOOGLE_APPLICATION_CREDENTIALS_JSON env var (JSON string)
+      if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+        console.log('Firebase: using GOOGLE_APPLICATION_CREDENTIALS_JSON env var');
+        cred = admin.credential.cert(JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON));
+      }
+      // 2) Local service-account.json file (bundled with deploy)
+      else if (fs.existsSync(path.join(__dirname, 'service-account.json'))) {
+        console.log('Firebase: using local service-account.json');
+        const sa = JSON.parse(fs.readFileSync(path.join(__dirname, 'service-account.json'), 'utf8'));
+        cred = admin.credential.cert(sa);
+      }
+      // 3) Application Default Credentials (works on GCP, not Railway)
+      else {
+        console.log('Firebase: using Application Default Credentials');
+      }
+
+      if (cred) {
+        admin.initializeApp({ credential: cred });
+      } else {
+        admin.initializeApp();
+      }
+      db = admin.firestore();
+      console.log('Firebase: initialized successfully');
+    } catch (err) {
+      dbInitError = err;
+      console.error('Firebase init failed:', err.message);
     }
-    db = admin.firestore();
   }
+  if (dbInitError) throw new Error('Firestore unavailable: ' + dbInitError.message);
   return db;
 }
 
