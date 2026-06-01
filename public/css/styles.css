@@ -30,6 +30,7 @@
   --font-serif: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
   --font-sans: 'Montserrat', Arial, sans-serif;
   --container-narrow: 860px;
+  --container-max: 1200px;
   --nav-height: 72px;
   --radius: 4px;
   --radius-lg: 8px;
