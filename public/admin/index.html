@@ -33,26 +33,26 @@
     </section>
 
     <!-- Dashboard (hidden until login) -->
-    <section class="admin-dashboard" id="adminDashboard" style="display:none;">
+    <section class="admin-dashboard hidden" id="adminDashboard">
       <header class="admin-dashboard__header">
         <div class="container">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+          <div class="admin-dashboard__header-inner">
             <div>
               <h1 class="admin-dashboard__title">Form Requests</h1>
               <p class="admin-dashboard__subtitle">Covington &amp; Burling LLP</p>
             </div>
-            <button id="adminLogout" class="btn btn--outline-light" style="width:auto;">Sign Out</button>
+            <button id="adminLogout" class="btn btn--outline-light">Sign Out</button>
           </div>
         </div>
       </header>
-      <div class="container" style="padding:2rem 1.5rem;">
+      <div class="container admin-dashboard__content">
         <div class="admin-table-wrap">
-          <div id="adminLoading" style="text-align:center;padding:3rem;color:var(--text-muted);">Loading requests...</div>
-          <div id="adminEmpty" style="display:none;text-align:center;padding:3rem;color:var(--text-muted);">
-            <p style="font-size:1.25rem;margin-bottom:0.5rem;">No requests yet.</p>
+          <div id="adminLoading" class="admin-loading">Loading requests...</div>
+          <div id="adminEmpty" class="admin-empty hidden">
+            <p class="admin-empty__title">No requests yet.</p>
             <p>Form requests submitted by clients will appear here.</p>
           </div>
-          <table class="admin-table" id="adminTable" style="display:none;">
+          <table class="admin-table hidden" id="adminTable">
             <thead>
               <tr>
                 <th>Date</th>

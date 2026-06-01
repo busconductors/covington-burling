@@ -178,6 +178,8 @@ h4 { font-size: 1.125rem; }
 .text-center { text-align: center; }
 .text-serif { font-family: var(--font-serif); }
 .text-gold { color: var(--gold); }
+.text-sm { font-size: 0.8125rem; }
+.hidden { display: none !important; }
 
 /* ----- 6. LAYOUT ----- */
 .container {
@@ -2021,12 +2023,36 @@ h4 { font-size: 1.125rem; }
   color: var(--text-on-dark-muted);
 }
 
+.admin-dashboard__header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.admin-dashboard__content {
+  padding: 2rem 1.5rem;
+}
+
 .admin-table-wrap {
   overflow-x: auto;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+}
+
+.admin-loading,
+.admin-empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+}
+
+.admin-empty__title {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .admin-table {

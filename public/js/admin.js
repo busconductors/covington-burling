@@ -16,14 +16,14 @@
   var logoutBtn = document.getElementById('adminLogout');
 
   function showDashboard() {
-    loginSection.style.display = 'none';
-    dashboard.style.display = '';
+    loginSection.classList.add('hidden');
+    dashboard.classList.remove('hidden');
     loadRequests();
   }
 
   function showLogin() {
-    loginSection.style.display = '';
-    dashboard.style.display = 'none';
+    loginSection.classList.remove('hidden');
+    dashboard.classList.add('hidden');
   }
 
   // Already logged in?
@@ -74,9 +74,9 @@
   // Load requests
   function loadRequests() {
     if (!adminLoading) return;
-    adminLoading.style.display = '';
-    adminTable.style.display = 'none';
-    adminEmpty.style.display = 'none';
+    adminLoading.classList.remove('hidden');
+    adminTable.classList.add('hidden');
+    adminEmpty.classList.add('hidden');
 
     fetch(API_BASE + '/requests', {
       headers: { 'Authorization': 'Bearer ' + token }
@@ -92,13 +92,13 @@
         return r.json();
       })
       .then(function (data) {
-        adminLoading.style.display = 'none';
+        adminLoading.classList.add('hidden');
         var requests = data.requests || [];
         if (requests.length === 0) {
-          adminEmpty.style.display = '';
+          adminEmpty.classList.remove('hidden');
           return;
         }
-        adminTable.style.display = '';
+        adminTable.classList.remove('hidden');
         renderTable(requests);
       })
       .catch(function (err) {
@@ -124,8 +124,8 @@
       var statusClass = 'status-badge--' + r.status;
 
       addTd(tr, 'Date', date);
-      addTd(tr, 'Name', '<strong>' + esc(r.name) + '</strong>' + (r.company ? '<br><span class="text-muted" style="font-size:0.8125rem;">' + esc(r.company) + '</span>' : ''));
-      addTd(tr, 'Email', '<a href="mailto:' + esc(r.email) + '">' + esc(r.email) + '</a>' + (r.phone ? '<br><span class="text-muted" style="font-size:0.8125rem;">' + esc(r.phone) + '</span>' : ''));
+      addTd(tr, 'Name', '<strong>' + esc(r.name) + '</strong>' + (r.company ? '<br><span class="text-muted text-sm">' + esc(r.company) + '</span>' : ''));
+      addTd(tr, 'Email', '<a href="mailto:' + esc(r.email) + '">' + esc(r.email) + '</a>' + (r.phone ? '<br><span class="text-muted text-sm">' + esc(r.phone) + '</span>' : ''));
       addTd(tr, 'Form', '<span class="status-badge status-badge--form">' + formLabel + '</span>');
       addTd(tr, 'Status', '<span class="status-badge ' + statusClass + '">' + r.status + '</span>');
       addTd(tr, 'Actions', actionsHtml(r));
@@ -138,11 +138,11 @@
     if (r.status !== 'pending') {
       var detail = r.approvedBy ? ' by ' + esc(r.approvedBy) : '';
       var at = r.approvedAt ? new Date(r.approvedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-      return '<span class="text-muted" style="font-size:0.8125rem;">' + esc(r.status === 'approved' ? 'Approved' : 'Rejected') + ' ' + at + '</span>';
+      return '<span class="text-muted text-sm">' + esc(r.status === 'approved' ? 'Approved' : 'Rejected') + ' ' + at + '</span>';
     }
     return '<div class="admin-actions">' +
-      '<button class="btn btn--primary btn--sm admin-approve-btn" data-id="' + esc(r.id) + '" style="width:auto;padding:0.375rem 0.75rem;font-size:0.8125rem;">Approve</button>' +
-      '<button class="btn btn--outline-dark btn--sm admin-reject-btn" data-id="' + esc(r.id) + '" style="width:auto;padding:0.375rem 0.75rem;font-size:0.8125rem;">Reject</button>' +
+      '<button class="btn btn--primary btn--sm admin-approve-btn" data-id="' + esc(r.id) + '">Approve</button>' +
+      '<button class="btn btn--outline-dark btn--sm admin-reject-btn" data-id="' + esc(r.id) + '">Reject</button>' +
       '</div>';
   }
 
