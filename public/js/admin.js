@@ -141,8 +141,8 @@
       return '<span class="text-muted text-sm">' + esc(r.status === 'approved' ? 'Approved' : 'Rejected') + ' ' + at + '</span>';
     }
     return '<div class="admin-actions">' +
-      '<button class="btn btn--primary btn--sm admin-approve-btn" data-id="' + esc(r.id) + '">Approve</button>' +
-      '<button class="btn btn--outline-dark btn--sm admin-reject-btn" data-id="' + esc(r.id) + '">Reject</button>' +
+      '<button class="btn btn--primary btn--sm admin-approve-btn" data-id="' + esc(r.id) + '" aria-label="Approve request from ' + esc(r.name) + '">Approve</button>' +
+      '<button class="btn btn--outline-dark btn--sm admin-reject-btn" data-id="' + esc(r.id) + '" aria-label="Reject request from ' + esc(r.name) + '">Reject</button>' +
       '</div>';
   }
 
