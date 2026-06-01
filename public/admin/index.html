@@ -12,6 +12,7 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
 <body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
   <main id="main-content">
     <!-- Login -->
     <section class="admin-login" id="adminLogin">
@@ -46,8 +47,8 @@
         </div>
       </header>
       <div class="container admin-dashboard__content">
-        <div class="admin-table-wrap">
-          <div id="adminLoading" class="admin-loading">Loading requests...</div>
+        <div class="admin-table-wrap" role="region" aria-live="polite" aria-label="Form requests table">
+          <div id="adminLoading" class="admin-loading" aria-busy="true" aria-live="polite">Loading requests...</div>
           <div id="adminEmpty" class="admin-empty hidden">
             <p class="admin-empty__title">No requests yet.</p>
             <p>Form requests submitted by clients will appear here.</p>
