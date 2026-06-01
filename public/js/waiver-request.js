@@ -5,6 +5,7 @@
   var formFields = document.getElementById('requestFormFields');
   var success = document.getElementById('requestSuccess');
   var resetBtn = document.getElementById('requestReset');
+  var submitError = document.getElementById('req-submit-error');
   if (!form || !formFields || !success) return;
 
   var fields = {
@@ -116,15 +117,24 @@
     var submitBtn = form.querySelector('button[type="submit"]');
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting...';
+      submitBtn.textContent = 'Submitting…';
     }
+    if (submitError) {
+      submitError.textContent = '';
+      submitError.classList.remove('form-error-msg--visible');
+    }
+
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function () { controller.abort(); }, 15000);
 
     fetch('https://covington-api-production.up.railway.app/api/request-forms', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(formData),
+      signal: controller.signal
     })
       .then(function (res) {
+        clearTimeout(timeoutId);
         if (!res.ok) return res.json().then(function (err) { throw err; });
         return res.json();
       })
@@ -132,12 +142,20 @@
         formFields.style.display = 'none';
         success.classList.add('request-success--visible');
       })
-      .catch(function () {
+      .catch(function (err) {
+        clearTimeout(timeoutId);
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.textContent = 'Submit Request';
         }
-        alert('Something went wrong. Please try again or contact our office directly at 202-662-6000.');
+        var msg = err && err.error ? err.error : 'Something went wrong. Please try again or contact our office at 202-662-6000.';
+        if (err && err.name === 'AbortError') {
+          msg = 'Request timed out. Please check your connection and try again, or contact our office at 202-662-6000.';
+        }
+        if (submitError) {
+          submitError.textContent = msg;
+          submitError.classList.add('form-error-msg--visible');
+        }
       });
   });
 
