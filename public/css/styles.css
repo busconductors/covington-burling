@@ -12,6 +12,10 @@
   --burgundy-light: #852536;
   --gold: #B08D57;
   --gold-dark: #9A7A3E;
+  --gold-light: #C9A66B;
+  --pending-bg: #F5EDDC;
+  --approved-bg: #DCEFE5;
+  --rejected-bg: #FDE8E8;
   --cream: #FAF8F5;
   --cream-dark: #EFECE7;
   --white: #FFFFFF;
@@ -147,7 +151,7 @@ h4 { font-size: 1.125rem; }
   margin-bottom: 0.75rem;
 }
 
-.eyebrow--gold { color: #C9A66B; }
+.eyebrow--gold { color: var(--gold-light); }
 .eyebrow--light { color: var(--text-on-dark-muted); }
 
 .section-title {
@@ -173,6 +177,7 @@ h4 { font-size: 1.125rem; }
 .text-muted { color: var(--text-muted); }
 .text-center { text-align: center; }
 .text-serif { font-family: var(--font-serif); }
+.text-gold { color: var(--gold); }
 
 /* ----- 6. LAYOUT ----- */
 .container {
@@ -2080,17 +2085,17 @@ h4 { font-size: 1.125rem; }
 }
 
 .status-badge--pending {
-  background: #F5EDDC;
+  background: var(--pending-bg);
   color: var(--gold-dark);
 }
 
 .status-badge--approved {
-  background: #DCEFE5;
+  background: var(--approved-bg);
   color: var(--success);
 }
 
 .status-badge--rejected {
-  background: #FDE8E8;
+  background: var(--rejected-bg);
   color: var(--error);
 }
 
