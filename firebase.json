@@ -9,7 +9,13 @@
     ],
     "headers": [
       {
-        "source": "**/*.@(css|js|svg|png|jpg|jpeg|gif|ico|woff|woff2|pdf)",
+        "source": "**/*.@(css|js)",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=86400" }
+        ]
+      },
+      {
+        "source": "**/*.@(svg|png|jpg|jpeg|gif|ico|woff|woff2|pdf)",
         "headers": [
           { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
         ]
