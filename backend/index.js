@@ -141,6 +141,21 @@ function sendBrevoEmail(toEmail, toName, formType, downloadToken) {
   });
 }
 
+// ── Activity logging ──────────────────────────────────────────────────
+function logActivity(action, details) {
+  try {
+    const firestore = getDb();
+    return firestore.collection('admin-activity').add({
+      action: action,
+      details: details,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    console.error('Activity log error:', err);
+    return Promise.resolve();
+  }
+}
+
 // ── Auth middleware ───────────────────────────────────────────────────
 function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization || '';
@@ -208,6 +223,12 @@ app.post('/api/request-forms', function (req, res) {
     };
 
     firestore.collection('form-requests').add(doc).then(function (ref) {
+      logActivity('form-submitted', {
+        requestId: ref.id,
+        name: doc.name,
+        email: doc.email,
+        formType: doc.formType,
+      });
       res.status(201).json({ id: ref.id, message: 'Request submitted successfully.' });
     }).catch(function (err) {
       console.error('Firestore write error:', err);
@@ -279,14 +300,23 @@ app.post('/api/admin/requests/:id/approve', requireAuth, function (req, res) {
         return res.status(400).json({ error: 'Request is not in pending status.' });
       }
 
+      var now = new Date().toISOString();
       return firestore.collection('form-requests').doc(id).update({
         status: 'approved',
-        approvedAt: new Date().toISOString(),
+        approvedAt: now,
+        approvedBy: 'admin',
         downloadToken: downloadToken,
         tokenExpiresAt: tokenExpiresAt,
       }).then(function () {
         sendBrevoEmail(data.email, data.name, data.formType, downloadToken).catch(function (err) {
           console.error('Brevo email error:', err);
+        });
+
+        logActivity('approve', {
+          requestId: id,
+          name: data.name,
+          email: data.email,
+          formType: data.formType,
         });
 
         res.json({ message: 'Request approved. Email sent to ' + data.email + '.' });
@@ -317,7 +347,15 @@ app.post('/api/admin/requests/:id/reject', requireAuth, function (req, res) {
       return firestore.collection('form-requests').doc(id).update({
         status: 'rejected',
         approvedAt: new Date().toISOString(),
+        approvedBy: 'admin',
       }).then(function () {
+        logActivity('reject', {
+          requestId: id,
+          name: data.name,
+          email: data.email,
+          formType: data.formType,
+        });
+
         res.json({ message: 'Request rejected.' });
       });
     }).catch(function (err) {
@@ -375,6 +413,154 @@ app.get('/api/download/:token', function (req, res) {
       });
   } catch (err) {
     console.error('Download error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// ── Analytics ─────────────────────────────────────────────────────────
+app.get('/api/admin/analytics', requireAuth, function (req, res) {
+  try {
+    var firestore = getDb();
+    firestore.collection('form-requests').get()
+      .then(function (snapshot) {
+        var total = 0;
+        var pending = 0;
+        var approved = 0;
+        var rejected = 0;
+        var byFormType = { waiver: 0, nda: 0, both: 0 };
+        var monthlySubmissions = {};
+        var approvalDurations = [];
+
+        snapshot.forEach(function (doc) {
+          var d = doc.data();
+          total++;
+
+          if (d.status === 'pending') pending++;
+          else if (d.status === 'approved') approved++;
+          else if (d.status === 'rejected') rejected++;
+
+          var ft = d.formType;
+          if (byFormType[ft] !== undefined) byFormType[ft]++;
+
+          if (d.createdAt) {
+            var month = d.createdAt.substring(0, 7);
+            monthlySubmissions[month] = (monthlySubmissions[month] || 0) + 1;
+          }
+
+          if (d.status === 'approved' && d.createdAt && d.approvedAt) {
+            var created = new Date(d.createdAt).getTime();
+            var approvedAt = new Date(d.approvedAt).getTime();
+            if (!isNaN(created) && !isNaN(approvedAt)) {
+              approvalDurations.push(approvedAt - created);
+            }
+          }
+        });
+
+        // Sort monthly data
+        var sortedMonths = Object.keys(monthlySubmissions).sort();
+        var monthlyTrend = sortedMonths.map(function (m) {
+          return { month: m, count: monthlySubmissions[m] };
+        });
+
+        var approvalRate = total > 0 ? Math.round((approved / (approved + rejected)) * 100) : 0;
+        var avgApprovalHours = approvalDurations.length > 0
+          ? Math.round(approvalDurations.reduce(function (a, b) { return a + b; }, 0) / approvalDurations.length / (1000 * 60 * 60))
+          : null;
+
+        res.json({
+          pipeline: {
+            total: total,
+            pending: pending,
+            approved: approved,
+            rejected: rejected,
+          },
+          approvalRate: approvalRate,
+          avgApprovalHours: avgApprovalHours,
+          byFormType: byFormType,
+          monthlyTrend: monthlyTrend,
+        });
+      })
+      .catch(function (err) {
+        console.error('Analytics error:', err);
+        res.status(500).json({ error: 'Failed to load analytics.' });
+      });
+  } catch (err) {
+    console.error('Analytics error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// ── Admin send email ──────────────────────────────────────────────────
+app.post('/api/admin/send-email', requireAuth, function (req, res) {
+  try {
+    var _a = req.body || {};
+    var toEmail = _a.toEmail;
+    var toName = _a.toName || '';
+    var subject = _a.subject;
+    var body = _a.body;
+
+    if (!toEmail || !subject || !body) {
+      return res.status(400).json({ error: 'Missing required fields: toEmail, subject, body.' });
+    }
+
+    var apiKey = config.brevoApiKey;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'Email service not configured.' });
+    }
+
+    var payload = {
+      sender: { name: 'Covington & Burling LLP', email: config.brevoSender },
+      to: [{ email: toEmail, name: toName }],
+      subject: subject,
+      htmlContent: body,
+    };
+
+    fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    }).then(function (r) {
+      if (!r.ok) return r.json().then(function (e) { throw e; });
+      return r.json();
+    }).then(function () {
+      logActivity('send-email', { toEmail: toEmail, toName: toName, subject: subject });
+      res.json({ message: 'Email sent to ' + toEmail + '.' });
+    }).catch(function (err) {
+      console.error('Send email error:', err);
+      res.status(500).json({ error: 'Failed to send email.', detail: err.message });
+    });
+  } catch (err) {
+    console.error('Send email error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// ── Activity log ──────────────────────────────────────────────────────
+app.get('/api/admin/activity', requireAuth, function (req, res) {
+  try {
+    var firestore = getDb();
+    firestore.collection('admin-activity')
+      .orderBy('timestamp', 'desc')
+      .limit(50)
+      .get()
+      .then(function (snapshot) {
+        var entries = [];
+        snapshot.forEach(function (doc) {
+          var d = doc.data();
+          d.id = doc.id;
+          entries.push(d);
+        });
+        res.json({ activity: entries });
+      })
+      .catch(function (err) {
+        console.error('Activity read error:', err);
+        res.status(500).json({ error: 'Failed to load activity log.' });
+      });
+  } catch (err) {
+    console.error('Activity error:', err);
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
