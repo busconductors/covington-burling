@@ -118,88 +118,6 @@
     }
   });
 
-  // ── Email Preview Builders ──────────────────────────────────────────
-  function buildApprovalPreviewHtml(toName, formType, adminMessage) {
-    var formLabel = formType === 'waiver' ? 'Waiver and Release of Liability'
-      : formType === 'nda' ? 'Mutual Non-Disclosure Agreement'
-      : 'Waiver and Release of Liability + Mutual Non-Disclosure Agreement';
-
-    var linksHtml = '';
-    if (formType === 'waiver' || formType === 'both') {
-      linksHtml += '<p><a href="#" style="color:#B08D57;font-weight:600;">Download Waiver and Release of Liability</a></p>';
-    }
-    if (formType === 'nda' || formType === 'both') {
-      linksHtml += '<p><a href="#" style="color:#B08D57;font-weight:600;">Download Mutual Non-Disclosure Agreement</a></p>';
-    }
-
-    var adminMsgHtml = '';
-    if (adminMessage) {
-      adminMsgHtml = '<div style="background:#F0F4F8;border:1px solid #C5D3E8;border-radius:6px;padding:16px;margin:0 0 20px;"><p style="font-family:Georgia,\'Times New Roman\',serif;font-size:15px;color:#0A1628;line-height:1.6;margin:0;font-style:italic;">' + adminMessage.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>') + '</p></div>';
-    }
-
-    return '<!DOCTYPE html>' +
-      '<html lang="en">' +
-      '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>' +
-      '<body style="margin:0;padding:0;background-color:#FAF8F5;font-family:Georgia,\'Times New Roman\',serif;">' +
-      '<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FAF8F5;padding:40px 0;">' +
-      '<tr><td align="center">' +
-      '<table width="600" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF;border:1px solid #D5D5DE;border-radius:4px;">' +
-      '<tr><td style="background-color:#0A1628;padding:32px 40px;text-align:center;">' +
-      '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:28px;font-weight:600;color:#FFFFFF;margin:0;letter-spacing:-0.5px;">Covington <span style="color:#B08D57;">&amp;</span> Burling LLP</p>' +
-      '</td></tr>' +
-      '<tr><td style="padding:40px;">' +
-      '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:22px;color:#0A1628;margin:0 0 20px;font-weight:600;">Your Legal Forms Are Ready</p>' +
-      adminMsgHtml +
-      '<p style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#1F1F2E;line-height:1.6;margin:0 0 12px;">Dear ' + toName + ',</p>' +
-      '<p style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#1F1F2E;line-height:1.6;margin:0 0 12px;">Your request for the following legal form(s) has been approved:</p>' +
-      '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:17px;color:#0A1628;font-weight:600;margin:0 0 20px;">' + AdminUtils.escHtml(formLabel) + '</p>' +
-      linksHtml +
-      '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">These links will expire in 7 days. If you have any questions, please contact our office at <a href="tel:+12026626000" style="color:#6B1C2E;">202-662-6000</a>.</p>' +
-      '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:12px 0 0;">After completing your form(s), email them to <a href="mailto:info@covbur.com" style="color:#6B1C2E;">info@covbur.com</a> or deliver to 850 Tenth Street NW, Washington, DC 20001.</p>' +
-      '</td></tr>' +
-      '<tr><td style="background-color:#FAF8F5;padding:24px 40px;border-top:1px solid #D5D5DE;">' +
-      '<p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Covington &amp; Burling LLP, 850 Tenth Street NW, Washington, DC 20001. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>' +
-      '</td></tr>' +
-      '</table>' +
-      '</td></tr>' +
-      '</table>' +
-      '</body>' +
-      '</html>';
-  }
-
-  function buildRejectionPreviewHtml(toName, reason) {
-    var escapedReason = reason ? reason.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
-
-    return '<!DOCTYPE html>' +
-      '<html lang="en">' +
-      '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>' +
-      '<body style="margin:0;padding:0;background-color:#FAF8F5;font-family:Georgia,\'Times New Roman\',serif;">' +
-      '<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FAF8F5;padding:40px 0;">' +
-      '<tr><td align="center">' +
-      '<table width="600" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF;border:1px solid #D5D5DE;border-radius:4px;">' +
-      '<tr><td style="background-color:#0A1628;padding:32px 40px;text-align:center;">' +
-      '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:28px;font-weight:600;color:#FFFFFF;margin:0;letter-spacing:-0.5px;">Covington <span style="color:#B08D57;">&amp;</span> Burling LLP</p>' +
-      '</td></tr>' +
-      '<tr><td style="padding:40px;">' +
-      '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:22px;color:#0A1628;margin:0 0 20px;font-weight:600;">Your Form Request Has Been Declined</p>' +
-      '<p style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#1F1F2E;line-height:1.6;margin:0 0 12px;">Dear ' + toName + ',</p>' +
-      '<p style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#1F1F2E;line-height:1.6;margin:0 0 12px;">Thank you for your interest in Covington &amp; Burling LLP. After careful review, we are unable to provide the requested forms at this time.</p>' +
-      '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:16px;margin:16px 0;">' +
-      '<p style="font-family:Montserrat,Arial,sans-serif;font-size:13px;color:#991B1B;margin:0;font-weight:600;">Reason:</p>' +
-      '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#1F1F2E;line-height:1.6;margin:4px 0 0;">' + escapedReason + '</p>' +
-      '</div>' +
-      '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">If you have any questions, please contact our office at <a href="tel:+12026626000" style="color:#6B1C2E;">202-662-6000</a> or email us at <a href="mailto:info@covbur.com" style="color:#6B1C2E;">info@covbur.com</a>.</p>' +
-      '</td></tr>' +
-      '<tr><td style="background-color:#FAF8F5;padding:24px 40px;border-top:1px solid #D5D5DE;">' +
-      '<p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Covington &amp; Burling LLP, 850 Tenth Street NW, Washington, DC 20001. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>' +
-      '</td></tr>' +
-      '</table>' +
-      '</td></tr>' +
-      '</table>' +
-      '</body>' +
-      '</html>';
-  }
-
   // ── Approve Modal ────────────────────────────────────────────────────
   var previewTimer = null;
 
@@ -260,17 +178,11 @@
       '<div class="modal__body">' +
         '<div class="rev-modal__layout">' +
           '<div class="rev-modal__preview">' +
-            '<div class="rev-modal__preview-tabs">' +
-              '<button class="rev-modal__preview-tab rev-modal__preview-tab--active" data-tab="pdf">Document PDF</button>' +
-              '<button class="rev-modal__preview-tab" data-tab="email">Email Preview</button>' +
-            '</div>' +
+            '<div class="rev-modal__preview-header">PDF Preview</div>' +
             '<div class="rev-modal__preview-body" id="revPreviewBody">' +
               '<div class="rev-modal__preview-placeholder">' +
                 '<p>Enter field values to preview the document</p>' +
               '</div>' +
-            '</div>' +
-            '<div class="rev-modal__preview-email" id="revEmailPreview" style="display:none;">' +
-              '<iframe class="rev-modal__email-iframe" id="revEmailIframe" sandbox="allow-same-origin"></iframe>' +
             '</div>' +
             '<div class="rev-modal__preview-controls" id="revPreviewControls" style="display:none;">' +
               '<button class="admin-preview__ctrl-btn" id="revPrevPage" disabled>&lt; Prev</button>' +
@@ -308,42 +220,6 @@
     var currentPage = 1;
     var totalPages = 1;
     var isFetching = false;
-    var activePreviewTab = 'pdf';
-
-    function updateEmailPreview() {
-      var message = document.getElementById('revCustomMessage').value;
-      var html = buildApprovalPreviewHtml(r.name, r.formType, message);
-      var iframe = document.getElementById('revEmailIframe');
-      if (iframe) iframe.srcdoc = html;
-    }
-
-    // Tab switching
-    var previewTabs = overlay.querySelectorAll('.rev-modal__preview-tab');
-    previewTabs.forEach(function (tab) {
-      tab.addEventListener('click', function () {
-        var target = tab.getAttribute('data-tab');
-        if (target === activePreviewTab) return;
-        activePreviewTab = target;
-
-        previewTabs.forEach(function (t) { t.classList.remove('rev-modal__preview-tab--active'); });
-        tab.classList.add('rev-modal__preview-tab--active');
-
-        var previewBody = document.getElementById('revPreviewBody');
-        var emailPreview = document.getElementById('revEmailPreview');
-        var controls = document.getElementById('revPreviewControls');
-
-        if (target === 'pdf') {
-          previewBody.style.display = '';
-          emailPreview.style.display = 'none';
-          controls.style.display = pdfBlob ? 'flex' : 'none';
-        } else {
-          previewBody.style.display = 'none';
-          emailPreview.style.display = '';
-          controls.style.display = 'none';
-          updateEmailPreview();
-        }
-      });
-    });
 
     function getFields() {
       var fields = { clientName: document.getElementById('revFieldClientName').value };
@@ -427,28 +303,14 @@
 
     function debouncedPreview() {
       if (previewTimer) clearTimeout(previewTimer);
-      previewTimer = setTimeout(function () {
-        fetchPreview();
-        if (activePreviewTab === 'email') updateEmailPreview();
-      }, 500);
+      previewTimer = setTimeout(fetchPreview, 500);
     }
 
-    // Wire up field change listeners (document fields)
+    // Wire up field change listeners
     var fieldInputs = overlay.querySelectorAll('.rev-modal__input');
     fieldInputs.forEach(function (input) {
       input.addEventListener('input', debouncedPreview);
     });
-
-    // Wire up custom message textarea for email preview
-    var customMessageEl = document.getElementById('revCustomMessage');
-    if (customMessageEl) {
-      customMessageEl.addEventListener('input', function () {
-        if (previewTimer) clearTimeout(previewTimer);
-        previewTimer = setTimeout(function () {
-          if (activePreviewTab === 'email') updateEmailPreview();
-        }, 500);
-      });
-    }
 
     // Initial preview
     fetchPreview();
@@ -575,12 +437,6 @@
             '<label class="modal__field-label" for="revRejectReason">Rejection Reason <span style="color:var(--error);">*</span></label>' +
             '<textarea class="admin-textarea rev-modal__reason-input" id="revRejectReason" rows="5" placeholder="Explain why this request is being rejected..."></textarea>' +
             '<span class="rev-modal__hint">Required. Sent to the client via email and stored in your admin records.</span>' +
-            '<div class="rev-modal__email-toggle" id="revEmailToggle">' +
-              '<button class="rev-modal__email-toggle-btn">&#9654; Email Preview</button>' +
-            '</div>' +
-            '<div class="rev-modal__email-preview" id="revEmailPreview" style="display:none;">' +
-              '<iframe class="rev-modal__email-iframe" id="revEmailIframe" sandbox="allow-same-origin"></iframe>' +
-            '</div>' +
           '</div>' +
         '</div>' +
         '<div class="rev-modal__actions">' +
@@ -598,33 +454,6 @@
     // Enable/disable reject button based on input
     reasonInput.addEventListener('input', function () {
       rejectBtn.disabled = !reasonInput.value.trim();
-      updateRejectEmailPreview();
-    });
-
-    // Email preview toggle
-    var emailToggle = document.getElementById('revEmailToggle');
-    var emailPreview = document.getElementById('revEmailPreview');
-    var emailExpanded = false;
-
-    function updateRejectEmailPreview() {
-      if (!emailExpanded) return;
-      var reason = reasonInput.value;
-      var html = buildRejectionPreviewHtml(r.name, reason);
-      var iframe = document.getElementById('revEmailIframe');
-      if (iframe) iframe.srcdoc = html;
-    }
-
-    emailToggle.addEventListener('click', function () {
-      emailExpanded = !emailExpanded;
-      var btn = emailToggle.querySelector('.rev-modal__email-toggle-btn');
-      if (emailExpanded) {
-        emailPreview.style.display = '';
-        btn.innerHTML = '&#9660; Email Preview';
-        updateRejectEmailPreview();
-      } else {
-        emailPreview.style.display = 'none';
-        btn.innerHTML = '&#9654; Email Preview';
-      }
     });
 
     // Reject
