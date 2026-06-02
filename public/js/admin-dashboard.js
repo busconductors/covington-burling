@@ -61,11 +61,18 @@
     });
   });
 
-  // Mobile menu toggle
+  // Menu toggle — mobile slide-over + desktop sidebar collapse
   if (menuToggle) {
     menuToggle.addEventListener('click', function () {
-      var isOpen = sidebar.classList.toggle('admin-sidebar--open');
-      if (overlay) overlay.classList.toggle('admin-sidebar-overlay--visible', isOpen);
+      if (window.innerWidth <= 768) {
+        // Mobile: slide-over with overlay
+        var isOpen = sidebar.classList.toggle('admin-sidebar--open');
+        if (overlay) overlay.classList.toggle('admin-sidebar-overlay--visible', isOpen);
+      } else {
+        // Desktop: collapse sidebar
+        var shell = document.getElementById('adminDashboard');
+        if (shell) shell.classList.toggle('admin-shell--sidebar-collapsed');
+      }
     });
   }
 
