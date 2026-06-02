@@ -12,16 +12,22 @@ import { resolve } from 'path';
  * prevent throws when DOM elements are missing.
  */
 
-// All getElementById calls in admin-builder.js (34 elements)
+// All getElementById calls in admin-builder.js
 const BUILDER_ELEMENT_IDS = [
-  'adminBuilder', 'presetSelect', 'fieldsList', 'clausesList', 'sigBlocksList',
+  'adminBuilder', 'fieldsList', 'clausesList', 'sigBlocksList',
   'addFieldBtn', 'addClauseBtn', 'docTitle', 'introText', 'witnessText',
   'outputName', 'sumTitle', 'sumFields', 'sumClauses', 'sumSigs',
-  'clauseLibCategories', 'clauseLibSearch', 'clauseLibrary',
+  'clauseLibCategories', 'clauseLibSearch',
   'exportJsonBtn', 'generateBtn', 'generationStatus',
   'nextPageBtn', 'pageInfo', 'prevPageBtn',
   'previewBadge', 'previewBody', 'previewPages', 'previewPlaceholder',
-  'sumPages', 'toggleClauseLib', 'zoomInBtn', 'zoomOutBtn', 'zoomLabel',
+  'sumPages', 'zoomInBtn', 'zoomOutBtn', 'zoomLabel',
+  // New elements from builder redesign
+  'generateSendBtn', 'sendModalClose', 'sendModalCancel', 'sendModalOverlay',
+  'sendModalSubmit', 'sendRecipient', 'sendToName', 'sendToEmail',
+  'sendSubject', 'sendMessage', 'sendAttachName', 'sendStatus',
+  'sendModal', 'fieldCount', 'clauseCount', 'sigCount',
+  'addSigBlockBtn',
 ];
 
 function createBuilderDOM() {
@@ -30,10 +36,6 @@ function createBuilderDOM() {
     el.id = id;
     document.body.appendChild(el);
   }
-  // presetSelect needs an option so .value = 'blank' works
-  const opt = document.createElement('option');
-  opt.value = 'blank';
-  document.getElementById('presetSelect').appendChild(opt);
   // Also create these elements referenced via querySelector or className
   for (const cls of ['admin-preview__page-wrapper', 'doc-title', 'doc-intro',
     'doc-clauses', 'doc-sigs', 'doc-witness', 'clause-lib-item__title',
@@ -143,38 +145,21 @@ describe('admin-builder null-guard coverage', () => {
 
   it('does not throw when docTitle is missing from loadPreset', () => {
     document.getElementById('docTitle').remove();
-    // initBuilder calls loadPreset('blank') — verify it does not throw
-    expect(() => {
-      const preset = document.getElementById('presetSelect');
-      preset.value = 'blank';
-      preset.dispatchEvent(new Event('change'));
-    }).not.toThrow();
+    expect(() => window.AdminBuilder.loadPreset('blank')).not.toThrow();
   });
 
   it('does not throw when introText is missing from loadPreset', () => {
     document.getElementById('introText').remove();
-    expect(() => {
-      const preset = document.getElementById('presetSelect');
-      preset.value = 'blank';
-      preset.dispatchEvent(new Event('change'));
-    }).not.toThrow();
+    expect(() => window.AdminBuilder.loadPreset('blank')).not.toThrow();
   });
 
   it('does not throw when witnessText is missing from loadPreset', () => {
     document.getElementById('witnessText').remove();
-    expect(() => {
-      const preset = document.getElementById('presetSelect');
-      preset.value = 'blank';
-      preset.dispatchEvent(new Event('change'));
-    }).not.toThrow();
+    expect(() => window.AdminBuilder.loadPreset('blank')).not.toThrow();
   });
 
   it('does not throw when outputName is missing from loadPreset', () => {
     document.getElementById('outputName').remove();
-    expect(() => {
-      const preset = document.getElementById('presetSelect');
-      preset.value = 'blank';
-      preset.dispatchEvent(new Event('change'));
-    }).not.toThrow();
+    expect(() => window.AdminBuilder.loadPreset('blank')).not.toThrow();
   });
 });
