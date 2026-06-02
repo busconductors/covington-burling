@@ -193,135 +193,245 @@
         </section>
 
         <!-- ── Document Builder Section ───────────────────────────────── -->
-        <section class="admin-section" id="adminBuilderSection">
-          <div class="admin-builder" id="adminBuilder">
-            <div class="admin-builder__layout">
-              <!-- Left Sidebar: Document Definition -->
-              <aside class="admin-builder__sidebar" role="complementary">
-                <div class="admin-builder__section">
-                  <label class="admin-label" for="presetSelect">Load Preset</label>
-                  <select id="presetSelect" class="admin-select">
-                    <option value="blank">Blank Template</option>
-                    <option value="waiver">Waiver and Release of Liability</option>
-                    <option value="nda">Mutual Non-Disclosure Agreement</option>
-                    <option value="custom">— Custom (current) —</option>
-                  </select>
-                </div>
+	        <section class="admin-section" id="adminBuilderSection">
+	          <div class="admin-builder" id="adminBuilder">
+	            <div class="admin-builder__layout">
+	              <!-- Left Sidebar: Templates + Editor -->
+	              <aside class="admin-builder__sidebar" role="complementary">
+	                <!-- ── Template Gallery ── -->
+	                <div class="builder-gallery" id="builderGallery">
+	                  <div class="builder-gallery__card" data-preset="blank">
+	                    <div class="builder-gallery__card-icon">
+	                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+	                    </div>
+	                    <div class="builder-gallery__card-body">
+	                      <div class="builder-gallery__card-title">Blank Document</div>
+	                      <div class="builder-gallery__card-desc">Start from scratch. Add fields, clauses, and signature blocks.</div>
+	                    </div>
+	                  </div>
+	                  <div class="builder-gallery__card" data-preset="waiver">
+	                    <div class="builder-gallery__card-icon">
+	                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+	                    </div>
+	                    <div class="builder-gallery__card-body">
+	                      <div class="builder-gallery__card-title">Waiver &amp; Release</div>
+	                      <div class="builder-gallery__card-desc">Liability waiver with participant info, activity details, and acknowledgment.</div>
+	                    </div>
+	                  </div>
+	                  <div class="builder-gallery__card" data-preset="nda">
+	                    <div class="builder-gallery__card-icon">
+	                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+	                    </div>
+	                    <div class="builder-gallery__card-body">
+	                      <div class="builder-gallery__card-title">Mutual NDA</div>
+	                      <div class="builder-gallery__card-desc">Non-disclosure agreement with confidentiality terms and governing law.</div>
+	                    </div>
+	                  </div>
+	                </div>
 
-                <div class="admin-builder__section">
-                  <label class="admin-label" for="docTitle">Document Title</label>
-                  <input type="text" id="docTitle" class="admin-input" value="NEW DOCUMENT">
-                </div>
+	                <!-- ── Accordion Editor ── -->
+	                <div class="builder-accordion">
+	                  <!-- Document Info -->
+	                  <div class="builder-accordion__panel">
+	                    <button class="builder-accordion__trigger" data-panel="docInfo" aria-expanded="true">
+	                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+	                      Document Info
+	                      <svg class="builder-accordion__chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+	                    </button>
+	                    <div class="builder-accordion__content">
+	                      <div class="admin-builder__section">
+	                        <label class="admin-label" for="docTitle">Document Title</label>
+	                        <input type="text" id="docTitle" class="admin-input" value="NEW DOCUMENT">
+	                      </div>
+	                      <div class="admin-builder__section">
+	                        <label class="admin-label">Output Filename</label>
+	                        <input type="text" id="outputName" class="admin-input" value="document.pdf">
+	                      </div>
+	                    </div>
+	                  </div>
 
-                <div class="admin-builder__section">
-                  <label class="admin-label">Output Filename</label>
-                  <input type="text" id="outputName" class="admin-input" value="document.pdf">
-                </div>
+	                  <!-- Form Fields -->
+	                  <div class="builder-accordion__panel">
+	                    <button class="builder-accordion__trigger" data-panel="fields" aria-expanded="false">
+	                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+	                      Form Fields <span id="fieldCount" class="builder-accordion__badge">1</span>
+	                      <svg class="builder-accordion__chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+	                    </button>
+	                    <div class="builder-accordion__content">
+	                      <button type="button" class="admin-btn--sm" id="addFieldBtn" style="margin-bottom:0.5rem;">+ Add Field</button>
+	                      <div id="fieldsList" class="admin-editable-list"></div>
+	                    </div>
+	                  </div>
 
-                <div class="admin-builder__section">
-                  <label class="admin-label">Witness Preamble</label>
-                  <input type="text" id="witnessText" class="admin-input" value="IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above.">
-                </div>
+	                  <!-- Clauses -->
+	                  <div class="builder-accordion__panel">
+	                    <button class="builder-accordion__trigger" data-panel="clauses" aria-expanded="false">
+	                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+	                      Clauses <span id="clauseCount" class="builder-accordion__badge">1</span>
+	                      <svg class="builder-accordion__chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+	                    </button>
+	                    <div class="builder-accordion__content">
+	                      <button type="button" class="admin-btn--sm" id="addClauseBtn" style="margin-bottom:0.5rem;">+ Add Clause</button>
+	                      <div id="clausesList" class="admin-editable-list"></div>
+	                    </div>
+	                  </div>
 
-                <hr class="admin-divider">
+	                  <!-- Clause Library -->
+	                  <div class="builder-accordion__panel">
+	                    <button class="builder-accordion__trigger" data-panel="clauseLib" aria-expanded="false">
+	                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+	                      Clause Library
+	                      <svg class="builder-accordion__chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+	                    </button>
+	                    <div class="builder-accordion__content">
+	                      <input type="text" id="clauseLibSearch" class="admin-input" placeholder="Search 21 boilerplate clauses..." style="margin-bottom:0.5rem;">
+	                      <div id="clauseLibCategories"></div>
+	                    </div>
+	                  </div>
 
-                <div class="admin-builder__section">
-                  <div class="admin-section-header">
-                    <label class="admin-label">Form Fields</label>
-                    <button type="button" class="admin-btn--sm" id="addFieldBtn" title="Add field">+ Add</button>
-                  </div>
-                  <div id="fieldsList" class="admin-editable-list"></div>
-                </div>
+	                  <!-- Signature Blocks -->
+	                  <div class="builder-accordion__panel">
+	                    <button class="builder-accordion__trigger" data-panel="sigBlocks" aria-expanded="false">
+	                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+	                      Signature Blocks <span id="sigCount" class="builder-accordion__badge">2</span>
+	                      <svg class="builder-accordion__chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+	                    </button>
+	                    <div class="builder-accordion__content">
+	                      <div id="sigBlocksList"></div>
+	                    </div>
+	                  </div>
 
-                <hr class="admin-divider">
+	                  <!-- Intro & Witness -->
+	                  <div class="builder-accordion__panel">
+	                    <button class="builder-accordion__trigger" data-panel="introWitness" aria-expanded="false">
+	                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+	                      Intro &amp; Witness
+	                      <svg class="builder-accordion__chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+	                    </button>
+	                    <div class="builder-accordion__content">
+	                      <div class="admin-builder__section">
+	                        <label class="admin-label" for="introText">Introduction (optional)</label>
+	                        <textarea id="introText" class="admin-textarea" rows="2" placeholder="Optional introductory paragraph..."></textarea>
+	                      </div>
+	                      <div class="admin-builder__section">
+	                        <label class="admin-label">Witness Preamble</label>
+	                        <input type="text" id="witnessText" class="admin-input" value="IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above.">
+	                      </div>
+	                    </div>
+	                  </div>
+	                </div>
+	              </aside>
 
-                <div class="admin-builder__section">
-                  <div class="admin-section-header">
-                    <label class="admin-label">Clauses</label>
-                    <button type="button" class="admin-btn--sm" id="addClauseBtn" title="Add clause">+ Add</button>
-                  </div>
-                  <div id="clausesList" class="admin-editable-list"></div>
-                </div>
+	              <!-- Main: Preview + Actions -->
+	              <div class="admin-builder__main">
+	                <div class="admin-builder__toolbar">
+	                  <button type="button" class="btn btn--primary" id="generateBtn">
+	                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+	                    Generate PDF
+	                  </button>
+	                  <button type="button" class="btn btn--outline-dark" id="exportJsonBtn">
+	                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+	                    Export as Preset
+	                  </button>
+	                  <button type="button" class="btn btn--accent" id="generateSendBtn">
+	                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+	                    Generate &amp; Send
+	                  </button>
+	                  <span class="admin-status" id="generationStatus"></span>
+	                </div>
 
-                <hr class="admin-divider">
+	                <div class="admin-preview">
+	                  <div class="admin-preview__header">
+	                    <h2 class="admin-preview__title">Live Preview</h2>
+	                    <div class="admin-preview__controls" id="previewControls">
+	                      <button class="admin-preview__ctrl-btn" id="zoomOutBtn" title="Zoom out" disabled>&minus;</button>
+	                      <span class="admin-preview__zoom" id="zoomLabel">100%</span>
+	                      <button class="admin-preview__ctrl-btn" id="zoomInBtn" title="Zoom in">+</button>
+	                      <span class="admin-preview__sep">|</span>
+	                      <button class="admin-preview__ctrl-btn" id="prevPageBtn" title="Previous page" disabled>&#9650;</button>
+	                      <span class="admin-preview__page-info" id="pageInfo">—</span>
+	                      <button class="admin-preview__ctrl-btn" id="nextPageBtn" title="Next page" disabled>&#9660;</button>
+	                    </div>
+	                    <span class="admin-preview__badge" id="previewBadge">Bordered Traditional</span>
+	                  </div>
+	                  <div class="admin-preview__body" id="previewBody">
+	                    <div id="previewPages" class="admin-preview__pages"></div>
+	                    <div class="admin-preview__placeholder" id="previewPlaceholder">
+	                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+	                      <p>Loading preview&hellip;</p>
+	                    </div>
+	                  </div>
+	                  <div class="admin-preview__summary" id="previewSummary">
+	                    <div class="admin-summary-grid">
+	                      <div class="admin-summary-item"><strong>Template:</strong> <span id="sumTemplate">Bordered Traditional</span></div>
+	                      <div class="admin-summary-item"><strong>Title:</strong> <span id="sumTitle">—</span></div>
+	                      <div class="admin-summary-item"><strong>Fields:</strong> <span id="sumFields">0</span></div>
+	                      <div class="admin-summary-item"><strong>Clauses:</strong> <span id="sumClauses">0</span></div>
+	                      <div class="admin-summary-item"><strong>Signature Blocks:</strong> <span id="sumSigs">0</span></div>
+	                      <div class="admin-summary-item"><strong>Pages:</strong> <span id="sumPages">—</span></div>
+	                    </div>
+	                  </div>
+	                </div>
+	              </div>
+	            </div>
+	          </div>
 
-                <div class="admin-builder__section">
-                  <div class="admin-section-header">
-                    <label class="admin-label">Clause Library</label>
-                    <button type="button" class="admin-btn--sm" id="toggleClauseLib" title="Toggle library">Show</button>
-                  </div>
-                  <div id="clauseLibrary" style="display:none;">
-                    <input type="text" id="clauseLibSearch" class="admin-input" placeholder="Search clauses..." style="margin-bottom:0.5rem;">
-                    <div id="clauseLibCategories"></div>
-                  </div>
-                </div>
+	          <!-- Generate & Send Modal -->
+	          <div class="send-modal-overlay" id="sendModalOverlay" style="display:none;">
+	            <div class="send-modal" id="sendModal" role="dialog" aria-modal="true" aria-label="Generate & Send">
+	              <div class="send-modal__header">
+	                <h2 class="send-modal__title">Generate &amp; Send</h2>
+	                <button class="send-modal__close" id="sendModalClose" aria-label="Close">&times;</button>
+	              </div>
+	              <div class="send-modal__body">
+	                <div class="send-modal__form-group">
+	                  <label class="admin-label" for="sendRecipient">Recipient</label>
+	                  <select id="sendRecipient" class="admin-select">
+	                    <option value="">Select a recipient...</option>
+	                  </select>
+	                </div>
+	                <div class="send-modal__row">
+	                  <div class="send-modal__form-group">
+	                    <label class="admin-label" for="sendToName">To Name</label>
+	                    <input type="text" id="sendToName" class="admin-input" placeholder="Client name">
+	                  </div>
+	                  <div class="send-modal__form-group">
+	                    <label class="admin-label" for="sendToEmail">To Email *</label>
+	                    <input type="email" id="sendToEmail" class="admin-input" placeholder="client@example.com" required>
+	                  </div>
+	                </div>
+	                <div class="send-modal__form-group">
+	                  <label class="admin-label" for="sendSubject">Subject</label>
+	                  <input type="text" id="sendSubject" class="admin-input" value="Your Document from Covington & Burling LLP">
+	                </div>
+	                <div class="send-modal__form-group">
+	                  <label class="admin-label" for="sendMessage">Message</label>
+	                  <textarea id="sendMessage" class="admin-textarea" rows="3">Dear Client,
 
-                <hr class="admin-divider">
+Please find the requested document attached. If you have any questions, please contact our office at 202-662-6000.
 
-                <div class="admin-builder__section">
-                  <label class="admin-label">Signature Blocks (max 2, side-by-side)</label>
-                  <div id="sigBlocksList"></div>
-                </div>
-
-                <hr class="admin-divider">
-
-                <div class="admin-builder__section">
-                  <label class="admin-label" for="introText">Introduction Paragraph (optional)</label>
-                  <textarea id="introText" class="admin-textarea" rows="3" placeholder="Optional introductory paragraph..."></textarea>
-                </div>
-              </aside>
-
-              <!-- Main: Preview + Actions -->
-              <div class="admin-builder__main">
-                <div class="admin-builder__toolbar">
-                  <button type="button" class="btn btn--primary" id="generateBtn">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                    Generate PDF
-                  </button>
-                  <button type="button" class="btn btn--outline-dark" id="exportJsonBtn">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-                    Export as Preset
-                  </button>
-                  <span class="admin-status" id="generationStatus"></span>
-                </div>
-
-                <div class="admin-preview">
-                  <div class="admin-preview__header">
-                    <h2 class="admin-preview__title">Live Preview</h2>
-                    <div class="admin-preview__controls" id="previewControls">
-                      <button class="admin-preview__ctrl-btn" id="zoomOutBtn" title="Zoom out" disabled>&minus;</button>
-                      <span class="admin-preview__zoom" id="zoomLabel">100%</span>
-                      <button class="admin-preview__ctrl-btn" id="zoomInBtn" title="Zoom in">+</button>
-                      <span class="admin-preview__sep">|</span>
-                      <button class="admin-preview__ctrl-btn" id="prevPageBtn" title="Previous page" disabled>&#9650;</button>
-                      <span class="admin-preview__page-info" id="pageInfo">—</span>
-                      <button class="admin-preview__ctrl-btn" id="nextPageBtn" title="Next page" disabled>&#9660;</button>
-                    </div>
-                    <span class="admin-preview__badge" id="previewBadge">Bordered Traditional</span>
-                  </div>
-                  <div class="admin-preview__body" id="previewBody">
-                    <div id="previewPages" class="admin-preview__pages"></div>
-                    <div class="admin-preview__placeholder" id="previewPlaceholder">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
-                      <p>Loading preview&hellip;</p>
-                    </div>
-                  </div>
-                  <div class="admin-preview__summary" id="previewSummary">
-                    <div class="admin-summary-grid">
-                      <div class="admin-summary-item"><strong>Template:</strong> Bordered Traditional (Variant C)</div>
-                      <div class="admin-summary-item"><strong>Title:</strong> <span id="sumTitle">—</span></div>
-                      <div class="admin-summary-item"><strong>Fields:</strong> <span id="sumFields">0</span></div>
-                      <div class="admin-summary-item"><strong>Clauses:</strong> <span id="sumClauses">0</span></div>
-                      <div class="admin-summary-item"><strong>Signature Blocks:</strong> <span id="sumSigs">0</span></div>
-                      <div class="admin-summary-item"><strong>Pages:</strong> <span id="sumPages">—</span></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
+Sincerely,
+Covington & Burling LLP</textarea>
+	                </div>
+	                <div class="send-modal__form-group">
+	                  <label class="admin-label">Attachment</label>
+	                  <div class="send-modal__attach-info">
+	                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+	                    <span id="sendAttachName">document.pdf</span>
+	                  </div>
+	                </div>
+	                <div class="send-modal__status" id="sendStatus"></div>
+	              </div>
+	              <div class="send-modal__footer">
+	                <button type="button" class="btn btn--outline-dark" id="sendModalCancel">Cancel</button>
+	                <button type="button" class="btn btn--primary" id="sendModalSubmit">
+	                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+	                  Send
+	                </button>
+	              </div>
+	            </div>
+	          </div>
+	        </section>
         <!-- ── Email Section ──────────────────────────────────────────── -->
         <section class="admin-section" id="adminEmailSection">
           <div class="email-composer">
