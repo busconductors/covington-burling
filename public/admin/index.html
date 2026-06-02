@@ -282,6 +282,10 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
                     Export as Preset
                   </button>
+                  <button type="button" class="btn btn--accent" id="generateSendBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    Generate &amp; Send
+                  </button>
                   <span class="admin-status" id="generationStatus"></span>
                 </div>
 
@@ -321,6 +325,62 @@
             </div>
           </div>
         </section>
+
+        <!-- ── Generate & Send Modal ──────────────────────────────────── -->
+        <div class="send-modal-overlay" id="sendModalOverlay" style="display:none;">
+          <div class="send-modal" id="sendModal" role="dialog" aria-modal="true" aria-label="Generate &amp; Send">
+            <div class="send-modal__header">
+              <h2 class="send-modal__title">Generate &amp; Send</h2>
+              <button class="send-modal__close" id="sendModalClose" aria-label="Close">&times;</button>
+            </div>
+            <div class="send-modal__body">
+              <div class="send-modal__form-group">
+                <label class="admin-label" for="sendRecipient">Recipient</label>
+                <select id="sendRecipient" class="admin-select">
+                  <option value="">Select a recipient...</option>
+                </select>
+              </div>
+              <div class="send-modal__row">
+                <div class="send-modal__form-group">
+                  <label class="admin-label" for="sendToName">To Name</label>
+                  <input type="text" id="sendToName" class="admin-input" placeholder="Client name">
+                </div>
+                <div class="send-modal__form-group">
+                  <label class="admin-label" for="sendToEmail">To Email *</label>
+                  <input type="email" id="sendToEmail" class="admin-input" placeholder="client@example.com" required>
+                </div>
+              </div>
+              <div class="send-modal__form-group">
+                <label class="admin-label" for="sendSubject">Subject</label>
+                <input type="text" id="sendSubject" class="admin-input" value="Your Document from Covington &amp; Burling LLP">
+              </div>
+              <div class="send-modal__form-group">
+                <label class="admin-label" for="sendMessage">Message</label>
+                <textarea id="sendMessage" class="admin-textarea" rows="3">Dear Client,
+
+Please find the requested document attached. If you have any questions, please contact our office at 202-662-6000.
+
+Sincerely,
+Covington &amp; Burling LLP</textarea>
+              </div>
+              <div class="send-modal__form-group">
+                <label class="admin-label">Attachment</label>
+                <div class="send-modal__attach-info">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <span id="sendAttachName">document.pdf</span>
+                </div>
+              </div>
+              <div class="send-modal__status" id="sendStatus"></div>
+            </div>
+            <div class="send-modal__footer">
+              <button type="button" class="btn btn--outline-dark" id="sendModalCancel">Cancel</button>
+              <button type="button" class="btn btn--primary" id="sendModalSubmit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
 
         <!-- ── Email Section ──────────────────────────────────────────── -->
         <section class="admin-section" id="adminEmailSection">
