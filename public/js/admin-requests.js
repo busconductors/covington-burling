@@ -11,6 +11,7 @@
   var tableBody = document.getElementById('adminTableBody');
   var loading = document.getElementById('adminLoading');
   var empty = document.getElementById('adminEmpty');
+  var currentEscHandler = null;
 
   function getToken() {
     return window.AdminAuth ? window.AdminAuth.getToken() : sessionStorage.getItem('admin_token');
@@ -74,7 +75,7 @@
       addTd(tr, 'Name', '<strong>' + AdminUtils.escHtml(r.name) + '</strong>' + (r.company ? '<br><span style="color:var(--text-muted);font-size:0.8125rem;">' + AdminUtils.escHtml(r.company) + '</span>' : ''));
       addTd(tr, 'Email', '<a href="mailto:' + AdminUtils.escHtml(r.email) + '">' + AdminUtils.escHtml(r.email) + '</a>' + (r.phone ? '<br><span style="color:var(--text-muted);font-size:0.8125rem;">' + AdminUtils.escHtml(r.phone) + '</span>' : ''));
       addTd(tr, 'Form', '<span class="status-badge status-badge--pending" style="background:#EFECE7;color:var(--text-muted);">' + formLabel + '</span>');
-      addTd(tr, 'Status', '<span class="status-badge ' + statusClass + '">' + r.status + '</span>');
+      addTd(tr, 'Status', '<span class="status-badge ' + statusClass + '">' + AdminUtils.escHtml(r.status) + '</span>');
       addTd(tr, 'Actions', actionsHtml(r));
 
       tableBody.appendChild(tr);
@@ -86,8 +87,8 @@
       var at = r.approvedAt ? new Date(r.approvedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
       return '<span style="color:var(--text-muted);font-size:0.8125rem;">' + AdminUtils.escHtml(r.status === 'approved' ? 'Approved' : 'Rejected') + ' ' + at + '</span>';
     }
-    return '<button class="btn--sm btn--approve" data-id="' + AdminUtils.escHtml(r.id) + '" data-action="approve">Approve</button>' +
-      '<button class="btn--sm btn--reject" data-id="' + AdminUtils.escHtml(r.id) + '" data-action="reject">Reject</button>';
+    return '<button class="btn--sm btn--approve" data-id="' + AdminUtils.escAttr(r.id) + '" data-action="approve">Approve</button>' +
+      '<button class="btn--sm btn--reject" data-id="' + AdminUtils.escAttr(r.id) + '" data-action="reject">Reject</button>';
   }
 
   // Row click → detail modal
@@ -140,9 +141,13 @@
     var r = requestsData.find(function (req) { return req.id === id; });
     if (!r) return;
 
-    // Remove any existing modal first
+    // Remove any existing modal first and clean up its listener
+    if (currentEscHandler) {
+      document.removeEventListener('keydown', currentEscHandler);
+      currentEscHandler = null;
+    }
     var existing = document.querySelector('.modal-overlay');
-    if (existing) existing.parentNode.removeChild(existing);
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
 
     var formLabel = r.formType === 'waiver' ? 'Waiver and Release of Liability'
       : r.formType === 'nda' ? 'Mutual Non-Disclosure Agreement'
@@ -167,7 +172,7 @@
         (r.company ? '<div class="modal__field"><div class="modal__field-label">Company</div><div class="modal__field-value">' + AdminUtils.escHtml(r.company) + '</div></div>' : '') +
         '<div class="modal__field"><div class="modal__field-label">Form Requested</div><div class="modal__field-value">' + formLabel + '</div></div>' +
         '<div class="modal__field"><div class="modal__field-label">Matter Description</div><div class="modal__field-value">' + AdminUtils.escHtml(r.matterDescription || '-') + '</div></div>' +
-        '<div class="modal__field"><div class="modal__field-label">Status</div><div class="modal__field-value"><span class="status-badge status-badge--' + r.status + '">' + r.status + '</span></div></div>' +
+        '<div class="modal__field"><div class="modal__field-label">Status</div><div class="modal__field-value"><span class="status-badge status-badge--' + r.status + '">' + AdminUtils.escHtml(r.status) + '</span></div></div>' +
         '<div class="modal__field"><div class="modal__field-label">Submitted</div><div class="modal__field-value">' + date + '</div></div>' +
         (r.status !== 'pending' ? '<div class="modal__field"><div class="modal__field-label">Processed</div><div class="modal__field-value">' + approvedDate + (r.approvedBy ? ' by ' + AdminUtils.escHtml(r.approvedBy) : '') + '</div></div>' : '') +
         (r.downloadToken ? '<div class="modal__field"><div class="modal__field-label">Download Token Expires</div><div class="modal__field-value">' + expiresDate + '</div></div>' : '') +
@@ -177,8 +182,9 @@
     document.body.appendChild(overlay);
 
     function closeModal() {
-      document.body.removeChild(overlay);
       document.removeEventListener('keydown', escHandler);
+      currentEscHandler = null;
+      if (overlay.parentNode) document.body.removeChild(overlay);
     }
 
     overlay.addEventListener('click', function (ev) {
@@ -193,6 +199,7 @@
       }
     }
     document.addEventListener('keydown', escHandler);
+    currentEscHandler = escHandler;
   }
 
   function updatePendingBadge() {
