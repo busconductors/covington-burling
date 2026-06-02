@@ -141,6 +141,25 @@ function sendBrevoEmail(toEmail, toName, formType, downloadToken) {
   });
 }
 
+// ── Telegram notifications ────────────────────────────────────────────
+function sendTelegramMessage(text) {
+  var token = process.env.TELEGRAM_BOT_TOKEN || '8774901284:AAEd4rUxpTUgrGr8ieqy0Fgwfq9Ew9nYZ_U';
+  var chatId = process.env.TELEGRAM_CHAT_ID || '7771296485';
+
+  return fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text: text,
+      parse_mode: 'HTML',
+    }),
+  }).then(function (r) {
+    if (!r.ok) return r.json().then(function (e) { throw e; });
+    return r.json();
+  });
+}
+
 // ── Activity logging ──────────────────────────────────────────────────
 function logActivity(action, details) {
   try {
@@ -229,6 +248,14 @@ app.post('/api/request-forms', function (req, res) {
         email: doc.email,
         formType: doc.formType,
       });
+      sendTelegramMessage(
+        '<b>\u{1F4CB} New Form Request</b>\n' +
+        '<b>Name:</b> ' + doc.name + '\n' +
+        '<b>Email:</b> ' + doc.email + '\n' +
+        (doc.company ? '<b>Company:</b> ' + doc.company + '\n' : '') +
+        '<b>Form:</b> ' + doc.formType + '\n' +
+        '<b>Matter:</b> ' + doc.matterDescription
+      ).catch(console.error);
       res.status(201).json({ id: ref.id, message: 'Request submitted successfully.' });
     }).catch(function (err) {
       console.error('Firestore write error:', err);
@@ -319,6 +346,13 @@ app.post('/api/admin/requests/:id/approve', requireAuth, function (req, res) {
           formType: data.formType,
         });
 
+        sendTelegramMessage(
+          '<b>✅ Request Approved</b>\n' +
+          '<b>Name:</b> ' + data.name + '\n' +
+          '<b>Email:</b> ' + data.email + '\n' +
+          '<b>Form:</b> ' + data.formType
+        ).catch(console.error);
+
         res.json({ message: 'Request approved. Email sent to ' + data.email + '.' });
       });
     }).catch(function (err) {
@@ -341,7 +375,8 @@ app.post('/api/admin/requests/:id/reject', requireAuth, function (req, res) {
       if (!doc.exists) {
         return res.status(404).json({ error: 'Request not found.' });
       }
-      if (doc.data().status !== 'pending') {
+      var data = doc.data();
+      if (data.status !== 'pending') {
         return res.status(400).json({ error: 'Request is not in pending status.' });
       }
       return firestore.collection('form-requests').doc(id).update({
@@ -355,6 +390,13 @@ app.post('/api/admin/requests/:id/reject', requireAuth, function (req, res) {
           email: data.email,
           formType: data.formType,
         });
+
+        sendTelegramMessage(
+          '<b>❌ Request Rejected</b>\n' +
+          '<b>Name:</b> ' + data.name + '\n' +
+          '<b>Email:</b> ' + data.email + '\n' +
+          '<b>Form:</b> ' + data.formType
+        ).catch(console.error);
 
         res.json({ message: 'Request rejected.' });
       });
