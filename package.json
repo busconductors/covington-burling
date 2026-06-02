@@ -6,12 +6,17 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "test": "vitest run"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.0",
     "firebase-admin": "^13.10.0",
     "pdfmake": "^0.2.18"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.8"
   }
 }
