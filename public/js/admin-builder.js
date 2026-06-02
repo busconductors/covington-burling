@@ -34,10 +34,14 @@
     }
     if (!preset) return;
     docState = JSON.parse(JSON.stringify(preset));
-    document.getElementById('docTitle').value = docState.title;
-    document.getElementById('introText').value = docState.intro || '';
-    document.getElementById('witnessText').value = docState.witnessText || '';
-    document.getElementById('outputName').value = (name === 'waiver' ? 'waiver-form.pdf' : name === 'nda' ? 'nda-form.pdf' : 'document.pdf');
+    var dt = document.getElementById('docTitle');
+    var it = document.getElementById('introText');
+    var wt = document.getElementById('witnessText');
+    var on = document.getElementById('outputName');
+    if (dt) dt.value = docState.title;
+    if (it) it.value = docState.intro || '';
+    if (wt) wt.value = docState.witnessText || '';
+    if (on) on.value = (name === 'waiver' ? 'waiver-form.pdf' : name === 'nda' ? 'nda-form.pdf' : 'document.pdf');
     renderAll();
     updatePreview();
   }
@@ -56,14 +60,21 @@
     syncState();
   }
 
+  // Only syncs title, intro, and witnessText from DOM. Fields and clauses are
+  // synced directly via event delegation in renderAll/updatePreview — calling
+  // syncState() alone will NOT restore fields/clauses state from the preview DOM.
   function syncState() {
-    docState.title = document.getElementById('docTitle').value;
-    docState.intro = document.getElementById('introText').value;
-    docState.witnessText = document.getElementById('witnessText').value;
+    var t = document.getElementById('docTitle');
+    var i = document.getElementById('introText');
+    var w = document.getElementById('witnessText');
+    if (t) docState.title = t.value;
+    if (i) docState.intro = i.value;
+    if (w) docState.witnessText = w.value;
   }
 
   function renderFields() {
     var container = document.getElementById('fieldsList');
+    if (!container) return;
     container.innerHTML = docState.fields.map(function (f, i) {
       return '<div class="admin-editable-item">' +
         '<input class="admin-input--sm" value="' + AdminUtils.escHtml(f.label) + '" placeholder="Label" data-type="field" data-idx="' + i + '" data-prop="label">' +
@@ -76,6 +87,7 @@
 
   function renderClauses() {
     var container = document.getElementById('clausesList');
+    if (!container) return;
     container.innerHTML = docState.clauses.map(function (c, i) {
       return '<div class="admin-editable-item admin-editable-item--clause">' +
         '<div class="admin-clause-header">' +
@@ -90,6 +102,7 @@
 
   function renderSigBlocks() {
     var container = document.getElementById('sigBlocksList');
+    if (!container) return;
     container.innerHTML = docState.signatureBlocks.map(function (block, bi) {
       return '<div class="admin-sig-block">' +
         '<div class="admin-section-header">' +
@@ -193,10 +206,14 @@
   // ── Preview Summary ─────────────────────────────────────────────────
   function updatePreview() {
     syncState();
-    document.getElementById('sumTitle').textContent = docState.title;
-    document.getElementById('sumFields').textContent = docState.fields.length;
-    document.getElementById('sumClauses').textContent = docState.clauses.length;
-    document.getElementById('sumSigs').textContent = docState.signatureBlocks.length;
+    var st = document.getElementById('sumTitle');
+    var sf = document.getElementById('sumFields');
+    var sc = document.getElementById('sumClauses');
+    var ss = document.getElementById('sumSigs');
+    if (st) st.textContent = docState.title;
+    if (sf) sf.textContent = docState.fields.length;
+    if (sc) sc.textContent = docState.clauses.length;
+    if (ss) ss.textContent = docState.signatureBlocks.length;
     scheduleAutoSave();
     schedulePreviewRefresh();
   }
@@ -543,7 +560,7 @@
         html += '<div class="clause-lib-cat">';
         html += '<div class="clause-lib-cat__title">' + AdminUtils.escHtml(cat) + '</div>';
         grouped[cat].forEach(function (clause) {
-          html += '<button class="clause-lib-item" data-title="' + AdminUtils.escHtml(clause.title) + '" data-body="' + AdminUtils.escHtml(clause.body) + '" title="Click to insert"><span class="clause-lib-item__title">' + AdminUtils.escHtml(clause.title) + '</span><span class="clause-lib-item__preview">' + AdminUtils.escHtml(clause.body.substring(0, 80)) + '&hellip;</span></button>';
+          html += '<button class="clause-lib-item" data-title="' + AdminUtils.escAttr(clause.title) + '" data-body="' + AdminUtils.escAttr(clause.body) + '" title="Click to insert"><span class="clause-lib-item__title">' + AdminUtils.escHtml(clause.title) + '</span><span class="clause-lib-item__preview">' + AdminUtils.escHtml(clause.body.substring(0, 80)) + '&hellip;</span></button>';
         });
         html += '</div>';
       });
