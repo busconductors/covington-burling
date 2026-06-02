@@ -737,6 +737,99 @@
   display: none;
 }
 
+/* ----- Email Composer (two-column) ----- */
+.email-composer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.email-composer__heading {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.email-composer__form {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  border: 1px solid var(--border-light);
+}
+
+.email-composer__preview {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  border: 1px solid var(--border-light);
+  position: sticky;
+  top: 1rem;
+}
+
+/* Email Preview Panel */
+.email-preview {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--white);
+}
+
+.email-preview__meta {
+  background: var(--cream);
+  border-bottom: 1px solid var(--border-light);
+  padding: 0.75rem 1rem;
+}
+
+.email-preview__meta-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.email-preview__label {
+  font-weight: 600;
+  color: var(--navy);
+  flex-shrink: 0;
+}
+
+.email-preview__value {
+  color: var(--text-muted);
+}
+
+.email-preview__iframe {
+  width: 100%;
+  min-height: 420px;
+  border: none;
+  background: var(--white);
+  display: block;
+}
+
+.email-preview__hint {
+  margin-top: 0.5rem;
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+@media (max-width: 48em) {
+  .email-composer {
+    grid-template-columns: 1fr;
+  }
+
+  .email-composer__preview {
+    position: static;
+  }
+}
+
 /* ----- Refresh / last-updated ----- */
 .analytics-refresh {
   display: flex;

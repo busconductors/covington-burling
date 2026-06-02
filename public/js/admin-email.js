@@ -80,7 +80,48 @@
     });
   }
 
-  // Send
+  // ── Live Email Preview ──────────────────────────────────────────
+  var previewIframe = document.getElementById('emailPreviewIframe');
+  var previewSubject = document.getElementById('emailPreviewSubject');
+  var bodyInput = document.getElementById('emailBody');
+  var subjectInput = document.getElementById('emailSubject');
+  var previewDebounce = null;
+
+  function updateEmailPreview() {
+    if (previewSubject) {
+      var subj = subjectInput ? subjectInput.value.trim() : '';
+      previewSubject.textContent = subj || '(No subject)';
+    }
+    if (previewIframe && bodyInput) {
+      var iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
+      iframeDoc.open();
+      iframeDoc.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#fff;font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;padding:20px}</style></head><body>' + (bodyInput.value || '<p style="color:#999;font-style:italic;">Email body will appear here...</p>') + '</body></html>');
+      iframeDoc.close();
+    }
+  }
+
+  function schedulePreview() {
+    if (previewDebounce) clearTimeout(previewDebounce);
+    previewDebounce = setTimeout(updateEmailPreview, 300);
+  }
+
+  if (bodyInput) bodyInput.addEventListener('input', schedulePreview);
+  if (subjectInput) subjectInput.addEventListener('input', schedulePreview);
+
+  // Initial preview
+  updateEmailPreview();
+
+  // Update preview when template is selected
+  if (presetContainer) {
+    presetContainer.addEventListener('click', function (e) {
+      var btn = e.target.closest('button');
+      if (!btn || !btn.dataset.template) return;
+      // Wait for the template to be applied, then update preview
+      setTimeout(updateEmailPreview, 50);
+    });
+  }
+
+  // ── Send ─────────────────────────────────────────────────────────
   if (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
