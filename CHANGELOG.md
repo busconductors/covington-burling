@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## [1.0.1.1] - 2026-06-02
+
+### Added
+- Telegram bot notifications for form request lifecycle — sends message on form submission, approval, and rejection
+
+### Fixed
+- ReferenceError in reject route where `doc.data()` result was never assigned to a variable before use
+
 ## [1.0.1.0] - 2026-06-02
 
 ### Fixed
