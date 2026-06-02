@@ -110,31 +110,395 @@
     if (!id) return;
 
     if (btn.dataset.action === 'approve') {
-      if (!confirm('Approve this request? An email will be sent to the client with download links.')) return;
-      btn.disabled = true;
-      btn.textContent = 'Sending…';
-      fetch(apiBase + '/requests/' + id + '/approve', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' }
-      })
-        .then(function (r) { return r.json().then(function (d) { if (!r.ok) throw d; return d; }); })
-        .then(function () { loadRequests(); })
-        .catch(function () { if (window.AdminAuth) window.AdminAuth.showError('Failed to approve.'); btn.disabled = false; btn.textContent = 'Approve'; });
+      openApproveModal(id);
     }
 
     if (btn.dataset.action === 'reject') {
-      if (!confirm('Reject this request?')) return;
-      btn.disabled = true;
-      btn.textContent = 'Rejecting…';
-      fetch(apiBase + '/requests/' + id + '/reject', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' }
-      })
-        .then(function (r) { return r.json().then(function (d) { if (!r.ok) throw d; return d; }); })
-        .then(function () { loadRequests(); })
-        .catch(function () { if (window.AdminAuth) window.AdminAuth.showError('Failed to reject.'); btn.disabled = false; btn.textContent = 'Reject'; });
+      openRejectModal(id);
     }
   });
+
+  // ── Approve Modal ────────────────────────────────────────────────────
+  var previewTimer = null;
+
+  function openApproveModal(id) {
+    var r = requestsData.find(function (req) { return req.id === id; });
+    if (!r) return;
+
+    // Clean up existing modal
+    if (currentEscHandler) {
+      document.removeEventListener('keydown', currentEscHandler);
+      currentEscHandler = null;
+    }
+    var existing = document.querySelector('.modal-overlay');
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+
+    var formLabel = r.formType === 'waiver' ? 'Waiver and Release of Liability'
+      : r.formType === 'nda' ? 'Mutual Non-Disclosure Agreement'
+      : 'Waiver and NDA (Both)';
+
+    var overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+
+    // Build editable fields by form type
+    var fieldsHtml = '';
+    if (r.formType === 'nda') {
+      fieldsHtml = '<div class="rev-modal__field-group">' +
+          '<label class="rev-modal__label">Client Name</label>' +
+          '<input class="rev-modal__input" id="revFieldClientName" value="' + AdminUtils.escAttr(r.name) + '">' +
+        '</div>' +
+        '<div class="rev-modal__field-group">' +
+          '<label class="rev-modal__label">Effective Date</label>' +
+          '<input class="rev-modal__input" id="revFieldEffectiveDate" placeholder="e.g. June 2, 2026">' +
+        '</div>' +
+        '<div class="rev-modal__field-group">' +
+          '<label class="rev-modal__label">Client Address</label>' +
+          '<input class="rev-modal__input" id="revFieldClientAddress" value="' + AdminUtils.escAttr(r.company || '') + '">' +
+        '</div>';
+    } else {
+      fieldsHtml = '<div class="rev-modal__field-group">' +
+          '<label class="rev-modal__label">Client Name</label>' +
+          '<input class="rev-modal__input" id="revFieldClientName" value="' + AdminUtils.escAttr(r.name) + '">' +
+        '</div>' +
+        '<div class="rev-modal__field-group">' +
+          '<label class="rev-modal__label">Date</label>' +
+          '<input class="rev-modal__input" id="revFieldDate" placeholder="e.g. June 2, 2026">' +
+        '</div>' +
+        '<div class="rev-modal__field-group">' +
+          '<label class="rev-modal__label">Matter</label>' +
+          '<input class="rev-modal__input" id="revFieldMatter" value="' + AdminUtils.escAttr(r.matterDescription || '') + '">' +
+        '</div>';
+    }
+
+    overlay.innerHTML = '<div class="modal rev-modal rev-modal--approve">' +
+      '<div class="modal__header">' +
+        '<h2 class="modal__title">Approve Request — ' + AdminUtils.escHtml(r.name) + ' / ' + AdminUtils.escHtml(formLabel) + '</h2>' +
+        '<button class="modal__close">&times;</button>' +
+      '</div>' +
+      '<div class="modal__body">' +
+        '<div class="rev-modal__layout">' +
+          '<div class="rev-modal__preview">' +
+            '<div class="rev-modal__preview-header">PDF Preview</div>' +
+            '<div class="rev-modal__preview-body" id="revPreviewBody">' +
+              '<div class="rev-modal__preview-placeholder">' +
+                '<p>Enter field values to preview the document</p>' +
+              '</div>' +
+            '</div>' +
+            '<div class="rev-modal__preview-controls" id="revPreviewControls" style="display:none;">' +
+              '<button class="admin-preview__ctrl-btn" id="revPrevPage" disabled>&lt; Prev</button>' +
+              '<span class="admin-preview__page-info" id="revPageInfo">Page 1 of 1</span>' +
+              '<button class="admin-preview__ctrl-btn" id="revNextPage" disabled>Next &gt;</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="rev-modal__fields">' +
+            '<div class="rev-modal__section">' +
+              '<div class="modal__field-label">Document Fields</div>' +
+              '<div class="rev-modal__fields-list">' + fieldsHtml + '</div>' +
+            '</div>' +
+            '<div class="rev-modal__section">' +
+              '<label class="modal__field-label" for="revCustomMessage">Custom Message</label>' +
+              '<textarea class="admin-textarea rev-modal__message" id="revCustomMessage" rows="3" placeholder="Add a personal note to the client (appears above the download links)..."></textarea>' +
+              '<span class="rev-modal__hint">Optional. Appears above the auto-generated email with download links.</span>' +
+            '</div>' +
+            '<div class="rev-modal__section">' +
+              '<button class="admin-btn--sm rev-modal__builder-btn" id="revOpenBuilder">Open in Document Builder</button>' +
+              '<span class="rev-modal__hint">For deeper edits — clauses, signature blocks, layout</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="rev-modal__actions">' +
+          '<button class="rev-modal__cancel">Cancel</button>' +
+          '<button class="rev-modal__approve-btn" id="revApproveBtn">Approve &amp; Send</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+    document.body.appendChild(overlay);
+
+    // State variables
+    var pdfBlob = null;
+    var currentPage = 1;
+    var totalPages = 1;
+    var isFetching = false;
+
+    function getFields() {
+      var fields = { clientName: document.getElementById('revFieldClientName').value };
+      if (r.formType === 'nda') {
+        fields.effectiveDate = document.getElementById('revFieldEffectiveDate').value;
+        fields.clientAddress = document.getElementById('revFieldClientAddress').value;
+      } else {
+        fields.date = document.getElementById('revFieldDate').value;
+        fields.matter = document.getElementById('revFieldMatter').value;
+      }
+      return fields;
+    }
+
+    function renderPage(pageNum) {
+      if (!pdfBlob) return;
+      var blobUrl = URL.createObjectURL(pdfBlob);
+      var loadingTask = pdfjsLib.getDocument(blobUrl);
+      loadingTask.promise.then(function (pdf) {
+        totalPages = pdf.numPages;
+        if (pageNum > totalPages) pageNum = totalPages;
+        if (pageNum < 1) pageNum = 1;
+        currentPage = pageNum;
+        document.getElementById('revPageInfo').textContent = 'Page ' + currentPage + ' of ' + totalPages;
+        document.getElementById('revPrevPage').disabled = currentPage <= 1;
+        document.getElementById('revNextPage').disabled = currentPage >= totalPages;
+
+        pdf.getPage(pageNum).then(function (page) {
+          var previewBody = document.getElementById('revPreviewBody');
+          if (!previewBody) return;
+          previewBody.innerHTML = '';
+          var viewport = page.getViewport({ scale: 1.2 });
+          var canvas = document.createElement('canvas');
+          canvas.className = 'rev-modal__pdf-canvas';
+          var ctx = canvas.getContext('2d');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          var renderContext = { canvasContext: ctx, viewport: viewport };
+          page.render(renderContext);
+          previewBody.appendChild(canvas);
+        });
+      }).catch(function (err) {
+        console.error('PDF render error:', err);
+        var previewBody = document.getElementById('revPreviewBody');
+        if (!previewBody) return;
+        previewBody.innerHTML = '<div class="rev-modal__preview-placeholder"><p style="color:var(--error);">Failed to render preview. Check field values.</p></div>';
+      });
+    }
+
+    function fetchPreview() {
+      var fields = getFields();
+      var endpoint = r.formType === 'nda' ? '/api/generate-nda' : '/api/generate-waiver';
+      isFetching = true;
+      var previewBody = document.getElementById('revPreviewBody');
+      previewBody.innerHTML = '<div class="rev-modal__preview-placeholder"><p>Generating preview…</p></div>';
+
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fields),
+      })
+        .then(function (resp) {
+          if (!resp.ok) throw new Error('Generation failed');
+          return resp.blob();
+        })
+        .then(function (blob) {
+          pdfBlob = blob;
+          currentPage = 1;
+          document.getElementById('revPreviewControls').style.display = 'flex';
+          renderPage(1);
+        })
+        .catch(function (err) {
+          console.error('Preview fetch error:', err);
+          var pb = document.getElementById('revPreviewBody');
+          if (!pb) return;
+          pb.innerHTML = '<div class="rev-modal__preview-placeholder"><p style="color:var(--error);">Preview generation failed. Check field values and try again.</p></div>';
+        })
+        .finally(function () {
+          isFetching = false;
+        });
+    }
+
+    function debouncedPreview() {
+      if (previewTimer) clearTimeout(previewTimer);
+      previewTimer = setTimeout(fetchPreview, 500);
+    }
+
+    // Wire up field change listeners
+    var fieldInputs = overlay.querySelectorAll('.rev-modal__input');
+    fieldInputs.forEach(function (input) {
+      input.addEventListener('input', debouncedPreview);
+    });
+
+    // Initial preview
+    fetchPreview();
+
+    // Page navigation
+    document.getElementById('revPrevPage').addEventListener('click', function () {
+      if (currentPage > 1) renderPage(currentPage - 1);
+    });
+    document.getElementById('revNextPage').addEventListener('click', function () {
+      if (currentPage < totalPages) renderPage(currentPage + 1);
+    });
+
+    // Open in Document Builder
+    document.getElementById('revOpenBuilder').addEventListener('click', function () {
+      var fields = getFields();
+      // Switch to builder section
+      var builderSection = document.getElementById('adminBuilderSection');
+      if (builderSection) {
+        var navLinks = document.querySelectorAll('.admin-sidebar__link');
+        navLinks.forEach(function (link) {
+          if (link.getAttribute('data-section') === 'adminBuilderSection') link.click();
+        });
+      }
+      // Init builder with fields if available
+      if (window.AdminBuilder && window.AdminBuilder.init) {
+        var preset = r.formType === 'nda' ? 'nda' : 'waiver';
+        setTimeout(function () {
+          window.AdminBuilder.init({ preset: preset, fields: fields });
+        }, 300);
+      }
+      closeModal();
+    });
+
+    // Approve & Send
+    document.getElementById('revApproveBtn').addEventListener('click', function () {
+      var btn = this;
+      var customMessage = document.getElementById('revCustomMessage').value.trim();
+      var fields = getFields();
+
+      var body = {};
+      if (customMessage) body.adminMessage = customMessage;
+      body.documentFields = fields;
+
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+
+      fetch(apiBase + '/requests/' + id + '/approve', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+        .then(function (resp) { return resp.json().then(function (d) { if (!resp.ok) throw d; return d; }); })
+        .then(function () {
+          closeModal();
+          loadRequests();
+        })
+        .catch(function () {
+          if (window.AdminAuth) window.AdminAuth.showError('Failed to approve.');
+          btn.disabled = false;
+          btn.textContent = 'Approve & Send';
+        });
+    });
+
+    // Close handlers
+    function closeModal() {
+      if (previewTimer) clearTimeout(previewTimer);
+      document.removeEventListener('keydown', escHandler);
+      currentEscHandler = null;
+      if (overlay.parentNode) document.body.removeChild(overlay);
+    }
+
+    overlay.addEventListener('click', function (ev) {
+      if (ev.target === overlay || ev.target.classList.contains('modal__close') || ev.target.closest('.rev-modal__cancel')) {
+        closeModal();
+      }
+    });
+
+    function escHandler(ev) {
+      if (ev.key === 'Escape') closeModal();
+    }
+    document.addEventListener('keydown', escHandler);
+    currentEscHandler = escHandler;
+  }
+
+  // ── Reject Modal ─────────────────────────────────────────────────────
+  function openRejectModal(id) {
+    var r = requestsData.find(function (req) { return req.id === id; });
+    if (!r) return;
+
+    if (currentEscHandler) {
+      document.removeEventListener('keydown', currentEscHandler);
+      currentEscHandler = null;
+    }
+    var existing = document.querySelector('.modal-overlay');
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+
+    var formLabel = r.formType === 'waiver' ? 'Waiver and Release of Liability'
+      : r.formType === 'nda' ? 'Mutual Non-Disclosure Agreement'
+      : 'Waiver and NDA (Both)';
+
+    var date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
+
+    var overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+
+    overlay.innerHTML = '<div class="modal rev-modal rev-modal--reject">' +
+      '<div class="modal__header">' +
+        '<h2 class="modal__title">Reject Request — ' + AdminUtils.escHtml(r.name) + ' / ' + AdminUtils.escHtml(formLabel) + '</h2>' +
+        '<button class="modal__close">&times;</button>' +
+      '</div>' +
+      '<div class="modal__body">' +
+        '<div class="rev-modal__layout">' +
+          '<div class="rev-modal__summary">' +
+            '<div class="modal__field-label">Request Summary</div>' +
+            '<div class="rev-modal__summary-list">' +
+              '<div class="rev-modal__summary-row"><span>Name</span><span>' + AdminUtils.escHtml(r.name) + '</span></div>' +
+              '<div class="rev-modal__summary-row"><span>Email</span><span>' + AdminUtils.escHtml(r.email) + '</span></div>' +
+              '<div class="rev-modal__summary-row"><span>Form</span><span>' + AdminUtils.escHtml(formLabel) + '</span></div>' +
+              '<div class="rev-modal__summary-row"><span>Submitted</span><span>' + date + '</span></div>' +
+            '</div>' +
+            '<div class="rev-modal__info-banner">An email will be sent to the client with your reason below.</div>' +
+          '</div>' +
+          '<div class="rev-modal__reason">' +
+            '<label class="modal__field-label" for="revRejectReason">Rejection Reason <span style="color:var(--error);">*</span></label>' +
+            '<textarea class="admin-textarea rev-modal__reason-input" id="revRejectReason" rows="5" placeholder="Explain why this request is being rejected..."></textarea>' +
+            '<span class="rev-modal__hint">Required. Sent to the client via email and stored in your admin records.</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="rev-modal__actions">' +
+          '<button class="rev-modal__cancel">Cancel</button>' +
+          '<button class="rev-modal__reject-btn" id="revRejectBtn" disabled>Reject Request</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+    document.body.appendChild(overlay);
+
+    var reasonInput = document.getElementById('revRejectReason');
+    var rejectBtn = document.getElementById('revRejectBtn');
+
+    // Enable/disable reject button based on input
+    reasonInput.addEventListener('input', function () {
+      rejectBtn.disabled = !reasonInput.value.trim();
+    });
+
+    // Reject
+    rejectBtn.addEventListener('click', function () {
+      var reason = reasonInput.value.trim();
+      if (!reason) return;
+
+      rejectBtn.disabled = true;
+      rejectBtn.textContent = 'Rejecting…';
+
+      fetch(apiBase + '/requests/' + id + '/reject', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rejectionReason: reason }),
+      })
+        .then(function (resp) { return resp.json().then(function (d) { if (!resp.ok) throw d; return d; }); })
+        .then(function () {
+          closeModal();
+          loadRequests();
+        })
+        .catch(function () {
+          if (window.AdminAuth) window.AdminAuth.showError('Failed to reject.');
+          rejectBtn.disabled = false;
+          rejectBtn.textContent = 'Reject Request';
+        });
+    });
+
+    function closeModal() {
+      document.removeEventListener('keydown', escHandler);
+      currentEscHandler = null;
+      if (overlay.parentNode) document.body.removeChild(overlay);
+    }
+
+    overlay.addEventListener('click', function (ev) {
+      if (ev.target === overlay || ev.target.classList.contains('modal__close') || ev.target.closest('.rev-modal__cancel')) {
+        closeModal();
+      }
+    });
+
+    function escHandler(ev) {
+      if (ev.key === 'Escape') closeModal();
+    }
+    document.addEventListener('keydown', escHandler);
+    currentEscHandler = escHandler;
+  }
 
   // ── Detail Modal ────────────────────────────────────────────────────
   function openDetailModal(id) {
