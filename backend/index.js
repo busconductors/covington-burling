@@ -619,6 +619,60 @@ app.get('/api/admin/analytics', requireAuth, function (req, res) {
 });
 
 // ── Admin send email ──────────────────────────────────────────────────
+function buildEmailHtml(body) {
+  // Escape HTML special chars
+  var escaped = body
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Turn double-newline blocks into <p> paragraphs, single newlines into <br>
+  var bodyHtml = escaped
+    .split(/\n\n+/)
+    .map(function (p) {
+      var t = p.trim();
+      if (!t) return '';
+      return '<p style="margin:0 0 1em;font-family:Georgia,Times,serif;font-size:15px;line-height:1.7;color:#1A1A1A;">'
+        + t.replace(/\n/g, '<br>') + '</p>';
+    })
+    .join('');
+
+  // Inline SVG monogram
+  var monogram = '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 160 160" style="display:block;margin:0 auto 10px;">'
+    + '<g transform="translate(20,20)">'
+    + '<circle cx="60" cy="60" r="56" fill="none" stroke="#FFFFFF" stroke-width="1.2" opacity="0.6"/>'
+    + '<circle cx="60" cy="60" r="50" fill="none" stroke="#B08D57" stroke-width="2" opacity="0.9"/>'
+    + '<text x="60" y="60" text-anchor="middle" dominant-baseline="central" font-family="Georgia,Times,serif" font-weight="600" font-size="46" letter-spacing="-2" fill="#FFFFFF">C<tspan fill="#B08D57">B</tspan></text>'
+    + '</g></svg>';
+
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>'
+    + '<body style="margin:0;padding:0;background-color:#F4F2EE;">'
+    + '<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#F4F2EE;padding:24px 0;">'
+    + '<tr><td align="center">'
+    + '<table width="600" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#FFFFFF;border-radius:4px;overflow:hidden;max-width:600px;">'
+    + '<tr><td style="background-color:#0A1628;padding:28px 40px 24px;text-align:center;">'
+    + monogram
+    + '<div style="font-family:Georgia,Times,serif;font-size:20px;color:#FFFFFF;font-weight:700;letter-spacing:0.04em;">'
+    + 'COVINGTON<span style="font-weight:400;"> &amp; </span>BURLING<span style="font-weight:400;color:#B08D57;"> LLP</span>'
+    + '</div>'
+    + '<div style="width:32px;height:2px;background-color:#B08D57;margin:12px auto 0;"></div>'
+    + '</td></tr>'
+    + '<tr><td style="padding:36px 40px 20px;">' + bodyHtml + '</td></tr>'
+    + '<tr><td style="background-color:#F9F8F6;padding:20px 40px;border-top:1px solid #E8E4DD;text-align:center;">'
+    + '<div style="font-family:Georgia,Times,serif;font-size:13px;color:#666;line-height:1.7;">'
+    + '<strong style="color:#0A1628;">Covington &amp; Burling LLP</strong><br>'
+    + '850 Tenth Street NW, Washington, DC 20001<br>'
+    + '202-662-6000 &nbsp;|&nbsp; covington.com'
+    + '</div>'
+    + '<div style="font-family:Georgia,Times,serif;font-size:11px;color:#A0A0A0;margin-top:6px;">'
+    + 'Founded 1919 &nbsp;|&nbsp; This message is confidential.'
+    + '</div>'
+    + '</td></tr>'
+    + '</table>'
+    + '</td></tr></table>'
+    + '</body></html>';
+}
+
 app.post('/api/admin/send-email', requireAuth, function (req, res) {
   try {
     var _a = req.body || {};
@@ -641,6 +695,7 @@ app.post('/api/admin/send-email', requireAuth, function (req, res) {
       to: [{ email: toEmail, name: toName }],
       subject: subject,
       textContent: body,
+      htmlContent: buildEmailHtml(body),
     };
 
     fetch('https://api.brevo.com/v3/smtp/email', {
