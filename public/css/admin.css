@@ -639,3 +639,326 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================
+   Admin Review Modals (Approve / Reject)
+   ============================================================ */
+
+.rev-modal {
+  max-width: 900px;
+  width: 95vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.rev-modal .modal__body {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Two-column layout */
+.rev-modal__layout {
+  display: flex;
+  gap: 1.25rem;
+  min-height: 360px;
+}
+
+/* ----- Approve Modal: PDF Preview ----- */
+.rev-modal__preview {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--cream);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.rev-modal__preview-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.625rem 1rem;
+  background: var(--cream);
+  border-bottom: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+
+.rev-modal__preview-body {
+  flex: 1;
+  min-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #E8E6E1;
+  padding: 1rem;
+}
+
+.rev-modal__preview-placeholder {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.rev-modal__preview-placeholder p {
+  margin: 0;
+}
+
+.rev-modal__pdf-canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  border-radius: 4px;
+  background: #fff;
+}
+
+.rev-modal__preview-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--cream);
+  border-top: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+
+/* ----- Approve Modal: Edit Fields ----- */
+.rev-modal__fields {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rev-modal__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rev-modal__fields-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.rev-modal__field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.rev-modal__label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rev-modal__input {
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--text-body);
+  background: var(--white);
+  box-sizing: border-box;
+}
+
+.rev-modal__input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(194,164,79,0.12);
+}
+
+.rev-modal__message {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 70px;
+  resize: vertical;
+  font-size: 0.8125rem;
+}
+
+.rev-modal__builder-btn {
+  width: 100%;
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.rev-modal__hint {
+  font-size: 0.625rem;
+  color: #999;
+  line-height: 1.4;
+}
+
+/* ----- Bottom Action Bar ----- */
+.rev-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+
+.rev-modal__cancel {
+  padding: 0.5rem 1.25rem;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.rev-modal__cancel:hover {
+  background: var(--cream);
+  color: var(--text-body);
+}
+
+.rev-modal__approve-btn {
+  padding: 0.5rem 1.5rem;
+  background: var(--gold);
+  color: var(--white);
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rev-modal__approve-btn:hover {
+  background: var(--navy);
+}
+
+.rev-modal__approve-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.rev-modal__reject-btn {
+  padding: 0.5rem 1.5rem;
+  background: #8B0000;
+  color: var(--white);
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rev-modal__reject-btn:hover {
+  background: #A00000;
+}
+
+.rev-modal__reject-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* ----- Reject Modal: Summary ----- */
+.rev-modal__summary {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rev-modal__summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 0.25rem;
+}
+
+.rev-modal__summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.375rem 0;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.8125rem;
+}
+
+.rev-modal__summary-row span:first-child {
+  color: var(--text-muted);
+}
+
+.rev-modal__summary-row span:last-child {
+  color: var(--text-body);
+  font-weight: 500;
+  text-align: right;
+}
+
+.rev-modal__info-banner {
+  font-size: 0.6875rem;
+  color: #8A6D3B;
+  background: #FFF8F0;
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #F0E0C0;
+  line-height: 1.4;
+}
+
+/* ----- Reject Modal: Reason ----- */
+.rev-modal__reason {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rev-modal__reason-input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 130px;
+  resize: vertical;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* ----- Responsive ----- */
+@media (max-width: 48em) {
+  .rev-modal {
+    max-width: 100%;
+    width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .rev-modal__layout {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .rev-modal__preview {
+    min-height: 250px;
+  }
+
+  .rev-modal__fields {
+    width: 100%;
+  }
+
+  .rev-modal__summary {
+    width: 100%;
+  }
+}

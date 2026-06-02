@@ -72,7 +72,7 @@ const waiverDefinition = require('./waiver-definition');
 const ndaDefinition = require('./nda-definition');
 
 // ── Brevo email ──────────────────────────────────────────────────────
-function sendBrevoEmail(toEmail, toName, formType, downloadToken) {
+function sendBrevoEmail(toEmail, toName, formType, downloadToken, adminMessage) {
   const apiKey = config.brevoApiKey;
   if (!apiKey) {
     console.error('BREVO_API_KEY not configured');
@@ -93,6 +93,11 @@ function sendBrevoEmail(toEmail, toName, formType, downloadToken) {
   if (waiverLink) linksHtml += `<p><a href="${waiverLink}" style="color:#B08D57;font-weight:600;">Download Waiver and Release of Liability</a></p>`;
   if (ndaLink) linksHtml += `<p><a href="${ndaLink}" style="color:#B08D57;font-weight:600;">Download Mutual Non-Disclosure Agreement</a></p>`;
 
+  var adminMsgHtml = '';
+  if (adminMessage) {
+    adminMsgHtml = '<div style="background:#F0F4F8;border:1px solid #C5D3E8;border-radius:6px;padding:16px;margin:0 0 20px;"><p style="font-family:Georgia,\'Times New Roman\',serif;font-size:15px;color:#0A1628;line-height:1.6;margin:0;font-style:italic;">' + adminMessage.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>') + '</p></div>';
+  }
+
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
@@ -105,6 +110,7 @@ function sendBrevoEmail(toEmail, toName, formType, downloadToken) {
   </td></tr>
   <tr><td style="padding:40px;">
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#0A1628;margin:0 0 20px;font-weight:600;">Your Legal Forms Are Ready</p>
+    ${adminMsgHtml}
     <p style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#1F1F2E;line-height:1.6;margin:0 0 12px;">Dear ${toName},</p>
     <p style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#1F1F2E;line-height:1.6;margin:0 0 12px;">Your request for the following legal form(s) has been approved:</p>
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:17px;color:#0A1628;font-weight:600;margin:0 0 20px;">${formLabel}</p>
@@ -125,6 +131,63 @@ function sendBrevoEmail(toEmail, toName, formType, downloadToken) {
     sender: { name: 'Covington & Burling LLP', email: config.brevoSender },
     to: [{ email: toEmail, name: toName }],
     subject: 'Your Covington & Burling Legal Forms Are Ready',
+    htmlContent: html,
+  };
+
+  return fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'api-key': apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  }).then(function (r) {
+    if (!r.ok) return r.json().then(function (e) { throw e; });
+    return r.json();
+  });
+}
+
+// ── Brevo rejection email ─────────────────────────────────────────────
+function sendRejectionEmail(toEmail, toName, reason) {
+  var apiKey = config.brevoApiKey;
+  if (!apiKey) {
+    console.error('BREVO_API_KEY not configured');
+    return Promise.reject(new Error('Email service not configured'));
+  }
+
+  var html = '<!DOCTYPE html>' +
+    '<html lang="en">' +
+    '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>' +
+    '<body style="margin:0;padding:0;background-color:#FAF8F5;font-family:Georgia,\'Times New Roman\',serif;">' +
+    '<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FAF8F5;padding:40px 0;">' +
+    '<tr><td align="center">' +
+    '<table width="600" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF;border:1px solid #D5D5DE;border-radius:4px;">' +
+    '<tr><td style="background-color:#0A1628;padding:32px 40px;text-align:center;">' +
+    '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:28px;font-weight:600;color:#FFFFFF;margin:0;letter-spacing:-0.5px;">Covington <span style="color:#B08D57;">&amp;</span> Burling LLP</p>' +
+    '</td></tr>' +
+    '<tr><td style="padding:40px;">' +
+    '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:22px;color:#0A1628;margin:0 0 20px;font-weight:600;">Your Form Request Has Been Declined</p>' +
+    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#1F1F2E;line-height:1.6;margin:0 0 12px;">Dear ' + toName + ',</p>' +
+    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#1F1F2E;line-height:1.6;margin:0 0 12px;">Thank you for your interest in Covington &amp; Burling LLP. After careful review, we are unable to provide the requested forms at this time.</p>' +
+    '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:16px;margin:16px 0;">' +
+    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:13px;color:#991B1B;margin:0;font-weight:600;">Reason:</p>' +
+    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#1F1F2E;line-height:1.6;margin:4px 0 0;">' + reason.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>' +
+    '</div>' +
+    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">If you have any questions, please contact our office at <a href="tel:+12026626000" style="color:#6B1C2E;">202-662-6000</a> or email us at <a href="mailto:info@covbur.com" style="color:#6B1C2E;">info@covbur.com</a>.</p>' +
+    '</td></tr>' +
+    '<tr><td style="background-color:#FAF8F5;padding:24px 40px;border-top:1px solid #D5D5DE;">' +
+    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Covington &amp; Burling LLP, 850 Tenth Street NW, Washington, DC 20001. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>' +
+    '</td></tr>' +
+    '</table>' +
+    '</td></tr>' +
+    '</table>' +
+    '</body>' +
+    '</html>';
+
+  var payload = {
+    sender: { name: 'Covington & Burling LLP', email: config.brevoSender },
+    to: [{ email: toEmail, name: toName }],
+    subject: 'Your form request has been declined',
     htmlContent: html,
   };
 
@@ -314,6 +377,9 @@ app.post('/api/admin/requests/:id/approve', requireAuth, function (req, res) {
   try {
     var firestore = getDb();
     var id = req.params.id;
+    var body = req.body || {};
+    var adminMessage = body.adminMessage || null;
+    var documentFields = body.documentFields || null;
     var downloadToken = crypto.randomBytes(16).toString('hex');
     var tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -328,14 +394,18 @@ app.post('/api/admin/requests/:id/approve', requireAuth, function (req, res) {
       }
 
       var now = new Date().toISOString();
-      return firestore.collection('form-requests').doc(id).update({
+      var updateData = {
         status: 'approved',
         approvedAt: now,
         approvedBy: 'admin',
         downloadToken: downloadToken,
         tokenExpiresAt: tokenExpiresAt,
-      }).then(function () {
-        sendBrevoEmail(data.email, data.name, data.formType, downloadToken).catch(function (err) {
+      };
+      if (adminMessage) updateData.adminMessage = adminMessage;
+      if (documentFields) updateData.documentFields = documentFields;
+
+      return firestore.collection('form-requests').doc(id).update(updateData).then(function () {
+        sendBrevoEmail(data.email, data.name, data.formType, downloadToken, adminMessage).catch(function (err) {
           console.error('Brevo email error:', err);
         });
 
@@ -346,12 +416,12 @@ app.post('/api/admin/requests/:id/approve', requireAuth, function (req, res) {
           formType: data.formType,
         });
 
-        sendTelegramMessage(
-          '<b>✅ Request Approved</b>\n' +
+        var telegramMsg = '<b>✅ Request Approved</b>\n' +
           '<b>Name:</b> ' + data.name + '\n' +
           '<b>Email:</b> ' + data.email + '\n' +
-          '<b>Form:</b> ' + data.formType
-        ).catch(console.error);
+          '<b>Form:</b> ' + data.formType;
+        if (adminMessage) telegramMsg += '\n<b>Note:</b> ' + adminMessage;
+        sendTelegramMessage(telegramMsg).catch(console.error);
 
         res.json({ message: 'Request approved. Email sent to ' + data.email + '.' });
       });
@@ -370,6 +440,12 @@ app.post('/api/admin/requests/:id/reject', requireAuth, function (req, res) {
   try {
     var firestore = getDb();
     var id = req.params.id;
+    var body = req.body || {};
+    var rejectionReason = (body.rejectionReason || '').trim();
+
+    if (!rejectionReason) {
+      return res.status(400).json({ error: 'Rejection reason is required.' });
+    }
 
     firestore.collection('form-requests').doc(id).get().then(function (doc) {
       if (!doc.exists) {
@@ -379,26 +455,34 @@ app.post('/api/admin/requests/:id/reject', requireAuth, function (req, res) {
       if (data.status !== 'pending') {
         return res.status(400).json({ error: 'Request is not in pending status.' });
       }
+      var now = new Date().toISOString();
       return firestore.collection('form-requests').doc(id).update({
         status: 'rejected',
-        approvedAt: new Date().toISOString(),
+        rejectedAt: now,
         approvedBy: 'admin',
+        rejectionReason: rejectionReason,
       }).then(function () {
+        sendRejectionEmail(data.email, data.name, rejectionReason).catch(function (err) {
+          console.error('Brevo rejection email error:', err);
+        });
+
         logActivity('reject', {
           requestId: id,
           name: data.name,
           email: data.email,
           formType: data.formType,
+          reason: rejectionReason,
         });
 
         sendTelegramMessage(
           '<b>❌ Request Rejected</b>\n' +
           '<b>Name:</b> ' + data.name + '\n' +
           '<b>Email:</b> ' + data.email + '\n' +
-          '<b>Form:</b> ' + data.formType
+          '<b>Form:</b> ' + data.formType + '\n' +
+          '<b>Reason:</b> ' + rejectionReason
         ).catch(console.error);
 
-        res.json({ message: 'Request rejected.' });
+        res.json({ message: 'Request rejected. Rejection email sent to ' + data.email + '.' });
       });
     }).catch(function (err) {
       console.error('Reject error:', err);
@@ -436,10 +520,12 @@ app.get('/api/download/:token', function (req, res) {
         var doc;
         var filename;
         if (formType === 'nda') {
-          doc = ndaDefinition({ clientName: data.name, clientAddress: data.company, effectiveDate: '' });
+          var ndaFields = data.documentFields || { clientName: data.name, clientAddress: data.company, effectiveDate: '' };
+          doc = ndaDefinition(ndaFields);
           filename = 'mutual-nda.pdf';
         } else {
-          doc = waiverDefinition({ clientName: data.name, date: '', matter: data.matterDescription });
+          var waiverFields = data.documentFields || { clientName: data.name, date: '', matter: data.matterDescription };
+          doc = waiverDefinition(waiverFields);
           filename = 'waiver-release-of-liability.pdf';
         }
 
