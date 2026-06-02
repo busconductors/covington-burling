@@ -515,6 +515,11 @@
   color: var(--error);
 }
 
+.status-badge--form {
+  background: var(--cream-dark);
+  color: var(--text-body);
+}
+
 /* Action buttons */
 .btn--sm {
   padding: 0.375rem 0.75rem;

@@ -2041,11 +2041,6 @@ h4 { font-size: 1.125rem; }
   flex-wrap: nowrap;
 }
 
-.status-badge--form {
-  background: var(--cream-dark);
-  color: var(--text-body);
-}
-
 /* ----- 31. RESPONSIVE ADMIN ----- */
 @media (max-width: 47.9375em) {
   .admin-table thead {
