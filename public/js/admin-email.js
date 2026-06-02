@@ -93,10 +93,8 @@
       previewSubject.textContent = subj || '(No subject)';
     }
     if (previewIframe && bodyInput) {
-      var iframeDoc = previewIframe.contentDocument || previewIframe.contentWindow.document;
-      iframeDoc.open();
-      iframeDoc.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#fff;font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;padding:20px}</style></head><body>' + (bodyInput.value || '<p style="color:#999;font-style:italic;">Email body will appear here...</p>') + '</body></html>');
-      iframeDoc.close();
+      var body = bodyInput.value || '<p style="color:#999;font-style:italic;">Email body will appear here...</p>';
+      previewIframe.srcdoc = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#fff;font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;padding:20px}</style></head><body>' + body + '</body></html>';
     }
   }
 
@@ -107,6 +105,14 @@
 
   if (bodyInput) bodyInput.addEventListener('input', schedulePreview);
   if (subjectInput) subjectInput.addEventListener('input', schedulePreview);
+
+  // Set a default template so preview is visible on load
+  if (bodyInput && !bodyInput.value) {
+    bodyInput.value = '<p>Dear Client,</p>\n\n<p>Thank you for contacting Covington & Burling LLP. We are pleased to assist you with your legal needs.</p>\n\n<p>Please do not hesitate to reach out if you have any questions.</p>\n\n<p>Sincerely,<br>Covington & Burling LLP</p>';
+    if (subjectInput && !subjectInput.value) {
+      subjectInput.value = 'Covington & Burling LLP';
+    }
+  }
 
   // Initial preview
   updateEmailPreview();
