@@ -703,6 +703,14 @@
   font-family: var(--font-sans);
 }
 
+.email-form__textarea--plain {
+  font-family: Menlo, Consolas, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
 .email-template-presets {
   display: flex;
   gap: 0.5rem;

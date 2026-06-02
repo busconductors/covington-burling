@@ -640,7 +640,7 @@ app.post('/api/admin/send-email', requireAuth, function (req, res) {
       sender: { name: 'Covington & Burling LLP', email: config.brevoSender },
       to: [{ email: toEmail, name: toName }],
       subject: subject,
-      htmlContent: body,
+      textContent: body,
     };
 
     fetch('https://api.brevo.com/v3/smtp/email', {

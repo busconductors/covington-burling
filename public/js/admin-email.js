@@ -17,15 +17,15 @@
   var templates = {
     'approved-forms': {
       subject: 'Your Covington & Burling Legal Forms Are Ready',
-      body: '<p>Dear {name},</p>\n<p>Your request for legal forms has been approved. Please use the secure download link(s) in your original approval email to access your documents.</p>\n<p>If you have any questions, please contact our office at 202-662-6000.</p>\n<p>Sincerely,<br>Covington & Burling LLP</p>',
+      body: 'Dear {name},\n\nYour request for legal forms has been approved. Please use the secure download link(s) in your original approval email to access your documents.\n\nIf you have any questions, please contact our office at 202-662-6000.\n\nSincerely,\nCovington & Burling LLP',
     },
     'follow-up': {
       subject: 'Follow-Up: Covington & Burling LLP',
-      body: '<p>Dear {name},</p>\n<p>I am writing to follow up regarding your recent inquiry. Our team is available to discuss your legal needs at your convenience.</p>\n<p>Please do not hesitate to contact our office at 202-662-6000 to schedule a consultation.</p>\n<p>Sincerely,<br>Covington & Burling LLP</p>',
+      body: 'Dear {name},\n\nI am writing to follow up regarding your recent inquiry. Our team is available to discuss your legal needs at your convenience.\n\nPlease do not hesitate to contact our office at 202-662-6000 to schedule a consultation.\n\nSincerely,\nCovington & Burling LLP',
     },
     'consultation': {
       subject: 'Consultation Confirmation — Covington & Burling LLP',
-      body: '<p>Dear {name},</p>\n<p>This message confirms your consultation with Covington & Burling LLP. An attorney from our team will contact you shortly to discuss your matter.</p>\n<p>In preparation, please gather any relevant documents or correspondence related to your legal needs.</p>\n<p>Sincerely,<br>Covington & Burling LLP</p>',
+      body: 'Dear {name},\n\nThis message confirms your consultation with Covington & Burling LLP. An attorney from our team will contact you shortly to discuss your matter.\n\nIn preparation, please gather any relevant documents or correspondence related to your legal needs.\n\nSincerely,\nCovington & Burling LLP',
     },
   };
 
@@ -93,8 +93,9 @@
       previewSubject.textContent = subj || '(No subject)';
     }
     if (previewIframe && bodyInput) {
-      var body = bodyInput.value || '<p style="color:#999;font-style:italic;">Email body will appear here...</p>';
-      previewIframe.srcdoc = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#fff;font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;padding:20px}</style></head><body>' + body + '</body></html>';
+      var body = bodyInput.value || 'Email body will appear here...';
+      var escaped = body.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      previewIframe.srcdoc = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#fff;font-family:Menlo,Consolas,monospace;font-size:13px;line-height:1.7;color:#1a1a1a;max-width:600px;margin:0 auto;padding:24px;white-space:pre-wrap;word-wrap:break-word}</style></head><body>' + escaped + '</body></html>';
     }
   }
 
@@ -108,7 +109,7 @@
 
   // Set a default template so preview is visible on load
   if (bodyInput && !bodyInput.value) {
-    bodyInput.value = '<p>Dear Client,</p>\n\n<p>Thank you for contacting Covington & Burling LLP. We are pleased to assist you with your legal needs.</p>\n\n<p>Please do not hesitate to reach out if you have any questions.</p>\n\n<p>Sincerely,<br>Covington & Burling LLP</p>';
+    bodyInput.value = 'Dear Client,\n\nThank you for contacting Covington & Burling LLP. We are pleased to assist you with your legal needs.\n\nPlease do not hesitate to reach out if you have any questions.\n\nSincerely,\nCovington & Burling LLP';
     if (subjectInput && !subjectInput.value) {
       subjectInput.value = 'Covington & Burling LLP';
     }
