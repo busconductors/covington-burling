@@ -325,22 +325,28 @@
         <!-- ── Email Section ──────────────────────────────────────────── -->
         <section class="admin-section" id="adminEmailSection">
           <div class="email-composer">
-            <div class="email-composer__form">
-              <h2 class="email-composer__heading">Compose Email</h2>
+            <div class="email-composer__card">
+              <div class="email-composer__card-header">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                <span>Compose Email</span>
+              </div>
               <form id="emailForm">
                 <div class="email-form__group">
-                  <label class="email-form__label" for="emailRecipient">Recipient (from approved requests)</label>
+                  <label class="email-form__label" for="emailRecipient">Recipient</label>
                   <select id="emailRecipient" class="email-form__select">
                     <option value="">Select a recipient...</option>
                   </select>
+                  <span class="email-form__hint">From approved requests</span>
                 </div>
-                <div class="email-form__group">
-                  <label class="email-form__label" for="emailToName">To Name</label>
-                  <input type="text" id="emailToName" class="email-form__input" placeholder="Client name">
-                </div>
-                <div class="email-form__group">
-                  <label class="email-form__label" for="emailToEmail">To Email *</label>
-                  <input type="email" id="emailToEmail" class="email-form__input" placeholder="client@example.com" required>
+                <div class="email-form__row">
+                  <div class="email-form__group email-form__group--half">
+                    <label class="email-form__label" for="emailToName">To Name</label>
+                    <input type="text" id="emailToName" class="email-form__input" placeholder="Client name">
+                  </div>
+                  <div class="email-form__group email-form__group--half">
+                    <label class="email-form__label" for="emailToEmail">To Email *</label>
+                    <input type="email" id="emailToEmail" class="email-form__input" placeholder="client@example.com" required>
+                  </div>
                 </div>
                 <div class="email-form__group">
                   <label class="email-form__label" for="emailSubject">Subject *</label>
@@ -364,8 +370,11 @@
                 <div class="email-success" id="emailStatus"></div>
               </form>
             </div>
-            <div class="email-composer__preview">
-              <h2 class="email-composer__heading">Live Preview</h2>
+            <div class="email-composer__card">
+              <div class="email-composer__card-header">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <span>Live Preview</span>
+              </div>
               <div class="email-preview">
                 <div class="email-preview__meta">
                   <div class="email-preview__meta-row">
@@ -384,7 +393,7 @@
                   sandbox="allow-same-origin"
                 ></iframe>
               </div>
-              <p class="email-preview__hint">Preview updates as you type. The iframe isolates email styles from the admin page.</p>
+              <p class="email-preview__hint">Preview updates automatically as you type.</p>
             </div>
           </div>
         </section>
