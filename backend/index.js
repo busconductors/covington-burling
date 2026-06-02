@@ -721,63 +721,6 @@ app.post('/api/admin/send-email', requireAuth, function (req, res) {
   }
 });
 
-// ── Admin send email with PDF attachment ───────────────────────────────
-app.post('/api/admin/send-email-attachment', requireAuth, function (req, res) {
-  try {
-    var _a = req.body || {};
-    var toEmail = _a.toEmail;
-    var toName = _a.toName || '';
-    var subject = _a.subject;
-    var body = _a.body;
-    var attachment = _a.attachment;
-
-    if (!toEmail || !subject || !body) {
-      return res.status(400).json({ error: 'Missing required fields: toEmail, subject, body.' });
-    }
-
-    if (!attachment || !attachment.name || !attachment.content) {
-      return res.status(400).json({ error: 'Missing attachment with name and base64 content.' });
-    }
-
-    var apiKey = config.brevoApiKey;
-    if (!apiKey) {
-      return res.status(500).json({ error: 'Email service not configured.' });
-    }
-
-    var payload = {
-      sender: { name: 'Covington & Burling LLP', email: config.brevoSender },
-      to: [{ email: toEmail, name: toName }],
-      subject: subject,
-      textContent: body,
-      htmlContent: buildEmailHtml(body),
-      attachment: [
-        { name: attachment.name, content: attachment.content },
-      ],
-    };
-
-    fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'api-key': apiKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    }).then(function (r) {
-      if (!r.ok) return r.json().then(function (e) { throw e; });
-      return r.json();
-    }).then(function () {
-      logActivity('send-email-attachment', { toEmail: toEmail, toName: toName, subject: subject, filename: attachment.name });
-      res.json({ message: 'Email with attachment sent to ' + toEmail + '.' });
-    }).catch(function (err) {
-      console.error('Send email attachment error:', err);
-      res.status(500).json({ error: 'Failed to send email with attachment.', detail: err.message });
-    });
-  } catch (err) {
-    console.error('Send email attachment error:', err);
-    res.status(500).json({ error: 'Internal server error.' });
-  }
-});
-
 // ── Activity log ──────────────────────────────────────────────────────
 app.get('/api/admin/activity', requireAuth, function (req, res) {
   try {
