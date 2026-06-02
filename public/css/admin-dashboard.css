@@ -7,10 +7,24 @@
 .admin-shell {
   display: flex;
   min-height: 100vh;
+  background: #F4F2EE;
+  position: relative;
+}
+/* Decorative strip behind sidebar — gives the glass something to blur */
+.admin-shell::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 240px;
+  z-index: 0;
+  pointer-events: none;
   background:
-    radial-gradient(ellipse 80% 60% at 20% 50%, rgba(176,141,87,0.06) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 80% at 10% 30%, rgba(10,22,40,0.08) 0%, transparent 60%),
-    #F4F2EE;
+    radial-gradient(ellipse 100% 50% at 30% 50%, rgba(176,141,87,0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 80% 40% at 50% 25%, rgba(107,28,46,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 40% 75%, rgba(10,22,40,0.15) 0%, transparent 55%),
+    linear-gradient(180deg, rgba(10,22,40,0.08) 0%, rgba(10,22,40,0.04) 50%, rgba(10,22,40,0.08) 100%);
 }
 
 /* ----- Sidebar (Liquid Glass) ----- */
@@ -25,17 +39,17 @@
   bottom: 0;
   z-index: 200;
   transition: transform var(--transition-base);
-  /* Glass effect */
-  background: rgba(10, 22, 40, 0.78);
-  backdrop-filter: blur(24px) saturate(120%);
-  -webkit-backdrop-filter: blur(24px) saturate(120%);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  /* Glass effect — translucent navy over the decorative strip */
+  background: rgba(10, 22, 40, 0.68);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow:
-    4px 0 24px rgba(10, 22, 40, 0.25),
-    inset -1px 0 0 rgba(255, 255, 255, 0.04);
-  /* Liquid glow layer */
+    4px 0 30px rgba(10, 22, 40, 0.35),
+    inset -1px 0 0 rgba(255, 255, 255, 0.05);
   overflow: hidden;
 }
+/* Liquid glow — animated warm/cool gradient pools */
 .admin-sidebar::before {
   content: '';
   position: absolute;
@@ -43,22 +57,27 @@
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 20%, rgba(176,141,87,0.12) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(107,28,46,0.06) 0%, transparent 40%);
-  animation: liquid-glow 12s ease-in-out infinite;
+    radial-gradient(circle at 40% 15%, rgba(176,141,87,0.18) 0%, transparent 45%),
+    radial-gradient(circle at 70% 60%, rgba(107,28,46,0.1) 0%, transparent 40%),
+    radial-gradient(circle at 30% 80%, rgba(176,141,87,0.08) 0%, transparent 35%);
+  animation: liquid-glow 14s ease-in-out infinite;
 }
 @keyframes liquid-glow {
   0%, 100% {
-    opacity: 0.6;
-    transform: scale(1) translateY(0);
+    opacity: 0.5;
+    transform: scale(1) translate(0, 0);
   }
-  33% {
+  25% {
     opacity: 1;
-    transform: scale(1.15) translateY(-1%);
+    transform: scale(1.2) translate(2%, -2%);
   }
-  66% {
-    opacity: 0.7;
-    transform: scale(1.05) translateY(1%);
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1) translate(-1%, 1%);
+  }
+  75% {
+    opacity: 0.9;
+    transform: scale(1.15) translate(1%, 1%);
   }
 }
 
