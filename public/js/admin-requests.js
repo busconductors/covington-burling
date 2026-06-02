@@ -176,18 +176,23 @@
 
     document.body.appendChild(overlay);
 
+    function closeModal() {
+      document.body.removeChild(overlay);
+      document.removeEventListener('keydown', escHandler);
+    }
+
     overlay.addEventListener('click', function (ev) {
       if (ev.target === overlay || ev.target.classList.contains('modal__close')) {
-        document.body.removeChild(overlay);
+        closeModal();
       }
     });
 
-    document.addEventListener('keydown', function escHandler(ev) {
+    function escHandler(ev) {
       if (ev.key === 'Escape') {
-        document.body.removeChild(overlay);
-        document.removeEventListener('keydown', escHandler);
+        closeModal();
       }
-    });
+    }
+    document.addEventListener('keydown', escHandler);
   }
 
   function updatePendingBadge() {
