@@ -4,6 +4,11 @@
   if (!document.getElementById('adminBuilder')) return;
 
   var builder = document.getElementById('adminBuilder');
+  var apiBase = window.AdminAuth ? window.AdminAuth.apiBase : '';
+
+  function getToken() {
+    return window.AdminAuth ? window.AdminAuth.getToken() : sessionStorage.getItem('admin_token');
+  }
 
   // ── Document State ──────────────────────────────────────────────────
   var docState = {
@@ -467,6 +472,130 @@
     URL.revokeObjectURL(url);
   });
 
+  // ── Generate & Send ─────────────────────────────────────────────────
+  var sendModalOverlay = document.getElementById('sendModalOverlay');
+  var sendStatus = document.getElementById('sendStatus');
+
+  function openSendModal() {
+    syncState();
+    loadSendRecipients();
+    sendModalOverlay.style.display = 'flex';
+    document.getElementById('sendAttachName').textContent = document.getElementById('outputName').value || 'document.pdf';
+    document.getElementById('sendSubject').value = docState.title + ' — Covington & Burling LLP';
+    hideSendStatus();
+  }
+
+  function closeSendModal() {
+    sendModalOverlay.style.display = 'none';
+  }
+
+  function showSendStatus(msg, type) {
+    if (!sendStatus) return;
+    sendStatus.textContent = msg;
+    sendStatus.className = 'send-modal__status send-modal__status--' + type;
+    sendStatus.style.display = 'block';
+  }
+
+  function hideSendStatus() {
+    if (sendStatus) {
+      sendStatus.className = 'send-modal__status';
+      sendStatus.style.display = 'none';
+    }
+  }
+
+  function loadSendRecipients() {
+    var select = document.getElementById('sendRecipient');
+    if (!select) return;
+    select.innerHTML = '<option value="">Select a recipient...</option>';
+    fetch(apiBase + '/requests', {
+      headers: { 'Authorization': 'Bearer ' + getToken() }
+    }).then(function (r) { return r.json(); })
+      .then(function (data) {
+        var requests = data.requests || [];
+        var approved = requests.filter(function (r) { return r.status === 'approved'; });
+        approved.forEach(function (r) {
+          var opt = document.createElement('option');
+          opt.value = r.email;
+          opt.setAttribute('data-name', r.name);
+          opt.textContent = r.name + ' (' + r.email + ')';
+          select.appendChild(opt);
+        });
+      }).catch(function () {});
+  }
+
+  var sendRecipient = document.getElementById('sendRecipient');
+  if (sendRecipient) {
+    sendRecipient.addEventListener('change', function () {
+      var opt = this.options[this.selectedIndex];
+      var name = opt.getAttribute('data-name') || '';
+      document.getElementById('sendToName').value = name;
+    });
+  }
+
+  document.getElementById('generateSendBtn').addEventListener('click', openSendModal);
+  document.getElementById('sendModalClose').addEventListener('click', closeSendModal);
+  document.getElementById('sendModalCancel').addEventListener('click', closeSendModal);
+  sendModalOverlay.addEventListener('click', function (e) {
+    if (e.target === sendModalOverlay) closeSendModal();
+  });
+
+  document.getElementById('sendModalSubmit').addEventListener('click', function () {
+    var toEmail = document.getElementById('sendToEmail').value.trim();
+    var toName = document.getElementById('sendToName').value.trim();
+    var subject = document.getElementById('sendSubject').value.trim();
+    var message = document.getElementById('sendMessage').value.trim();
+    var filename = document.getElementById('outputName').value || 'document.pdf';
+
+    if (!toEmail || !subject) {
+      showSendStatus('Please fill in the recipient email and subject.', 'error');
+      return;
+    }
+
+    showSendStatus('Generating PDF...', 'loading');
+
+    try {
+      window.CovingtonTemplate.generate({
+        title: docState.title,
+        fields: docState.fields,
+        intro: docState.intro || undefined,
+        witnessText: docState.witnessText,
+        clauses: docState.clauses,
+        signatureBlocks: docState.signatureBlocks,
+      }).then(function (pdfBytes) {
+        var binary = '';
+        var bytesArr = new Uint8Array(pdfBytes);
+        for (var i = 0; i < bytesArr.length; i++) {
+          binary += String.fromCharCode(bytesArr[i]);
+        }
+        var pdfBase64 = btoa(binary);
+
+        showSendStatus('Sending email...', 'loading');
+
+        return fetch(apiBase + '/send-email-attachment', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + getToken(),
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            toEmail: toEmail,
+            toName: toName,
+            subject: subject,
+            body: message,
+            attachment: { name: filename, content: pdfBase64 },
+          }),
+        }).then(function (r) { return r.json().then(function (d) { if (!r.ok) throw d; return d; }); });
+      }).then(function () {
+        showSendStatus('Email sent to ' + toEmail + ' with PDF attached.', 'success');
+        setTimeout(closeSendModal, 2000);
+      }).catch(function (err) {
+        showSendStatus('Failed: ' + (err.error || err.message || 'Unknown error'), 'error');
+      });
+    } catch (err) {
+      showSendStatus('Error: ' + err.message, 'error');
+    }
+  });
+
   // ── Auto-Save ───────────────────────────────────────────────────────
   var DRAFT_KEY = 'covington-admin-draft';
   var DRAFT_TS_KEY = 'covington-admin-draft-ts';
@@ -619,10 +748,21 @@
     initBuilder();
   }
 
-  // Expose for dashboard shell to call
+  // Expose for dashboard shell and tests
   window.AdminBuilder = {
     init: function () {
       updatePreview();
-    }
+    },
+    generatePdfBytes: function () {
+      syncState();
+      return window.CovingtonTemplate.generate({
+        title: docState.title,
+        fields: docState.fields,
+        intro: docState.intro || undefined,
+        witnessText: docState.witnessText,
+        clauses: docState.clauses,
+        signatureBlocks: docState.signatureBlocks,
+      });
+    },
   };
 })();

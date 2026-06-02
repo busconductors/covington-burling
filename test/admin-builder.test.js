@@ -22,6 +22,10 @@ const BUILDER_ELEMENT_IDS = [
   'nextPageBtn', 'pageInfo', 'prevPageBtn',
   'previewBadge', 'previewBody', 'previewPages', 'previewPlaceholder',
   'sumPages', 'toggleClauseLib', 'zoomInBtn', 'zoomOutBtn', 'zoomLabel',
+  // Generate & Send elements
+  'generateSendBtn', 'sendModalOverlay', 'sendModalClose', 'sendModalCancel',
+  'sendModalSubmit', 'sendRecipient', 'sendToName', 'sendToEmail',
+  'sendSubject', 'sendMessage', 'sendAttachName', 'sendStatus',
 ];
 
 function createBuilderDOM() {
@@ -176,5 +180,10 @@ describe('admin-builder null-guard coverage', () => {
       preset.value = 'blank';
       preset.dispatchEvent(new Event('change'));
     }).not.toThrow();
+  });
+
+  it('exposes generatePdfBytes on AdminBuilder', () => {
+    expect(window.AdminBuilder.generatePdfBytes).toBeDefined();
+    expect(typeof window.AdminBuilder.generatePdfBytes).toBe('function');
   });
 });
