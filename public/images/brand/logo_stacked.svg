@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 300" width="420" height="300">
+  <g transform="translate(150,8)">
+  <circle cx="60" cy="60" r="56" fill="none" stroke="#0A1628" stroke-width="1.5"/>
+  <circle cx="60" cy="60" r="50" fill="none" stroke="#B08D57" stroke-width="2.5"/>
+  <text x="60" y="60" text-anchor="middle" dominant-baseline="central"
+        font-family="Cormorant Garamond, Garamond, 'Times New Roman', serif" font-weight="600" font-size="46"
+        letter-spacing="-2" fill="#0A1628">C<tspan fill="#B08D57">B</tspan></text>
+</g>
+  <line x1="120" y1="150" x2="300" y2="150" stroke="#B08D57" stroke-width="1"/>
+  <text x="210" y="200" text-anchor="middle" font-family="Cormorant Garamond, Garamond, 'Times New Roman', serif" font-weight="600"
+        font-size="40" letter-spacing="0.5" fill="#0A1628">Covington <tspan fill="#B08D57">&amp;</tspan> Burling</text>
+  <text x="210" y="240" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-weight="500"
+        font-size="14" letter-spacing="7" fill="#142340">L L P</text>
+  <text x="210" y="270" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-weight="500"
+        font-size="11" letter-spacing="4" fill="#142340">ATTORNEYS AT LAW &#183; SINCE 1919</text>
+</svg>
