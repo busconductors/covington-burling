@@ -2035,104 +2035,10 @@ h4 { font-size: 1.125rem; }
   padding: 2rem 1.5rem;
 }
 
-.admin-table-wrap {
-  overflow-x: auto;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-}
-
-.admin-loading,
-.admin-empty {
-  text-align: center;
-  padding: 3rem;
-  color: var(--text-muted);
-}
-
-.admin-error-banner {
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.admin-empty__title {
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
-}
-
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9375rem;
-}
-
-.admin-table thead {
-  background: var(--cream);
-  border-bottom: 2px solid var(--border);
-}
-
-.admin-table th {
-  padding: 0.875rem 1rem;
-  text-align: left;
-  font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  white-space: nowrap;
-}
-
-.admin-table td {
-  padding: 0.875rem 1rem;
-  border-bottom: 1px solid var(--border-light);
-  vertical-align: top;
-  line-height: 1.5;
-}
-
-.admin-table tbody tr:hover {
-  background: var(--cream);
-}
-
-.admin-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
 .admin-actions {
   display: flex;
   gap: 0.5rem;
   flex-wrap: nowrap;
-}
-
-/* ----- 30. STATUS BADGES ----- */
-.status-badge {
-  display: inline-block;
-  padding: 0.2rem 0.625rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: capitalize;
-  white-space: nowrap;
-}
-
-.status-badge--pending {
-  background: var(--pending-bg);
-  color: var(--gold-dark);
-}
-
-.status-badge--approved {
-  background: var(--approved-bg);
-  color: var(--success);
-}
-
-.status-badge--rejected {
-  background: var(--rejected-bg);
-  color: var(--error);
-}
-
-.status-badge--form {
-  background: var(--cream-dark);
-  color: var(--text-body);
 }
 
 /* ----- 31. RESPONSIVE ADMIN ----- */
