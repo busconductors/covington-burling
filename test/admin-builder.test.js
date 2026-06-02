@@ -140,4 +140,41 @@ describe('admin-builder null-guard coverage', () => {
     }
     // The sigBlocksList event listener also handles clicks
   });
+
+  it('does not throw when docTitle is missing from loadPreset', () => {
+    document.getElementById('docTitle').remove();
+    // initBuilder calls loadPreset('blank') — verify it does not throw
+    expect(() => {
+      const preset = document.getElementById('presetSelect');
+      preset.value = 'blank';
+      preset.dispatchEvent(new Event('change'));
+    }).not.toThrow();
+  });
+
+  it('does not throw when introText is missing from loadPreset', () => {
+    document.getElementById('introText').remove();
+    expect(() => {
+      const preset = document.getElementById('presetSelect');
+      preset.value = 'blank';
+      preset.dispatchEvent(new Event('change'));
+    }).not.toThrow();
+  });
+
+  it('does not throw when witnessText is missing from loadPreset', () => {
+    document.getElementById('witnessText').remove();
+    expect(() => {
+      const preset = document.getElementById('presetSelect');
+      preset.value = 'blank';
+      preset.dispatchEvent(new Event('change'));
+    }).not.toThrow();
+  });
+
+  it('does not throw when outputName is missing from loadPreset', () => {
+    document.getElementById('outputName').remove();
+    expect(() => {
+      const preset = document.getElementById('presetSelect');
+      preset.value = 'blank';
+      preset.dispatchEvent(new Event('change'));
+    }).not.toThrow();
+  });
 });
