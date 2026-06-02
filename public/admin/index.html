@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400..700;1,400..700&family=Montserrat:ital,wght@0,300..600;1,300..600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css?v=2">
   <link rel="stylesheet" href="/css/admin.css?v=2">
-  <link rel="stylesheet" href="/css/admin-dashboard.css?v=4">
+  <link rel="stylesheet" href="/css/admin-dashboard.css?v=5">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <!-- PDF generation deps (needed by Document Builder section) -->
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" defer></script>
@@ -56,8 +56,18 @@
       <!-- Sidebar -->
       <aside class="admin-sidebar" id="adminSidebar">
         <div class="admin-sidebar__brand">
-          <div class="admin-sidebar__brand-icon" aria-hidden="true">CB</div>
-          <div class="admin-sidebar__brand-text">Covington <span>&amp;</span> Burling LLP</div>
+          <svg class="admin-sidebar__logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 140" width="192" height="140" aria-label="Covington &amp; Burling LLP">
+            <!-- Monogram -->
+            <circle cx="96" cy="34" r="28" fill="none" stroke="#C9A66B" stroke-width="1"/>
+            <circle cx="96" cy="34" r="25" fill="none" stroke="#C9A66B" stroke-width="1.5"/>
+            <text x="96" y="34" text-anchor="middle" dominant-baseline="central" font-family="Cormorant Garamond, Garamond, 'Times New Roman', serif" font-weight="600" font-size="24" letter-spacing="-1" fill="#FAF9F6">C<tspan fill="#C9A66B">B</tspan></text>
+            <!-- Divider -->
+            <line x1="56" y1="76" x2="136" y2="76" stroke="#C9A66B" stroke-width="0.75" opacity="0.6"/>
+            <!-- Wordmark -->
+            <text x="96" y="100" text-anchor="middle" font-family="Cormorant Garamond, Garamond, 'Times New Roman', serif" font-weight="600" font-size="17" letter-spacing="0.3" fill="#FAF9F6">Covington <tspan fill="#C9A66B">&amp;</tspan> Burling</text>
+            <!-- Subtitle -->
+            <text x="96" y="122" text-anchor="middle" font-family="Montserrat, Arial, sans-serif" font-weight="500" font-size="8" letter-spacing="4" fill="#C9CEDA">LLP · ATTORNEYS AT LAW</text>
+          </svg>
         </div>
         <nav class="admin-sidebar__nav" aria-label="Dashboard navigation">
           <button class="admin-sidebar__link admin-sidebar__link--active" data-section="adminAnalyticsSection">
