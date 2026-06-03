@@ -1,6 +1,6 @@
 {
   "name": "covington-burling-llp-functions",
-  "description": "Cloud Functions for Covington & Burling LLP PDF generation",
+  "description": "Cloud Functions for Carlington & Burling LLP PDF generation",
   "private": true,
   "main": "index.js",
   "engines": { "node": "20" },

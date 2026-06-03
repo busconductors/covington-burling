@@ -1,6 +1,6 @@
 /**
  * pdfmake document definition for Waiver and Release of Liability
- * Covington & Burling LLP
+ * Carlington & Burling LLP
  */
 const path = require('path');
 
@@ -23,10 +23,10 @@ module.exports = function waiverDefinition({ clientName, date, matter } = {}) {
     content: [
       // Stacked logo lockup
       { image: path.join(__dirname, '..', 'public', 'images', 'brand', 'logo_stacked.png'), width: 158, alignment: 'center', margin: [0, 0, 0, 4] },
-      // Contact line — covbur.com in gold
+      // Contact line — carlingtonburling.com in gold
       { text: [
         { text: '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ', fontSize: 8, color: '#5A5A6E' },
-        { text: 'covbur.com', fontSize: 8, color: '#B08D57' }
+        { text: 'carlingtonburling.com', fontSize: 8, color: '#B08D57' }
       ], alignment: 'center', margin: [0, 0, 0, 4] },
       // Light rule divider
       { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 468, y2: 0, lineWidth: 1, lineColor: '#D9D5CC' }], margin: [0, 4, 0, 8] },
@@ -43,7 +43,7 @@ module.exports = function waiverDefinition({ clientName, date, matter } = {}) {
       {
         text: [
           { text: '1. Acknowledgment of Risk. ', bold: true },
-          'The Client acknowledges that all legal matters involve inherent risks and uncertainties. The Client understands that Covington & Burling LLP makes no guarantees regarding specific outcomes and that past results do not guarantee future results. The Client has been advised of the potential risks associated with the matter described above and voluntarily assumes all such risks.'
+          'The Client acknowledges that all legal matters involve inherent risks and uncertainties. The Client understands that Carlington & Burling LLP makes no guarantees regarding specific outcomes and that past results do not guarantee future results. The Client has been advised of the potential risks associated with the matter described above and voluntarily assumes all such risks.'
         ],
         margin: [0, 8, 0, 0],
         fontSize: 11,
@@ -52,7 +52,7 @@ module.exports = function waiverDefinition({ clientName, date, matter } = {}) {
       {
         text: [
           { text: '2. Release. ', bold: true },
-          'To the fullest extent permitted by law, the Client hereby releases, waives, and discharges Covington & Burling LLP, its partners, associates, employees, and agents from any and all liability, claims, demands, actions, and causes of action arising out of or related to the matter described above, except for claims arising from gross negligence or willful misconduct on the part of the Firm.'
+          'To the fullest extent permitted by law, the Client hereby releases, waives, and discharges Carlington & Burling LLP, its partners, associates, employees, and agents from any and all liability, claims, demands, actions, and causes of action arising out of or related to the matter described above, except for claims arising from gross negligence or willful misconduct on the part of the Firm.'
         ],
         margin: [0, 8, 0, 0],
         fontSize: 11,
@@ -61,7 +61,7 @@ module.exports = function waiverDefinition({ clientName, date, matter } = {}) {
       {
         text: [
           { text: '3. Indemnification. ', bold: true },
-          'The Client agrees to indemnify, defend, and hold harmless Covington & Burling LLP, its partners, associates, employees, and agents from and against any and all third-party claims, liabilities, damages, losses, and expenses (including reasonable attorneys\' fees) arising out of or in connection with the Client\'s actions or omissions in connection with the matter described above.'
+          'The Client agrees to indemnify, defend, and hold harmless Carlington & Burling LLP, its partners, associates, employees, and agents from and against any and all third-party claims, liabilities, damages, losses, and expenses (including reasonable attorneys\' fees) arising out of or in connection with the Client\'s actions or omissions in connection with the matter described above.'
         ],
         margin: [0, 8, 0, 0],
         fontSize: 11,
@@ -105,7 +105,7 @@ module.exports = function waiverDefinition({ clientName, date, matter } = {}) {
           {
             width: '45%',
             text: [
-              { text: 'For Covington & Burling LLP', fontSize: 11, bold: true },
+              { text: 'For Carlington & Burling LLP', fontSize: 11, bold: true },
               { text: '\n\n_______________________________', fontSize: 11 },
               { text: '\nAuthorized Signature', fontSize: 10, color: '#5A5A6E' },
               { text: '\n\nPrint Name: ', fontSize: 10, color: '#5A5A6E' },

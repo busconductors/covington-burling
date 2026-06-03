@@ -1,18 +1,18 @@
 /**
- * Covington & Burling LLP — Official Document Template Engine
+ * Carlington & Burling LLP — Official Document Template Engine
  * Browser-side pdf-lib template. Generates fillable PDFs in the
  * Bordered Traditional (Variant C) style.
  *
  * Depends on pdf-lib loaded via CDN: window.PDFLib
  *
  * Usage:
- *   const pdfBytes = await CovingtonTemplate.generate({
+ *   const pdfBytes = await CarlingtonTemplate.generate({
  *     title: 'DOCUMENT TITLE',
  *     fields: [{ label: 'Name:', name: 'fullName', width: 400 }],
  *     clauses: [{ num: '1.', title: 'Section.', body: 'Text...' }],
  *     signatureBlocks: [{ label: 'Party', fields: [...] }],
  *   });
- *   // pdfBytes is a Uint8Array — call CovingtonTemplate.download(pdfBytes, 'file.pdf')
+ *   // pdfBytes is a Uint8Array — call CarlingtonTemplate.download(pdfBytes, 'file.pdf')
  */
 (function (global) {
   'use strict';
@@ -126,7 +126,7 @@
 
     if (includeContact) {
       const pre = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
-      const domain = 'covbur.com';
+      const domain = 'carlingtonburling.com';
       const full = pre + domain;
       const tw = fonts.regular.widthOfTextAtSize(full, 8);
       const sx = (PAGE_W - tw) / 2;
@@ -304,7 +304,7 @@
   }
 
   // ── Exports ───────────────────────────────────────────────────────────
-  global.CovingtonTemplate = {
+  global.CarlingtonTemplate = {
     generate: buildBorderedTraditionalPDF,
     download: downloadPDF,
   };

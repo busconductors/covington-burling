@@ -1,5 +1,5 @@
 /**
- * Covington & Burling LLP — Main JavaScript
+ * Carlington & Burling LLP — Main JavaScript
  * Mobile nav, scroll effects, active nav links, accordion, skip link
  */
 document.addEventListener('DOMContentLoaded', () => {

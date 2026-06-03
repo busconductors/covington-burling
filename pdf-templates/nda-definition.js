@@ -1,6 +1,6 @@
 /**
  * pdfmake document definition for Mutual Non-Disclosure Agreement
- * Covington & Burling LLP
+ * Carlington & Burling LLP
  */
 const path = require('path');
 
@@ -15,10 +15,10 @@ module.exports = function ndaDefinition({ clientName, clientAddress, effectiveDa
     content: [
       // Stacked logo lockup
       { image: path.join(__dirname, '..', 'public', 'images', 'brand', 'logo_stacked.png'), width: 158, alignment: 'center', margin: [0, 0, 0, 4] },
-      // Contact line — covbur.com in gold
+      // Contact line — carlingtonburling.com in gold
       { text: [
         { text: '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ', fontSize: 8, color: '#5A5A6E' },
-        { text: 'covbur.com', fontSize: 8, color: '#B08D57' }
+        { text: 'carlingtonburling.com', fontSize: 8, color: '#B08D57' }
       ], alignment: 'center', margin: [0, 0, 0, 4] },
       // Light rule divider
       { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 468, y2: 0, lineWidth: 1, lineColor: '#D9D5CC' }], margin: [0, 4, 0, 8] },
@@ -40,7 +40,7 @@ module.exports = function ndaDefinition({ clientName, clientAddress, effectiveDa
       {
         text: [
           'This Mutual Non-Disclosure Agreement (the "Agreement") is entered into by and between ',
-          { text: 'Covington & Burling LLP', bold: true },
+          { text: 'Carlington & Burling LLP', bold: true },
           ', with offices at 850 Tenth Street NW, Washington, DC 20001 (the "Firm"), and ',
           { text: name, bold: true, decoration: 'underline' },
           ', with an address at ',
@@ -107,7 +107,7 @@ module.exports = function ndaDefinition({ clientName, clientAddress, effectiveDa
           {
             width: '45%',
             text: [
-              { text: 'Covington & Burling LLP', fontSize: 11, bold: true },
+              { text: 'Carlington & Burling LLP', fontSize: 11, bold: true },
               { text: '\n\n_______________________________', fontSize: 11 },
               { text: '\nAuthorized Signature', fontSize: 10, color: '#5A5A6E' },
               { text: '\n\nPrint Name: ', fontSize: 10, color: '#5A5A6E' },

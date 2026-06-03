@@ -1,7 +1,7 @@
 {
   "name": "covington-burling-llp",
   "version": "1.0.1",
-  "description": "Covington & Burling LLP — Professional law firm website",
+  "description": "Carlington & Burling LLP — Professional law firm website",
   "private": true,
   "main": "server.js",
   "scripts": {

@@ -16,16 +16,16 @@
   // Template presets (plain text body content)
   var templates = {
     'approved-forms': {
-      subject: 'Your Covington & Burling Legal Forms Are Ready',
-      body: 'Dear {name},\n\nYour request for legal forms has been approved. Please use the secure download link(s) in your original approval email to access your documents.\n\nIf you have any questions, please contact our office at 202-662-6000.\n\nSincerely,\nCovington & Burling LLP',
+      subject: 'Your Carlington & Burling Legal Forms Are Ready',
+      body: 'Dear {name},\n\nYour request for legal forms has been approved. Please use the secure download link(s) in your original approval email to access your documents.\n\nIf you have any questions, please contact our office at 202-662-6000.\n\nSincerely,\nCarlington & Burling LLP',
     },
     'follow-up': {
-      subject: 'Follow-Up: Covington & Burling LLP',
-      body: 'Dear {name},\n\nI am writing to follow up regarding your recent inquiry. Our team is available to discuss your legal needs at your convenience.\n\nPlease do not hesitate to contact our office at 202-662-6000 to schedule a consultation.\n\nSincerely,\nCovington & Burling LLP',
+      subject: 'Follow-Up: Carlington & Burling LLP',
+      body: 'Dear {name},\n\nI am writing to follow up regarding your recent inquiry. Our team is available to discuss your legal needs at your convenience.\n\nPlease do not hesitate to contact our office at 202-662-6000 to schedule a consultation.\n\nSincerely,\nCarlington & Burling LLP',
     },
     'consultation': {
-      subject: 'Consultation Confirmation — Covington & Burling LLP',
-      body: 'Dear {name},\n\nThis message confirms your consultation with Covington & Burling LLP. An attorney from our team will contact you shortly to discuss your matter.\n\nIn preparation, please gather any relevant documents or correspondence related to your legal needs.\n\nSincerely,\nCovington & Burling LLP',
+      subject: 'Consultation Confirmation — Carlington & Burling LLP',
+      body: 'Dear {name},\n\nThis message confirms your consultation with Carlington & Burling LLP. An attorney from our team will contact you shortly to discuss your matter.\n\nIn preparation, please gather any relevant documents or correspondence related to your legal needs.\n\nSincerely,\nCarlington & Burling LLP',
     },
   };
 
@@ -81,13 +81,13 @@
   }
 
   // ── Branded HTML Email Template ──────────────────────────────────
-  // Wraps plain-text body in a Covington & Burling branded HTML email.
+  // Wraps plain-text body in a Carlington & Burling branded HTML email.
   // Email-safe: table-based layout, ALL inline styles, live text (no images).
   // 4 selectable header variants (A/B/C/D), default D.
 
   function emailHeaderA() {
     return '<td style="background-color:#0A1628;padding:36px 40px 30px;text-align:center;">'
-      + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:26px;font-weight:bold;color:#FFFFFF;letter-spacing:1px;">Covington <span style="color:#B08D57;">&amp;</span> Burling</div>'
+      + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:26px;font-weight:bold;color:#FFFFFF;letter-spacing:1px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
       + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:6px;color:#9AA3B2;margin-top:6px;text-transform:uppercase;">L L P</div>'
       + '<div style="width:36px;height:2px;background-color:#B08D57;margin:14px auto 6px;"></div>'
       + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:4px;color:#B08D57;text-transform:uppercase;">Attorneys at Law</div>'
@@ -98,7 +98,7 @@
     return '<td style="padding:0;">'
       + '<div style="height:3px;background-color:#B08D57;line-height:3px;font-size:0;">&nbsp;</div>'
       + '<div style="background-color:#0A1628;padding:20px 40px;">'
-      + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:20px;font-weight:bold;color:#FFFFFF;letter-spacing:0.5px;">Covington <span style="color:#B08D57;">&amp;</span> Burling</div>'
+      + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:20px;font-weight:bold;color:#FFFFFF;letter-spacing:0.5px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
       + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:10px;letter-spacing:5px;color:#9AA3B2;margin-top:4px;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; Attorneys at Law</div>'
       + '</div>'
       + '</td>';
@@ -112,7 +112,7 @@
       + '<span style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:22px;font-weight:bold;color:#FFFFFF;">C</span><span style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:22px;font-weight:bold;color:#B08D57;">B</span>'
       + '</div></td>'
       + '<td style="vertical-align:middle;padding-left:14px;">'
-      + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:21px;font-weight:bold;color:#0A1628;letter-spacing:0.3px;">Covington <span style="color:#B08D57;">&amp;</span> Burling</div>'
+      + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:21px;font-weight:bold;color:#0A1628;letter-spacing:0.3px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
       + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:10px;letter-spacing:5px;color:#5A6577;margin-top:3px;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; Attorneys at Law</div>'
       + '</td></tr></table>'
       + '</td>';
@@ -120,7 +120,7 @@
 
   function emailHeaderD() {
     return '<td style="background-color:#FFFFFF;padding:34px 40px 22px;text-align:center;">'
-      + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:28px;font-weight:bold;color:#0A1628;letter-spacing:1.5px;">COVINGTON <span style="color:#B08D57;">&amp;</span> BURLING</div>'
+      + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:28px;font-weight:bold;color:#0A1628;letter-spacing:1.5px;">CARLINGTON <span style="color:#B08D57;">&amp;</span> BURLING</div>'
       + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:7px;color:#5A6577;margin-top:7px;">L L P</div>'
       + '<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin-top:16px;"><tr>'
       + '<td style="width:30px;height:1px;background-color:#B08D57;line-height:1px;font-size:0;">&nbsp;</td>'
@@ -136,9 +136,9 @@
 
   function emailFooter() {
     return '<td style="background-color:#FAF9F6;padding:26px 40px 30px;border-top:1px solid #E4E0D8;text-align:center;font-family:Arial,Helvetica,sans-serif;">'
-      + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:15px;font-weight:bold;color:#0A1628;letter-spacing:0.3px;">Covington &amp; Burling LLP</div>'
+      + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:15px;font-weight:bold;color:#0A1628;letter-spacing:0.3px;">Carlington &amp; Burling LLP</div>'
       + '<div style="font-size:12px;color:#5A6577;margin-top:8px;line-height:1.6;">850 Tenth Street NW, Washington, DC 20001<br>'
-      + '202&#8209;662&#8209;6000 &nbsp;|&nbsp; <a href="https://covbur.com" style="color:#B08D57;text-decoration:none;">covbur.com</a></div>'
+      + '202&#8209;662&#8209;6000 &nbsp;|&nbsp; <a href="https://carlingtonburling.com" style="color:#B08D57;text-decoration:none;">carlingtonburling.com</a></div>'
       + '<div style="font-size:10px;color:#9AA3B2;margin-top:12px;letter-spacing:0.5px;text-transform:uppercase;">'
       + 'Founded 1919 &nbsp;&#183;&nbsp; This message is confidential &amp; attorney&#8209;client privileged</div>'
       + '</td>';
@@ -216,9 +216,9 @@
 
   // Set a default template so preview is visible on load
   if (bodyInput && !bodyInput.value) {
-    bodyInput.value = 'Dear Client,\n\nThank you for contacting Covington & Burling LLP. We are pleased to assist you with your legal needs.\n\nPlease do not hesitate to reach out if you have any questions.\n\nSincerely,\nCovington & Burling LLP';
+    bodyInput.value = 'Dear Client,\n\nThank you for contacting Carlington & Burling LLP. We are pleased to assist you with your legal needs.\n\nPlease do not hesitate to reach out if you have any questions.\n\nSincerely,\nCarlington & Burling LLP';
     if (subjectInput && !subjectInput.value) {
-      subjectInput.value = 'Covington & Burling LLP';
+      subjectInput.value = 'Carlington & Burling LLP';
     }
   }
 

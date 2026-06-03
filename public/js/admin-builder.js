@@ -23,7 +23,7 @@
         { label: 'Print Name', name: 'partyAPrintName' },
         { label: 'Date', name: 'partyADate' },
       ]},
-      { label: 'For Covington & Burling LLP', fields: [
+      { label: 'For Carlington & Burling LLP', fields: [
         { label: 'Signature', name: 'firmSignature' },
         { label: 'Print Name', name: 'firmPrintName' },
         { label: 'Date', name: 'firmDate' },
@@ -35,7 +35,7 @@
   function loadPreset(name) {
     var preset;
     if (name === 'waiver' || name === 'nda' || name === 'blank') {
-      preset = window.CovingtonPresets[name];
+      preset = window.CarlingtonPresets[name];
     }
     if (!preset) return;
     docState = JSON.parse(JSON.stringify(preset));
@@ -255,7 +255,7 @@
     var badge = document.getElementById('previewBadge');
 
     try {
-      window.CovingtonTemplate.generate({
+      window.CarlingtonTemplate.generate({
         title: docState.title,
         fields: docState.fields,
         intro: docState.intro || undefined,
@@ -428,7 +428,7 @@
     status.className = 'admin-status admin-status--loading';
 
     try {
-      window.CovingtonTemplate.generate({
+      window.CarlingtonTemplate.generate({
         title: docState.title,
         fields: docState.fields,
         intro: docState.intro || undefined,
@@ -437,7 +437,7 @@
         signatureBlocks: docState.signatureBlocks,
       }).then(function (pdfBytes) {
         var filename = document.getElementById('outputName').value || 'document.pdf';
-        window.CovingtonTemplate.download(pdfBytes, filename);
+        window.CarlingtonTemplate.download(pdfBytes, filename);
         status.textContent = 'PDF downloaded successfully.';
         status.className = 'admin-status admin-status--success';
       }).catch(function (err) {
@@ -481,7 +481,7 @@
     loadSendRecipients();
     sendModalOverlay.style.display = 'flex';
     document.getElementById('sendAttachName').textContent = document.getElementById('outputName').value || 'document.pdf';
-    document.getElementById('sendSubject').value = docState.title + ' — Covington & Burling LLP';
+    document.getElementById('sendSubject').value = docState.title + ' — Carlington & Burling LLP';
     hideSendStatus();
   }
 
@@ -554,7 +554,7 @@
     showSendStatus('Generating PDF...', 'loading');
 
     try {
-      window.CovingtonTemplate.generate({
+      window.CarlingtonTemplate.generate({
         title: docState.title,
         fields: docState.fields,
         intro: docState.intro || undefined,
@@ -755,7 +755,7 @@
     },
     generatePdfBytes: function () {
       syncState();
-      return window.CovingtonTemplate.generate({
+      return window.CarlingtonTemplate.generate({
         title: docState.title,
         fields: docState.fields,
         intro: docState.intro || undefined,

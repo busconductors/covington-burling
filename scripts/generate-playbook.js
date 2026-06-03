@@ -1,5 +1,5 @@
 /**
- * Covington & Burling LLP — Admin Document Builder Playbook
+ * Carlington & Burling LLP — Admin Document Builder Playbook
  * Generates a comprehensive guide PDF in the official Variant C (Bordered
  * Traditional) style. Covers admin access, step-by-step instructions, document
  * types organized by the firm's 7 practice areas, and creation guidelines.
@@ -8,14 +8,14 @@
  *   node scripts/generate-playbook.js
  *
  * Output:
- *   public/forms/covington-admin-playbook.pdf
+ *   public/forms/carlington-admin-playbook.pdf
  */
 const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
 const fs = require('fs');
 const path = require('path');
 
 const FORMS_DIR = path.join(__dirname, '..', 'public', 'forms');
-const OUT_FILE = path.join(FORMS_DIR, 'covington-admin-playbook.pdf');
+const OUT_FILE = path.join(FORMS_DIR, 'carlington-admin-playbook.pdf');
 
 // ── Design Constants ─────────────────────────────────────────────────────
 const PAGE_W = 612;
@@ -100,8 +100,8 @@ function addPageNumber(page, fonts, current, total) {
 }
 
 function drawLetterhead(page, fonts, y) {
-  const name = 'Covington & Burling LLP';
-  const addr = '850 Tenth Street NW, Washington, DC 20001  |  202-662-6000  |  covbur.com';
+  const name = 'Carlington & Burling LLP';
+  const addr = '850 Tenth Street NW, Washington, DC 20001  |  202-662-6000  |  carlingtonburling.com';
   page.drawText(name, {
     x: PAGE_W / 2 - fonts.bold.widthOfTextAtSize(name, 14) / 2,
     y, size: 14, font: fonts.bold, color: NAVY,
@@ -182,7 +182,7 @@ function drawCoverPage(doc, fonts) {
 
   // Firm name
   let y = PAGE_H / 2 + 80;
-  const firm = 'Covington & Burling LLP';
+  const firm = 'Carlington & Burling LLP';
   page.drawText(firm, {
     x: PAGE_W / 2 - fonts.bold.widthOfTextAtSize(firm, 22) / 2,
     y, size: 22, font: fonts.bold, color: NAVY,
@@ -223,7 +223,7 @@ function drawCoverPage(doc, fonts) {
   y -= 30;
 
   // Description
-  const desc = 'A comprehensive guide to generating legal documents\nusing the Covington & Burling official template system.';
+  const desc = 'A comprehensive guide to generating legal documents\nusing the Carlington & Burling official template system.';
   const descLines = desc.split('\n');
   for (const line of descLines) {
     page.drawText(line, {
@@ -247,8 +247,8 @@ function drawCoverPage(doc, fonts) {
     y: 68, size: 8, font: fonts.bold, color: MUTED,
   });
 
-  page.drawText('© ' + new Date().getFullYear() + ' Covington & Burling LLP. All Rights Reserved.', {
-    x: PAGE_W / 2 - fonts.regular.widthOfTextAtSize('© ' + new Date().getFullYear() + ' Covington & Burling LLP. All Rights Reserved.', 7.5) / 2,
+  page.drawText('© ' + new Date().getFullYear() + ' Carlington & Burling LLP. All Rights Reserved.', {
+    x: PAGE_W / 2 - fonts.regular.widthOfTextAtSize('© ' + new Date().getFullYear() + ' Carlington & Burling LLP. All Rights Reserved.', 7.5) / 2,
     y: 54, size: 7.5, font: fonts.regular, color: MUTED,
   });
 
@@ -313,7 +313,7 @@ function drawSectionI(doc, fonts, startPage) {
   y -= 6;
 
   y = drawBodyText(page, fonts,
-    'This playbook provides step-by-step instructions for using the Covington & Burling LLP Admin Document Builder. The builder enables authorized firm personnel to generate professional, fillable PDF documents in the official firm template style — Variant C (Bordered Traditional). All generated documents include the firm letterhead, double-line page frame, gold accent rules, and AcroForm fillable fields for client-facing use.',
+    'This playbook provides step-by-step instructions for using the Carlington & Burling LLP Admin Document Builder. The builder enables authorized firm personnel to generate professional, fillable PDF documents in the official firm template style — Variant C (Bordered Traditional). All generated documents include the firm letterhead, double-line page frame, gold accent rules, and AcroForm fillable fields for client-facing use.',
     y);
   y -= 16;
 
@@ -383,7 +383,7 @@ function drawSectionII(doc, fonts, startPage) {
     },
     {
       title: 'Step 5 — Configure Signature Blocks',
-      body: 'The builder supports up to two signature blocks displayed side-by-side. Each block has a label (e.g., "Client" or "For Covington & Burling LLP") and fields. The "Signature" field type renders as a signature line with the [SEAL] notation. Click "Add Field" within a signature block to add additional lines (e.g., Print Name, Title, Date).',
+      body: 'The builder supports up to two signature blocks displayed side-by-side. Each block has a label (e.g., "Client" or "For Carlington & Burling LLP") and fields. The "Signature" field type renders as a signature line with the [SEAL] notation. Click "Add Field" within a signature block to add additional lines (e.g., Print Name, Title, Date).',
     },
     {
       title: 'Step 6 — Generate the PDF',
@@ -421,7 +421,7 @@ function drawSectionII(doc, fonts, startPage) {
 const practiceAreas = [
   {
     name: 'Antitrust & Competition',
-    desc: 'Covington\'s antitrust practice handles complex merger reviews, civil and criminal cartel investigations, and competition litigation across jurisdictions worldwide.',
+    desc: 'Carlington\'s antitrust practice handles complex merger reviews, civil and criminal cartel investigations, and competition litigation across jurisdictions worldwide.',
     documents: [
       {
         type: 'Engagement Letter — Antitrust',
@@ -517,7 +517,7 @@ const practiceAreas = [
   },
   {
     name: 'White Collar Defense & Investigations',
-    desc: 'Covington defends corporations and individuals in government investigations, enforcement actions, and criminal proceedings, including FCPA, fraud, and sanctions matters.',
+    desc: 'Carlington defends corporations and individuals in government investigations, enforcement actions, and criminal proceedings, including FCPA, fraud, and sanctions matters.',
     documents: [
       {
         type: 'Engagement Letter — Investigation',
@@ -565,7 +565,7 @@ const practiceAreas = [
   },
   {
     name: 'Privacy & Cybersecurity',
-    desc: 'Covington\'s privacy practice guides clients through data protection laws, breach response, regulatory investigations, and compliance programs globally.',
+    desc: 'Carlington\'s privacy practice guides clients through data protection laws, breach response, regulatory investigations, and compliance programs globally.',
     documents: [
       {
         type: 'Data Processing Agreement (DPA)',
@@ -706,7 +706,7 @@ function drawSectionIV(doc, fonts, startPage) {
     },
     {
       title: 'Brand Consistency',
-      body: 'All documents use the official Variant C (Bordered Traditional) template with Covington & Burling letterhead, navy (#0A1628) and gold (#C2A44F) color scheme, Times Roman typography, and double-line page frames. Do not deviate from this template for client-facing documents without approval from the firm\'s Brand & Communications team.',
+      body: 'All documents use the official Variant C (Bordered Traditional) template with Carlington & Burling letterhead, navy (#0A1628) and gold (#C2A44F) color scheme, Times Roman typography, and double-line page frames. Do not deviate from this template for client-facing documents without approval from the firm\'s Brand & Communications team.',
     },
   ];
 
@@ -743,13 +743,13 @@ function drawSectionV(doc, fonts, startPage) {
 
   y = drawSubHeading(page, fonts, 'Customizing the Template Presets', y);
   y = drawBodyText(page, fonts,
-    'Template presets are defined in public/js/template-presets.js. Each preset is a JavaScript object with the following structure: title (string), fields (array of {label, name, width}), intro (string), witnessText (string), clauses (array of {num, title, body}), and signatureBlocks (array of {label, fields}). To add a new preset, edit template-presets.js and add your preset object to the window.CovingtonPresets object following the existing pattern.',
+    'Template presets are defined in public/js/template-presets.js. Each preset is a JavaScript object with the following structure: title (string), fields (array of {label, name, width}), intro (string), witnessText (string), clauses (array of {num, title, body}), and signatureBlocks (array of {label, fields}). To add a new preset, edit template-presets.js and add your preset object to the window.CarlingtonPresets object following the existing pattern.',
     y);
   y -= 14;
 
   y = drawSubHeading(page, fonts, 'Creating the PDF Programmatically', y);
   y = drawBodyText(page, fonts,
-    'The browser-side template engine at public/js/covington-template.js exposes two functions: CovingtonTemplate.generate(def) which returns a Uint8Array of PDF bytes, and CovingtonTemplate.download(pdfBytes, filename) which triggers a browser download. You can call these from any page on the site or from browser developer tools for quick document generation.',
+    'The browser-side template engine at public/js/carlington-template.js exposes two functions: CarlingtonTemplate.generate(def) which returns a Uint8Array of PDF bytes, and CarlingtonTemplate.download(pdfBytes, filename) which triggers a browser download. You can call these from any page on the site or from browser developer tools for quick document generation.',
     y);
   y -= 14;
 
@@ -761,7 +761,7 @@ function drawSectionV(doc, fonts, startPage) {
 
   y = drawSubHeading(page, fonts, 'Deployment & Updates', y);
   y = drawBodyText(page, fonts,
-    'The admin builder is a static HTML page deployed via Firebase Hosting. To update: (1) Edit the relevant files in public/ (admin/index.html, js/covington-template.js, js/template-presets.js), (2) Run firebase deploy --only hosting from the project root. All changes take effect immediately upon deployment. No server restarts or Cloud Functions redeployment are required.',
+    'The admin builder is a static HTML page deployed via Firebase Hosting. To update: (1) Edit the relevant files in public/ (admin/index.html, js/carlington-template.js, js/template-presets.js), (2) Run firebase deploy --only hosting from the project root. All changes take effect immediately upon deployment. No server restarts or Cloud Functions redeployment are required.',
     y);
   y -= 14;
 
@@ -773,7 +773,7 @@ function drawSectionV(doc, fonts, startPage) {
 
   y = drawSubHeading(page, fonts, 'Technical Reference', y);
   y = drawBodyText(page, fonts,
-    'PDF Generation: pdf-lib v1.17.1 via CDN (unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js). Template Engine: public/js/covington-template.js (278 lines, IIFE pattern). Presets: public/js/template-presets.js. Admin UI: public/admin/index.html. Styles: public/css/admin.css. Server-side generation: scripts/generate-fillable-pdfs.js (Node.js). For support or template requests, contact the firm\'s Knowledge Management team.',
+    'PDF Generation: pdf-lib v1.17.1 via CDN (unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js). Template Engine: public/js/carlington-template.js (278 lines, IIFE pattern). Presets: public/js/template-presets.js. Admin UI: public/admin/index.html. Styles: public/css/admin.css. Server-side generation: scripts/generate-fillable-pdfs.js (Node.js). For support or template requests, contact the firm\'s Knowledge Management team.',
     y);
 
   // Back cover note
@@ -797,7 +797,7 @@ function drawSectionV(doc, fonts, startPage) {
   y = drawWrapped(page, endNote, MARGIN + 30, y, fonts.italic, 9, MUTED, PAGE_W - MARGIN * 2 - 60, 9 * 1.5);
   y -= 20;
 
-  const endFirm = 'Covington & Burling LLP';
+  const endFirm = 'Carlington & Burling LLP';
   page.drawText(endFirm, {
     x: PAGE_W / 2 - fonts.bold.widthOfTextAtSize(endFirm, 10) / 2,
     y, size: 10, font: fonts.bold, color: NAVY,
@@ -810,7 +810,7 @@ function drawSectionV(doc, fonts, startPage) {
 // ── Main ─────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log('Generating Covington & Burling Admin Playbook PDF...\n');
+  console.log('Generating Carlington & Burling Admin Playbook PDF...\n');
 
   const doc = await PDFDocument.create();
   const fonts = embedFonts(doc);
