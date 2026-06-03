@@ -108,7 +108,7 @@
 
   async function embedStackedLogo(doc) {
     try {
-      const resp = await fetch('/images/brand/logo_stacked.png');
+      const resp = await fetch('/images/brand/logo_stacked.png?v=2');
       if (!resp.ok) return null;
       return doc.embedPng(await resp.arrayBuffer());
     } catch (_) { return null; }
