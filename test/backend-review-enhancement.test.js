@@ -32,20 +32,20 @@ function sendRejectionEmail(toEmail, toName, reason, apiKey) {
     '<tr><td align="center">' +
     '<table width="600" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF;border:1px solid #D5D5DE;border-radius:4px;">' +
     '<tr><td style="background-color:#0A1628;padding:32px 40px;text-align:center;">' +
-    '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:28px;font-weight:600;color:#FFFFFF;margin:0;letter-spacing:-0.5px;">Covington <span style="color:#B08D57;">&amp;</span> Burling LLP</p>' +
+    '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:28px;font-weight:600;color:#FFFFFF;margin:0;letter-spacing:-0.5px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling LLP</p>' +
     '</td></tr>' +
     '<tr><td style="padding:40px;">' +
     '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:22px;color:#0A1628;margin:0 0 20px;font-weight:600;">Your Form Request Has Been Declined</p>' +
     '<p style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#1F1F2E;line-height:1.6;margin:0 0 12px;">Dear ' + toName + ',</p>' +
-    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#1F1F2E;line-height:1.6;margin:0 0 12px;">Thank you for your interest in Covington &amp; Burling LLP. After careful review, we are unable to provide the requested forms at this time.</p>' +
+    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#1F1F2E;line-height:1.6;margin:0 0 12px;">Thank you for your interest in Carlington &amp; Burling LLP. After careful review, we are unable to provide the requested forms at this time.</p>' +
     '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:16px;margin:16px 0;">' +
     '<p style="font-family:Montserrat,Arial,sans-serif;font-size:13px;color:#991B1B;margin:0;font-weight:600;">Reason:</p>' +
     '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#1F1F2E;line-height:1.6;margin:4px 0 0;">' + reason.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>' +
     '</div>' +
-    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">If you have any questions, please contact our office at <a href="tel:+12026626000" style="color:#6B1C2E;">202-662-6000</a> or email us at <a href="mailto:info@covbur.com" style="color:#6B1C2E;">info@covbur.com</a>.</p>' +
+    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">If you have any questions, please contact our office at <a href="tel:+12026626000" style="color:#6B1C2E;">202-662-6000</a> or email us at <a href="mailto:info@carlingtonburling.com" style="color:#6B1C2E;">info@carlingtonburling.com</a>.</p>' +
     '</td></tr>' +
     '<tr><td style="background-color:#FAF8F5;padding:24px 40px;border-top:1px solid #D5D5DE;">' +
-    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Covington &amp; Burling LLP, 850 Tenth Street NW, Washington, DC 20001. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>' +
+    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Carlington &amp; Burling LLP, 850 Tenth Street NW, Washington, DC 20001. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>' +
     '</td></tr>' +
     '</table>' +
     '</td></tr>' +
@@ -54,7 +54,7 @@ function sendRejectionEmail(toEmail, toName, reason, apiKey) {
     '</html>';
 
   var payload = {
-    sender: { name: 'Covington & Burling LLP', email: 'noreply@covbur.com' },
+    sender: { name: 'Carlington & Burling LLP', email: 'noreply@carlingtonburling.com' },
     to: [{ email: toEmail, name: toName }],
     subject: 'Your form request has been declined',
     htmlContent: html,
@@ -101,9 +101,9 @@ function sendBrevoEmail(toEmail, toName, formType, downloadToken, adminMessage, 
     '</body></html>';
 
   var payload = {
-    sender: { name: 'Covington & Burling LLP', email: 'noreply@covbur.com' },
+    sender: { name: 'Carlington & Burling LLP', email: 'noreply@carlingtonburling.com' },
     to: [{ email: toEmail, name: toName }],
-    subject: 'Your Covington & Burling Legal Forms Are Ready',
+    subject: 'Your Carlington & Burling Legal Forms Are Ready',
     htmlContent: html,
   };
 
@@ -218,7 +218,7 @@ describe('sendRejectionEmail', function () {
       expect(options.headers['Content-Type']).toBe('application/json');
 
       var body = JSON.parse(options.body);
-      expect(body.sender.name).toBe('Covington & Burling LLP');
+      expect(body.sender.name).toBe('Carlington & Burling LLP');
       expect(body.to[0].email).toBe('jane@example.com');
       expect(body.to[0].name).toBe('Jane Doe');
       expect(body.subject).toBe('Your form request has been declined');

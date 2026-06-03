@@ -67,7 +67,7 @@ describe('admin-builder null-guard coverage', () => {
     createBuilderDOM();
 
     // Provide presets before loading builder
-    window.CovingtonPresets = {
+    window.CarlingtonPresets = {
       blank: {
         title: 'NEW DOCUMENT',
         fields: [{ label: 'Date:', name: 'date', width: 200 }],
@@ -93,7 +93,7 @@ describe('admin-builder null-guard coverage', () => {
 
   afterEach(() => {
     document.body.innerHTML = '';
-    delete window.CovingtonPresets;
+    delete window.CarlingtonPresets;
     delete window.AdminBuilder;
     delete window.AdminUtils;
     delete window.AdminAuth;

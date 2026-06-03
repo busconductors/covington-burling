@@ -1,9 +1,9 @@
 /**
- * Covington & Burling LLP — Document Template Presets
+ * Carlington & Burling LLP — Document Template Presets
  * Loaded by the admin document builder. Each preset defines a complete
  * document: title, fields, clauses, and signature blocks.
  */
-window.CovingtonPresets = {
+window.CarlingtonPresets = {
 
   waiver: {
     title: 'WAIVER AND RELEASE OF LIABILITY',
@@ -17,15 +17,15 @@ window.CovingtonPresets = {
     clauses: [
       {
         num: '1.', title: 'Acknowledgment of Risk.',
-        body: 'The Client acknowledges that all legal matters involve inherent risks and uncertainties. The Client understands that Covington & Burling LLP makes no guarantees regarding specific outcomes and that past results do not guarantee future results. The Client has been advised of the potential risks associated with the matter described above and voluntarily assumes all such risks.',
+        body: 'The Client acknowledges that all legal matters involve inherent risks and uncertainties. The Client understands that Carlington & Burling LLP makes no guarantees regarding specific outcomes and that past results do not guarantee future results. The Client has been advised of the potential risks associated with the matter described above and voluntarily assumes all such risks.',
       },
       {
         num: '2.', title: 'Release.',
-        body: 'To the fullest extent permitted by law, the Client hereby releases, waives, and discharges Covington & Burling LLP, its partners, associates, employees, and agents from any and all liability, claims, demands, actions, and causes of action arising out of or related to the matter described above, except for claims arising from gross negligence or willful misconduct on the part of the Firm.',
+        body: 'To the fullest extent permitted by law, the Client hereby releases, waives, and discharges Carlington & Burling LLP, its partners, associates, employees, and agents from any and all liability, claims, demands, actions, and causes of action arising out of or related to the matter described above, except for claims arising from gross negligence or willful misconduct on the part of the Firm.',
       },
       {
         num: '3.', title: 'Indemnification.',
-        body: 'The Client agrees to indemnify, defend, and hold harmless Covington & Burling LLP, its partners, associates, employees, and agents from and against any and all third-party claims, liabilities, damages, losses, and expenses (including reasonable attorneys\' fees) arising out of or in connection with the Client\'s actions or omissions in connection with the matter described above.',
+        body: 'The Client agrees to indemnify, defend, and hold harmless Carlington & Burling LLP, its partners, associates, employees, and agents from and against any and all third-party claims, liabilities, damages, losses, and expenses (including reasonable attorneys\' fees) arising out of or in connection with the Client\'s actions or omissions in connection with the matter described above.',
       },
       {
         num: '4.', title: 'Governing Law.',
@@ -46,7 +46,7 @@ window.CovingtonPresets = {
         ],
       },
       {
-        label: 'For Covington & Burling LLP',
+        label: 'For Carlington & Burling LLP',
         fields: [
           { label: 'Signature', name: 'firmSignature' },
           { label: 'Print Name', name: 'firmPrintName' },
@@ -63,7 +63,7 @@ window.CovingtonPresets = {
       { label: 'Client Name:', name: 'clientName', width: 370 },
       { label: 'Client Address:', name: 'clientAddress', width: 360 },
     ],
-    intro: 'This Mutual Non-Disclosure Agreement (the "Agreement") is entered into by and between Covington & Burling LLP, with offices at 850 Tenth Street NW, Washington, DC 20001 (the "Firm"), and the Client identified above (collectively, the "Parties").',
+    intro: 'This Mutual Non-Disclosure Agreement (the "Agreement") is entered into by and between Carlington & Burling LLP, with offices at 850 Tenth Street NW, Washington, DC 20001 (the "Firm"), and the Client identified above (collectively, the "Parties").',
     witnessText: 'IN WITNESS WHEREOF, the parties have executed this Agreement as of the Effective Date.',
     clauses: [
       {
@@ -89,7 +89,7 @@ window.CovingtonPresets = {
     ],
     signatureBlocks: [
       {
-        label: 'For Covington & Burling LLP',
+        label: 'For Carlington & Burling LLP',
         fields: [
           { label: 'Signature', name: 'firmSignature' },
           { label: 'Print Name', name: 'firmPrintName' },
@@ -129,7 +129,7 @@ window.CovingtonPresets = {
         ],
       },
       {
-        label: 'For Covington & Burling LLP',
+        label: 'For Carlington & Burling LLP',
         fields: [
           { label: 'Signature', name: 'firmSignature' },
           { label: 'Print Name', name: 'firmPrintName' },

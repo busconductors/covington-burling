@@ -37,15 +37,15 @@ const MARGIN = 50;
 const waiverClauses = [
   {
     num: '1.', title: 'Acknowledgment of Risk.',
-    body: 'The Client acknowledges that all legal matters involve inherent risks and uncertainties. The Client understands that Covington & Burling LLP makes no guarantees regarding specific outcomes and that past results do not guarantee future results. The Client has been advised of the potential risks associated with the matter described above and voluntarily assumes all such risks.',
+    body: 'The Client acknowledges that all legal matters involve inherent risks and uncertainties. The Client understands that Carlington & Burling LLP makes no guarantees regarding specific outcomes and that past results do not guarantee future results. The Client has been advised of the potential risks associated with the matter described above and voluntarily assumes all such risks.',
   },
   {
     num: '2.', title: 'Release.',
-    body: 'To the fullest extent permitted by law, the Client hereby releases, waives, and discharges Covington & Burling LLP, its partners, associates, employees, and agents from any and all liability, claims, demands, actions, and causes of action arising out of or related to the matter described above, except for claims arising from gross negligence or willful misconduct on the part of the Firm.',
+    body: 'To the fullest extent permitted by law, the Client hereby releases, waives, and discharges Carlington & Burling LLP, its partners, associates, employees, and agents from any and all liability, claims, demands, actions, and causes of action arising out of or related to the matter described above, except for claims arising from gross negligence or willful misconduct on the part of the Firm.',
   },
   {
     num: '3.', title: 'Indemnification.',
-    body: 'The Client agrees to indemnify, defend, and hold harmless Covington & Burling LLP, its partners, associates, employees, and agents from and against any and all third-party claims, liabilities, damages, losses, and expenses (including reasonable attorneys\' fees) arising out of or in connection with the Client\'s actions or omissions in connection with the matter described above.',
+    body: 'The Client agrees to indemnify, defend, and hold harmless Carlington & Burling LLP, its partners, associates, employees, and agents from and against any and all third-party claims, liabilities, damages, losses, and expenses (including reasonable attorneys\' fees) arising out of or in connection with the Client\'s actions or omissions in connection with the matter described above.',
   },
   {
     num: '4.', title: 'Governing Law.',
@@ -177,7 +177,7 @@ function drawHeader(page, fonts, logo, y, logoH, includeContact) {
 
   if (includeContact) {
     const pre = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
-    const domain = 'covbur.com';
+    const domain = 'carlingtonburling.com';
     const full = pre + domain;
     const tw = fonts.regular.widthOfTextAtSize(full, 8);
     const sx = (PAGE_W - tw) / 2;
@@ -380,7 +380,7 @@ async function buildWaiverA() {
   addUnderlineField(form, page, 'clientSignature', MARGIN, y - 26, 230, fonts.regular, 10);
 
   page.drawLine({ start: { x: 332, y }, end: { x: 562, y }, thickness: 0.5, color: DARK_GRAY });
-  page.drawText('For Covington & Burling LLP', { x: 332, y: y - 10, size: 9, font: fonts.regular, color: MUTED });
+  page.drawText('For Carlington & Burling LLP', { x: 332, y: y - 10, size: 9, font: fonts.regular, color: MUTED });
   addUnderlineField(form, page, 'firmSignature', 332, y - 26, 230, fonts.regular, 10);
   y -= 44;
 
@@ -474,7 +474,7 @@ async function buildWaiverB() {
     { name: 'clientSigDate', label: 'Date' },
   ]);
 
-  y = sigBlockB(form, page, MARGIN + 270, y + 154, fonts, 'For Covington & Burling LLP', [
+  y = sigBlockB(form, page, MARGIN + 270, y + 154, fonts, 'For Carlington & Burling LLP', [
     { name: 'firmSignature', label: 'Signature' },
     { name: 'firmPrintName', label: 'Print Name' },
     { name: 'firmSigDate', label: 'Date' },
@@ -558,7 +558,7 @@ async function buildWaiverC(outputName) {
     { name: 'clientSigDate', label: 'Date' },
   ]);
 
-  sigBlockC(form, page, MARGIN + 310, y + 152, fonts, 'For Covington & Burling LLP', [
+  sigBlockC(form, page, MARGIN + 310, y + 152, fonts, 'For Carlington & Burling LLP', [
     { name: 'firmSignature', label: 'Signature' },
     { name: 'firmPrintName', label: 'Print Name' },
     { name: 'firmSigDate', label: 'Date' },
@@ -675,7 +675,7 @@ async function buildWaiverD() {
     { name: 'clientSigDate', label: 'Date' },
   ]);
 
-  sigBlockD(form, page, MARGIN + 272, y + 152, fonts, 'For Covington & Burling LLP', [
+  sigBlockD(form, page, MARGIN + 272, y + 152, fonts, 'For Carlington & Burling LLP', [
     { name: 'firmSignature', label: 'Signature' },
     { name: 'firmPrintName', label: 'Print Name' },
     { name: 'firmSigDate', label: 'Date' },
@@ -737,7 +737,7 @@ async function buildNdaC(outputName) {
   y -= 38;
 
   // Intro paragraph
-  const intro = 'This Mutual Non-Disclosure Agreement (the "Agreement") is entered into by and between Covington & Burling LLP, with offices at 850 Tenth Street NW, Washington, DC 20001 (the "Firm"), and the Client identified above (collectively, the "Parties").';
+  const intro = 'This Mutual Non-Disclosure Agreement (the "Agreement") is entered into by and between Carlington & Burling LLP, with offices at 850 Tenth Street NW, Washington, DC 20001 (the "Firm"), and the Client identified above (collectively, the "Parties").';
   y = drawWrapped(page, intro, MARGIN, y, fonts.regular, 10.5, BLACK, PAGE_W - MARGIN * 2);
   y -= 12;
 
@@ -767,7 +767,7 @@ async function buildNdaC(outputName) {
   y -= 30;
 
   // Side-by-side signature blocks
-  y = sigBlockC(form, page, MARGIN + 8, y, fonts, 'For Covington & Burling LLP', [
+  y = sigBlockC(form, page, MARGIN + 8, y, fonts, 'For Carlington & Burling LLP', [
     { name: 'firmSignature', label: 'Signature' },
     { name: 'firmPrintName', label: 'Print Name' },
     { name: 'firmTitle', label: 'Title' },
@@ -886,7 +886,7 @@ async function buildWaiverDigitalC(outputName) {
     { name: 'clientSigDate', label: 'Date' },
   ]);
 
-  sigBlockCDigital(form, page, MARGIN + 310, y + 152, fonts, 'For Covington & Burling LLP', [
+  sigBlockCDigital(form, page, MARGIN + 310, y + 152, fonts, 'For Carlington & Burling LLP', [
     { name: 'firmSignature', label: 'Signature' },
     { name: 'firmPrintName', label: 'Print Name' },
     { name: 'firmSigDate', label: 'Date' },
@@ -950,7 +950,7 @@ async function buildNdaDigitalC(outputName) {
   y -= 38;
 
   // Intro paragraph
-  const intro = 'This Mutual Non-Disclosure Agreement (the "Agreement") is entered into by and between Covington & Burling LLP, with offices at 850 Tenth Street NW, Washington, DC 20001 (the "Firm"), and the Client identified above (collectively, the "Parties").';
+  const intro = 'This Mutual Non-Disclosure Agreement (the "Agreement") is entered into by and between Carlington & Burling LLP, with offices at 850 Tenth Street NW, Washington, DC 20001 (the "Firm"), and the Client identified above (collectively, the "Parties").';
   y = drawWrapped(page, intro, MARGIN, y, fonts.regular, 10.5, BLACK, PAGE_W - MARGIN * 2);
   y -= 12;
 
@@ -977,7 +977,7 @@ async function buildNdaDigitalC(outputName) {
   });
   y -= 30;
 
-  y = sigBlockCDigital(form, page, MARGIN + 8, y, fonts, 'For Covington & Burling LLP', [
+  y = sigBlockCDigital(form, page, MARGIN + 8, y, fonts, 'For Carlington & Burling LLP', [
     { name: 'firmSignature', label: 'Signature' },
     { name: 'firmPrintName', label: 'Print Name' },
     { name: 'firmTitle', label: 'Title' },

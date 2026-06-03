@@ -63,7 +63,7 @@ function sendBrevoEmail(toEmail, toName, formType, downloadToken) {
 <table width="600" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF;border:1px solid #D5D5DE;border-radius:4px;">
   <!-- Header -->
   <tr><td style="background-color:#0A1628;padding:32px 40px;text-align:center;">
-    <p style="font-family:Georgia,'Times New Roman',serif;font-size:28px;font-weight:600;color:#FFFFFF;margin:0;letter-spacing:-0.5px;">Covington <span style="color:#B08D57;">&amp;</span> Burling LLP</p>
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:28px;font-weight:600;color:#FFFFFF;margin:0;letter-spacing:-0.5px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling LLP</p>
   </td></tr>
   <!-- Body -->
   <tr><td style="padding:40px;">
@@ -73,11 +73,11 @@ function sendBrevoEmail(toEmail, toName, formType, downloadToken) {
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:17px;color:#0A1628;font-weight:600;margin:0 0 20px;">${formLabel}</p>
     ${linksHtml}
     <p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">These links will expire in 7 days. If you have any questions, please contact our office at <a href="tel:+12026626000" style="color:#6B1C2E;">202-662-6000</a>.</p>
-    <p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:12px 0 0;">After completing your form(s), email them to <a href="mailto:info@covbur.com" style="color:#6B1C2E;">info@covbur.com</a> or deliver to 850 Tenth Street NW, Washington, DC 20001.</p>
+    <p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:12px 0 0;">After completing your form(s), email them to <a href="mailto:info@carlingtonburling.com" style="color:#6B1C2E;">info@carlingtonburling.com</a> or deliver to 850 Tenth Street NW, Washington, DC 20001.</p>
   </td></tr>
   <!-- Footer -->
   <tr><td style="background-color:#FAF8F5;padding:24px 40px;border-top:1px solid #D5D5DE;">
-    <p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Covington &amp; Burling LLP, 850 Tenth Street NW, Washington, DC 20001. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>
+    <p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Carlington &amp; Burling LLP, 850 Tenth Street NW, Washington, DC 20001. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>
   </td></tr>
 </table>
 </td></tr>
@@ -86,9 +86,9 @@ function sendBrevoEmail(toEmail, toName, formType, downloadToken) {
 </html>`;
 
   const payload = {
-    sender: { name: 'Covington & Burling LLP', email: config('brevo_sender', 'noreply@covbur.com') || 'noreply@covbur.com' },
+    sender: { name: 'Carlington & Burling LLP', email: config('brevo_sender', 'noreply@carlingtonburling.com') || 'noreply@carlingtonburling.com' },
     to: [{ email: toEmail, name: toName }],
-    subject: 'Your Covington & Burling Legal Forms Are Ready',
+    subject: 'Your Carlington & Burling Legal Forms Are Ready',
     htmlContent: html,
   };
 

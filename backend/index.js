@@ -106,7 +106,7 @@ function sendBrevoEmail(toEmail, toName, formType, downloadToken, adminMessage) 
 <tr><td align="center">
 <table width="600" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF;border:1px solid #D5D5DE;border-radius:4px;">
   <tr><td style="background-color:#0A1628;padding:32px 40px;text-align:center;">
-    <p style="font-family:Georgia,'Times New Roman',serif;font-size:28px;font-weight:600;color:#FFFFFF;margin:0;letter-spacing:-0.5px;">Covington <span style="color:#B08D57;">&amp;</span> Burling LLP</p>
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:28px;font-weight:600;color:#FFFFFF;margin:0;letter-spacing:-0.5px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling LLP</p>
   </td></tr>
   <tr><td style="padding:40px;">
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#0A1628;margin:0 0 20px;font-weight:600;">Your Legal Forms Are Ready</p>
@@ -116,10 +116,10 @@ function sendBrevoEmail(toEmail, toName, formType, downloadToken, adminMessage) 
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:17px;color:#0A1628;font-weight:600;margin:0 0 20px;">${formLabel}</p>
     ${linksHtml}
     <p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">These links will expire in 7 days. If you have any questions, please contact our office at <a href="tel:+12026626000" style="color:#6B1C2E;">202-662-6000</a>.</p>
-    <p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:12px 0 0;">After completing your form(s), email them to <a href="mailto:info@covbur.com" style="color:#6B1C2E;">info@covbur.com</a> or deliver to 850 Tenth Street NW, Washington, DC 20001.</p>
+    <p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:12px 0 0;">After completing your form(s), email them to <a href="mailto:info@carlingtonburling.com" style="color:#6B1C2E;">info@carlingtonburling.com</a> or deliver to 850 Tenth Street NW, Washington, DC 20001.</p>
   </td></tr>
   <tr><td style="background-color:#FAF8F5;padding:24px 40px;border-top:1px solid #D5D5DE;">
-    <p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Covington &amp; Burling LLP, 850 Tenth Street NW, Washington, DC 20001. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>
+    <p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Carlington &amp; Burling LLP, 850 Tenth Street NW, Washington, DC 20001. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>
   </td></tr>
 </table>
 </td></tr>
@@ -128,9 +128,9 @@ function sendBrevoEmail(toEmail, toName, formType, downloadToken, adminMessage) 
 </html>`;
 
   const payload = {
-    sender: { name: 'Covington & Burling LLP', email: config.brevoSender },
+    sender: { name: 'Carlington & Burling LLP', email: config.brevoSender },
     to: [{ email: toEmail, name: toName }],
-    subject: 'Your Covington & Burling Legal Forms Are Ready',
+    subject: 'Your Carlington & Burling Legal Forms Are Ready',
     htmlContent: html,
   };
 
@@ -163,20 +163,20 @@ function sendRejectionEmail(toEmail, toName, reason) {
     '<tr><td align="center">' +
     '<table width="600" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF;border:1px solid #D5D5DE;border-radius:4px;">' +
     '<tr><td style="background-color:#0A1628;padding:32px 40px;text-align:center;">' +
-    '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:28px;font-weight:600;color:#FFFFFF;margin:0;letter-spacing:-0.5px;">Covington <span style="color:#B08D57;">&amp;</span> Burling LLP</p>' +
+    '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:28px;font-weight:600;color:#FFFFFF;margin:0;letter-spacing:-0.5px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling LLP</p>' +
     '</td></tr>' +
     '<tr><td style="padding:40px;">' +
     '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:22px;color:#0A1628;margin:0 0 20px;font-weight:600;">Your Form Request Has Been Declined</p>' +
     '<p style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#1F1F2E;line-height:1.6;margin:0 0 12px;">Dear ' + toName + ',</p>' +
-    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#1F1F2E;line-height:1.6;margin:0 0 12px;">Thank you for your interest in Covington &amp; Burling LLP. After careful review, we are unable to provide the requested forms at this time.</p>' +
+    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#1F1F2E;line-height:1.6;margin:0 0 12px;">Thank you for your interest in Carlington &amp; Burling LLP. After careful review, we are unable to provide the requested forms at this time.</p>' +
     '<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:6px;padding:16px;margin:16px 0;">' +
     '<p style="font-family:Montserrat,Arial,sans-serif;font-size:13px;color:#991B1B;margin:0;font-weight:600;">Reason:</p>' +
     '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#1F1F2E;line-height:1.6;margin:4px 0 0;">' + reason.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>' +
     '</div>' +
-    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">If you have any questions, please contact our office at <a href="tel:+12026626000" style="color:#6B1C2E;">202-662-6000</a> or email us at <a href="mailto:info@covbur.com" style="color:#6B1C2E;">info@covbur.com</a>.</p>' +
+    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">If you have any questions, please contact our office at <a href="tel:+12026626000" style="color:#6B1C2E;">202-662-6000</a> or email us at <a href="mailto:info@carlingtonburling.com" style="color:#6B1C2E;">info@carlingtonburling.com</a>.</p>' +
     '</td></tr>' +
     '<tr><td style="background-color:#FAF8F5;padding:24px 40px;border-top:1px solid #D5D5DE;">' +
-    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Covington &amp; Burling LLP, 850 Tenth Street NW, Washington, DC 20001. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>' +
+    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Carlington &amp; Burling LLP, 850 Tenth Street NW, Washington, DC 20001. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>' +
     '</td></tr>' +
     '</table>' +
     '</td></tr>' +
@@ -185,7 +185,7 @@ function sendRejectionEmail(toEmail, toName, reason) {
     '</html>';
 
   var payload = {
-    sender: { name: 'Covington & Burling LLP', email: config.brevoSender },
+    sender: { name: 'Carlington & Burling LLP', email: config.brevoSender },
     to: [{ email: toEmail, name: toName }],
     subject: 'Your form request has been declined',
     htmlContent: html,
@@ -255,7 +255,7 @@ app.use(express.json({ limit: '5mb' }));
 
 // Health check
 app.get('/', function (req, res) {
-  res.json({ status: 'ok', service: 'covington-burling-api' });
+  res.json({ status: 'ok', service: 'carlington-burling-api' });
 });
 
 // Generate waiver PDF
@@ -626,7 +626,7 @@ app.get('/api/admin/analytics', requireAuth, function (req, res) {
 function emailHeaderA() {
   // Navy band, centered serif wordmark + gold rule
   return '<td style="background-color:#0A1628;padding:36px 40px 30px;text-align:center;">'
-    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:26px;font-weight:bold;color:#FFFFFF;letter-spacing:1px;">Covington <span style="color:#B08D57;">&amp;</span> Burling</div>'
+    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:26px;font-weight:bold;color:#FFFFFF;letter-spacing:1px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
     + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:6px;color:#9AA3B2;margin-top:6px;text-transform:uppercase;">L L P</div>'
     + '<div style="width:36px;height:2px;background-color:#B08D57;margin:14px auto 6px;"></div>'
     + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:4px;color:#B08D57;text-transform:uppercase;">Attorneys at Law</div>'
@@ -638,7 +638,7 @@ function emailHeaderB() {
   return '<td style="padding:0;">'
     + '<div style="height:3px;background-color:#B08D57;line-height:3px;font-size:0;">&nbsp;</div>'
     + '<div style="background-color:#0A1628;padding:20px 40px;">'
-    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:20px;font-weight:bold;color:#FFFFFF;letter-spacing:0.5px;">Covington <span style="color:#B08D57;">&amp;</span> Burling</div>'
+    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:20px;font-weight:bold;color:#FFFFFF;letter-spacing:0.5px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
     + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:10px;letter-spacing:5px;color:#9AA3B2;margin-top:4px;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; Attorneys at Law</div>'
     + '</div>'
     + '</td>';
@@ -653,7 +653,7 @@ function emailHeaderC() {
     + '<span style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:22px;font-weight:bold;color:#FFFFFF;">C</span><span style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:22px;font-weight:bold;color:#B08D57;">B</span>'
     + '</div></td>'
     + '<td style="vertical-align:middle;padding-left:14px;">'
-    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:21px;font-weight:bold;color:#0A1628;letter-spacing:0.3px;">Covington <span style="color:#B08D57;">&amp;</span> Burling</div>'
+    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:21px;font-weight:bold;color:#0A1628;letter-spacing:0.3px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
     + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:10px;letter-spacing:5px;color:#5A6577;margin-top:3px;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; Attorneys at Law</div>'
     + '</td></tr></table>'
     + '</td>';
@@ -662,7 +662,7 @@ function emailHeaderC() {
 function emailHeaderD() {
   // White letterhead: all-caps serif name with flanking gold rules over navy baseline
   return '<td style="background-color:#FFFFFF;padding:34px 40px 22px;text-align:center;">'
-    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:28px;font-weight:bold;color:#0A1628;letter-spacing:1.5px;">COVINGTON <span style="color:#B08D57;">&amp;</span> BURLING</div>'
+    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:28px;font-weight:bold;color:#0A1628;letter-spacing:1.5px;">CARLINGTON <span style="color:#B08D57;">&amp;</span> BURLING</div>'
     + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:7px;color:#5A6577;margin-top:7px;">L L P</div>'
     + '<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin-top:16px;"><tr>'
     + '<td style="width:30px;height:1px;background-color:#B08D57;line-height:1px;font-size:0;">&nbsp;</td>'
@@ -680,9 +680,9 @@ var EMAIL_HEADERS = { A: emailHeaderA, B: emailHeaderB, C: emailHeaderC, D: emai
 
 function emailFooter() {
   return '<td style="background-color:#FAF9F6;padding:26px 40px 30px;border-top:1px solid #E4E0D8;text-align:center;font-family:Arial,Helvetica,sans-serif;">'
-    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:15px;font-weight:bold;color:#0A1628;letter-spacing:0.3px;">Covington &amp; Burling LLP</div>'
+    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:15px;font-weight:bold;color:#0A1628;letter-spacing:0.3px;">Carlington &amp; Burling LLP</div>'
     + '<div style="font-size:12px;color:#5A6577;margin-top:8px;line-height:1.6;">850 Tenth Street NW, Washington, DC 20001<br>'
-    + '202&#8209;662&#8209;6000 &nbsp;|&nbsp; <a href="https://covbur.com" style="color:#B08D57;text-decoration:none;">covbur.com</a></div>'
+    + '202&#8209;662&#8209;6000 &nbsp;|&nbsp; <a href="https://carlingtonburling.com" style="color:#B08D57;text-decoration:none;">carlingtonburling.com</a></div>'
     + '<div style="font-size:10px;color:#9AA3B2;margin-top:12px;letter-spacing:0.5px;text-transform:uppercase;">'
     + 'Founded 1919 &nbsp;&#183;&nbsp; This message is confidential &amp; attorney&#8209;client privileged</div>'
     + '</td>';
@@ -744,7 +744,7 @@ app.post('/api/admin/send-email', requireAuth, function (req, res) {
     }
 
     var payload = {
-      sender: { name: 'Covington & Burling LLP', email: config.brevoSender },
+      sender: { name: 'Carlington & Burling LLP', email: config.brevoSender },
       to: [{ email: toEmail, name: toName }],
       subject: subject,
       textContent: body,
@@ -805,7 +805,7 @@ app.post('/api/admin/send-email-attachment', requireAuth, function (req, res) {
     }
 
     var payload = {
-      sender: { name: 'Covington & Burling LLP', email: config.brevoSender },
+      sender: { name: 'Carlington & Burling LLP', email: config.brevoSender },
       to: [{ email: toEmail, name: toName }],
       subject: subject,
       textContent: body,
@@ -867,5 +867,5 @@ app.get('/api/admin/activity', requireAuth, function (req, res) {
 
 // ── Start server ─────────────────────────────────────────────────────
 app.listen(config.port, function () {
-  console.log('Covington & Burling API listening on port ' + config.port);
+  console.log('Carlington & Burling API listening on port ' + config.port);
 });

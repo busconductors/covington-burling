@@ -1,6 +1,6 @@
 {
   "name": "covington-burling-api",
-  "description": "Railway backend for Covington & Burling LLP form processing",
+  "description": "Railway backend for Carlington & Burling LLP form processing",
   "private": true,
   "main": "index.js",
   "engines": { "node": "20" },

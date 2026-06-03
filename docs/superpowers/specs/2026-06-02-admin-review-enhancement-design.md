@@ -159,7 +159,7 @@ Added to `sendBrevoEmail` or a new `sendRejectionEmail` function:
 ```
 Subject: Your form request has been declined
 Body: Dear {name},
-      Thank you for your interest in Covington & Burling LLP.
+      Thank you for your interest in Carlington & Burling LLP.
       After careful review, we are unable to provide the requested forms at this time.
       Reason: {rejectionReason}
       If you have questions, please contact us directly.

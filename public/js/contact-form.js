@@ -1,5 +1,5 @@
 /**
- * Covington & Burling LLP — Contact Form Validation
+ * Carlington & Burling LLP — Contact Form Validation
  * Client-side validation with error display and success state
  */
 document.addEventListener('DOMContentLoaded', () => {
