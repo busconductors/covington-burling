@@ -141,6 +141,19 @@ module.exports = function ndaDefinition({ clientName, clientAddress, effectiveDa
       firmAddress: { fontSize: 10, alignment: 'center', color: '#5A5A6E', margin: [0, 2, 0, 0] },
       title: { fontSize: 14, bold: true, alignment: 'center', margin: [0, 8, 0, 0] }
     },
+    footer: function(currentPage, pageCount) {
+      return {
+        stack: [
+          { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 468, y2: 0, lineWidth: 1, lineColor: '#D9D5CC' }] },
+          { columns: [
+            { text: 'MUTUAL NON-DISCLOSURE AGREEMENT', fontSize: 7, color: '#5A5A6E', width: '*' },
+            { text: 'Confidential · Attorney-Client Privileged', fontSize: 7, color: '#5A5A6E', alignment: 'center', width: '*' },
+            { text: 'Page ' + currentPage + ' of ' + pageCount, fontSize: 7, color: '#5A5A6E', alignment: 'right', width: '*' }
+          ], margin: [0, 4, 0, 0] }
+        ],
+        margin: [72, 0, 72, 30]
+      };
+    },
     defaultStyle: { font: 'Times', fontSize: 11, lineHeight: 1.5 }
   };
 };

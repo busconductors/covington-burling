@@ -158,13 +158,6 @@ function addDigitalField(form, page, name, x, y, width, font, size) {
   return field;
 }
 
-function addPageNumber(page, fonts, current, total) {
-  page.drawText(`Page ${current} of ${total}`, {
-    x: PAGE_W - MARGIN - 80, y: 20,
-    size: 8, font: fonts.regular, color: MUTED,
-  });
-}
-
 // ── Standard Firm Header ──────────────────────────────────────────────────
 
 async function embedStackedLogo(doc) {
@@ -172,7 +165,7 @@ async function embedStackedLogo(doc) {
   return doc.embedPng(fs.readFileSync(logoPath));
 }
 
-function drawHeader(page, fonts, logo, y, logoH) {
+function drawHeader(page, fonts, logo, y, logoH, includeContact) {
   if (logo) {
     const logoW = logo.width * (logoH / logo.height);
     const logoX = (PAGE_W - logoW) / 2;
@@ -182,20 +175,22 @@ function drawHeader(page, fonts, logo, y, logoH) {
     y -= logoH + 6;
   }
 
-  // Contact line — "covbur.com" in brand gold
-  const pre = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
-  const domain = 'covbur.com';
-  const full = pre + domain;
-  const tw = fonts.regular.widthOfTextAtSize(full, 8);
-  const sx = (PAGE_W - tw) / 2;
-  page.drawText(pre, { x: sx, y, size: 8, font: fonts.regular, color: MUTED });
-  page.drawText(domain, {
-    x: sx + fonts.regular.widthOfTextAtSize(pre, 8),
-    y, size: 8, font: fonts.regular, color: BRAND_GOLD,
-  });
-  y -= 16;
+  if (includeContact) {
+    const pre = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
+    const domain = 'covbur.com';
+    const full = pre + domain;
+    const tw = fonts.regular.widthOfTextAtSize(full, 8);
+    const sx = (PAGE_W - tw) / 2;
+    page.drawText(pre, { x: sx, y, size: 8, font: fonts.regular, color: MUTED });
+    page.drawText(domain, {
+      x: sx + fonts.regular.widthOfTextAtSize(pre, 8),
+      y, size: 8, font: fonts.regular, color: BRAND_GOLD,
+    });
+    y -= 16;
+  } else {
+    y -= 6;
+  }
 
-  // 1px light rule separator
   page.drawLine({
     start: { x: MARGIN, y }, end: { x: PAGE_W - MARGIN, y },
     thickness: 1, color: LIGHT_RULE,
@@ -203,17 +198,30 @@ function drawHeader(page, fonts, logo, y, logoH) {
   return y - 8;
 }
 
-/** Draw double-line page frame (Variant C). */
-function drawPageFrame(page) {
-  // Outer thin line
-  page.drawRectangle({
-    x: 24, y: 24, width: PAGE_W - 48, height: PAGE_H - 48,
-    borderWidth: 0.5, borderColor: DARK_GRAY, color: undefined,
+function drawFooter(page, fonts, docName, currentPage, totalPages) {
+  const lineY = 44;
+  const textY = 30;
+
+  page.drawLine({
+    start: { x: MARGIN, y: lineY },
+    end: { x: PAGE_W - MARGIN, y: lineY },
+    thickness: 1, color: LIGHT_RULE,
   });
-  // Inner thicker line
-  page.drawRectangle({
-    x: 28, y: 28, width: PAGE_W - 56, height: PAGE_H - 56,
-    borderWidth: 1.5, borderColor: DARK_GRAY, color: undefined,
+
+  page.drawText(docName, {
+    x: MARGIN, y: textY, size: 7, font: fonts.regular, color: MUTED,
+  });
+
+  const centerText = 'Confidential · Attorney-Client Privileged';
+  const cw = fonts.regular.widthOfTextAtSize(centerText, 7);
+  page.drawText(centerText, {
+    x: (PAGE_W - cw) / 2, y: textY, size: 7, font: fonts.regular, color: MUTED,
+  });
+
+  const pageText = 'Page ' + currentPage + ' of ' + totalPages;
+  const pw = fonts.regular.widthOfTextAtSize(pageText, 7);
+  page.drawText(pageText, {
+    x: PAGE_W - MARGIN - pw, y: textY, size: 7, font: fonts.regular, color: MUTED,
   });
 }
 
@@ -330,7 +338,7 @@ async function buildWaiverA() {
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let y = PAGE_H - 50;
 
-  y = drawHeader(page, fonts, logo, y, 120);
+  y = drawHeader(page, fonts, logo, y, 118, true);
   y -= 22;
 
   // Title
@@ -356,7 +364,7 @@ async function buildWaiverA() {
   const result = drawClauses(page, fonts, waiverClauses, y, PAGE_W - MARGIN * 2, 0);
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
-    const contY = drawHeader(page, fonts, logo, PAGE_H - 50, 90);
+    const contY = drawHeader(page, fonts, logo, PAGE_H - 50, 78, false);
     const r2 = drawClauses(page, fonts, waiverClauses.slice(2), contY, PAGE_W - MARGIN * 2, 0);
     y = r2.lastY;
   } else {
@@ -364,7 +372,7 @@ async function buildWaiverA() {
   }
 
   y -= 16;
-  if (y < 220) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, logo, PAGE_H - 50, 90); }
+  if (y < 220) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, logo, PAGE_H - 50, 78, false); }
 
   // Signature blocks — side by side
   page.drawLine({ start: { x: MARGIN, y }, end: { x: MARGIN + 230, y }, thickness: 0.5, color: DARK_GRAY });
@@ -389,6 +397,11 @@ async function buildWaiverA() {
   page.drawText('Date:', { x: 332, y, size: 10, font: fonts.bold, color: BLACK });
   addUnderlineField(form, page, 'firmSigDate', 370, y - 14, 100, fonts.regular, 10);
 
+  const allPages = doc.getPages();
+  for (let i = 0; i < allPages.length; i++) {
+    drawFooter(allPages[i], fonts, 'WAIVER AND RELEASE OF LIABILITY', i + 1, allPages.length);
+  }
+
   const pdfBytes = await doc.save();
   fs.writeFileSync(path.join(FORMS_DIR, 'waiver-variant-a.pdf'), pdfBytes);
   console.log('Created: waiver-variant-a.pdf (Classic Underline)');
@@ -407,7 +420,7 @@ async function buildWaiverB() {
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let y = PAGE_H - 50;
 
-  y = drawHeader(page, fonts, logo, y, 120);
+  y = drawHeader(page, fonts, logo, y, 118, true);
   y -= 24;
 
   // Title
@@ -444,7 +457,7 @@ async function buildWaiverB() {
 
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
-    y = drawHeader(page, fonts, logo, PAGE_H - 50, 90);
+    y = drawHeader(page, fonts, logo, PAGE_H - 50, 78, false);
     const r2 = drawClauses(page, fonts, waiverClauses.slice(2), y, PAGE_W - MARGIN * 2 - 16, 16);
     y = r2.lastY;
   } else {
@@ -452,7 +465,7 @@ async function buildWaiverB() {
   }
 
   y -= 14;
-  if (y < 260) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, logo, PAGE_H - 50, 90); }
+  if (y < 260) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, logo, PAGE_H - 50, 78, false); }
 
   // Signature blocks
   y = sigBlockB(form, page, MARGIN, y, fonts, 'Client', [
@@ -466,6 +479,11 @@ async function buildWaiverB() {
     { name: 'firmPrintName', label: 'Print Name' },
     { name: 'firmSigDate', label: 'Date' },
   ]);
+
+  const allPages = doc.getPages();
+  for (let i = 0; i < allPages.length; i++) {
+    drawFooter(allPages[i], fonts, 'WAIVER AND RELEASE OF LIABILITY', i + 1, allPages.length);
+  }
 
   const pdfBytes = await doc.save();
   fs.writeFileSync(path.join(FORMS_DIR, 'waiver-variant-b.pdf'), pdfBytes);
@@ -483,11 +501,10 @@ async function buildWaiverC(outputName) {
   const logo = await embedStackedLogo(doc);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
-  drawPageFrame(page);
 
   let y = PAGE_H - 62; // inside the frame
 
-  y = drawHeader(page, fonts, logo, y, 120);
+  y = drawHeader(page, fonts, logo, y, 118, true);
   y -= 24;
 
   // Title — centered
@@ -518,8 +535,7 @@ async function buildWaiverC(outputName) {
   const result = drawClauses(page, fonts, waiverClauses, y, PAGE_W - MARGIN * 2, 24);
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
-    drawPageFrame(page);
-    y = drawHeader(page, fonts, logo, PAGE_H - 62, 90);
+      y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false);
     const r2 = drawClauses(page, fonts, waiverClauses.slice(2), y, PAGE_W - MARGIN * 2, 24);
     y = r2.lastY;
   } else {
@@ -527,7 +543,7 @@ async function buildWaiverC(outputName) {
   }
 
   y -= 14;
-  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); drawPageFrame(page); y = drawHeader(page, fonts, logo, PAGE_H - 62, 90); }
+  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false); }
 
   // IN WITNESS WHEREOF
   page.drawText('IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above.', {
@@ -548,7 +564,10 @@ async function buildWaiverC(outputName) {
     { name: 'firmSigDate', label: 'Date' },
   ]);
 
-  addPageNumber(page, fonts, 1, 1);
+  const allPages = doc.getPages();
+  for (let i = 0; i < allPages.length; i++) {
+    drawFooter(allPages[i], fonts, 'WAIVER AND RELEASE OF LIABILITY', i + 1, allPages.length);
+  }
 
   const pdfBytes = await doc.save();
   const outName = outputName || 'waiver-variant-c.pdf';
@@ -569,7 +588,7 @@ async function buildWaiverD() {
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let y = PAGE_H;
 
-  y = drawHeader(page, fonts, logo, y, 120);
+  y = drawHeader(page, fonts, logo, y, 118, true);
   y -= 14;
 
   // Title
@@ -639,7 +658,7 @@ async function buildWaiverD() {
   const result = drawClauses(page, fonts, waiverClauses, y, PAGE_W - MARGIN * 2 - 24, 24);
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
-    y = drawHeader(page, fonts, logo, PAGE_H, 90);
+    y = drawHeader(page, fonts, logo, PAGE_H, 78, false);
     const r2 = drawClauses(page, fonts, waiverClauses.slice(2), y, PAGE_W - MARGIN * 2 - 24, 24);
     y = r2.lastY;
   } else {
@@ -647,7 +666,7 @@ async function buildWaiverD() {
   }
 
   y -= 10;
-  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, logo, PAGE_H, 90); }
+  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, logo, PAGE_H, 78, false); }
 
   // Premium signature blocks
   y = sigBlockD(form, page, MARGIN, y, fonts, 'Client', [
@@ -662,7 +681,10 @@ async function buildWaiverD() {
     { name: 'firmSigDate', label: 'Date' },
   ]);
 
-  addPageNumber(page, fonts, 1, 1);
+  const allPages = doc.getPages();
+  for (let i = 0; i < allPages.length; i++) {
+    drawFooter(allPages[i], fonts, 'WAIVER AND RELEASE OF LIABILITY', i + 1, allPages.length);
+  }
 
   const pdfBytes = await doc.save();
   fs.writeFileSync(path.join(FORMS_DIR, 'waiver-variant-d.pdf'), pdfBytes);
@@ -685,10 +707,9 @@ async function buildNdaC(outputName) {
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let totalPages = 1;
-  drawPageFrame(page);
 
   let y = PAGE_H - 62;
-  y = drawHeader(page, fonts, logo, y, 120);
+  y = drawHeader(page, fonts, logo, y, 118, true);
   y -= 24;
 
   // Title — centered
@@ -725,8 +746,7 @@ async function buildNdaC(outputName) {
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
     totalPages++;
-    drawPageFrame(page);
-    y = drawHeader(page, fonts, logo, PAGE_H - 62, 90);
+      y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false);
     const r2 = drawClauses(page, fonts, ndaClauses.slice(2), y, PAGE_W - MARGIN * 2, 24);
     y = r2.lastY;
   } else {
@@ -737,8 +757,7 @@ async function buildNdaC(outputName) {
   if (y < 300) {
     page = doc.addPage([PAGE_W, PAGE_H]);
     totalPages++;
-    drawPageFrame(page);
-    y = drawHeader(page, fonts, logo, PAGE_H - 62, 90);
+      y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false);
   }
 
   // IN WITNESS WHEREOF
@@ -762,7 +781,10 @@ async function buildNdaC(outputName) {
     { name: 'clientDate', label: 'Date' },
   ]);
 
-  addPageNumber(page, fonts, 1, totalPages);
+  const allPages = doc.getPages();
+  for (let i = 0; i < allPages.length; i++) {
+    drawFooter(allPages[i], fonts, 'MUTUAL NON-DISCLOSURE AGREEMENT', i + 1, allPages.length);
+  }
 
   const pdfBytes = await doc.save();
   const outName = outputName || 'nda-fillable.pdf';
@@ -802,10 +824,9 @@ async function buildWaiverDigitalC(outputName) {
   const logo = await embedStackedLogo(doc);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
-  drawPageFrame(page);
 
   let y = PAGE_H - 62;
-  y = drawHeader(page, fonts, logo, y, 120);
+  y = drawHeader(page, fonts, logo, y, 118, true);
   y -= 16;
 
   // Digital instruction badge
@@ -844,8 +865,7 @@ async function buildWaiverDigitalC(outputName) {
   const result = drawClauses(page, fonts, waiverClauses, y, PAGE_W - MARGIN * 2, 24);
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
-    drawPageFrame(page);
-    y = drawHeader(page, fonts, logo, PAGE_H - 62, 90);
+      y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false);
     const r2 = drawClauses(page, fonts, waiverClauses.slice(2), y, PAGE_W - MARGIN * 2, 24);
     y = r2.lastY;
   } else {
@@ -853,7 +873,7 @@ async function buildWaiverDigitalC(outputName) {
   }
 
   y -= 14;
-  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); drawPageFrame(page); y = drawHeader(page, fonts, logo, PAGE_H - 62, 90); }
+  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false); }
 
   page.drawText('IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above.', {
     x: MARGIN + 8, y, size: 10, font: fonts.bold, color: BLACK,
@@ -872,7 +892,10 @@ async function buildWaiverDigitalC(outputName) {
     { name: 'firmSigDate', label: 'Date' },
   ]);
 
-  addPageNumber(page, fonts, 1, 1);
+  const allPages = doc.getPages();
+  for (let i = 0; i < allPages.length; i++) {
+    drawFooter(allPages[i], fonts, 'WAIVER AND RELEASE OF LIABILITY', i + 1, allPages.length);
+  }
 
   const pdfBytes = await doc.save();
   const outName = outputName || 'waiver-digital.pdf';
@@ -888,10 +911,9 @@ async function buildNdaDigitalC(outputName) {
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let totalPages = 1;
-  drawPageFrame(page);
 
   let y = PAGE_H - 62;
-  y = drawHeader(page, fonts, logo, y, 120);
+  y = drawHeader(page, fonts, logo, y, 118, true);
   y -= 16;
 
   // Digital instruction badge
@@ -936,8 +958,7 @@ async function buildNdaDigitalC(outputName) {
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
     totalPages++;
-    drawPageFrame(page);
-    y = drawHeader(page, fonts, logo, PAGE_H - 62, 90);
+      y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false);
     const r2 = drawClauses(page, fonts, ndaClauses.slice(2), y, PAGE_W - MARGIN * 2, 24);
     y = r2.lastY;
   } else {
@@ -948,8 +969,7 @@ async function buildNdaDigitalC(outputName) {
   if (y < 300) {
     page = doc.addPage([PAGE_W, PAGE_H]);
     totalPages++;
-    drawPageFrame(page);
-    y = drawHeader(page, fonts, logo, PAGE_H - 62, 90);
+      y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false);
   }
 
   page.drawText('IN WITNESS WHEREOF, the parties have executed this Agreement as of the Effective Date.', {
@@ -971,7 +991,10 @@ async function buildNdaDigitalC(outputName) {
     { name: 'clientDate', label: 'Date' },
   ]);
 
-  addPageNumber(page, fonts, 1, totalPages);
+  const allPages = doc.getPages();
+  for (let i = 0; i < allPages.length; i++) {
+    drawFooter(allPages[i], fonts, 'MUTUAL NON-DISCLOSURE AGREEMENT', i + 1, allPages.length);
+  }
 
   const pdfBytes = await doc.save();
   const outName = outputName || 'nda-digital.pdf';
