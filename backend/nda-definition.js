@@ -2,6 +2,8 @@
  * pdfmake document definition for Mutual Non-Disclosure Agreement
  * Covington & Burling LLP
  */
+const path = require('path');
+
 module.exports = function ndaDefinition({ clientName, clientAddress, effectiveDate } = {}) {
   const name = clientName || '____________________________';
   const addr = clientAddress || '____________________________';
@@ -11,9 +13,16 @@ module.exports = function ndaDefinition({ clientName, clientAddress, effectiveDa
     pageSize: 'LETTER',
     pageMargins: [72, 72, 72, 72],
     content: [
-      { text: 'Covington & Burling LLP', style: 'firmHeader' },
-      { text: '850 Tenth Street NW, Washington, DC 20001', style: 'firmAddress' },
-      { text: '', margin: [0, 4, 0, 0] },
+      // Stacked logo lockup
+      { image: path.join(__dirname, '..', 'public', 'images', 'brand', 'logo_stacked.png'), width: 158, alignment: 'center', margin: [0, 0, 0, 4] },
+      // Contact line — covbur.com in gold
+      { text: [
+        { text: '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ', fontSize: 8, color: '#5A5A6E' },
+        { text: 'covbur.com', fontSize: 8, color: '#B08D57' }
+      ], alignment: 'center', margin: [0, 0, 0, 4] },
+      // Light rule divider
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 468, y2: 0, lineWidth: 1, lineColor: '#D9D5CC' }], margin: [0, 4, 0, 8] },
+
       { text: 'MUTUAL NON-DISCLOSURE AGREEMENT', style: 'title' },
       { text: '', margin: [0, 12, 0, 0] },
 
