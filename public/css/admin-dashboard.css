@@ -749,6 +749,58 @@
   word-wrap: break-word;
 }
 
+/* ----- File Attachment ----- */
+.email-form__file-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.email-form__file {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--text-body);
+  max-width: 220px;
+}
+
+.email-form__file::file-selector-button {
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--white);
+  color: var(--navy);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.email-form__file::file-selector-button:hover {
+  border-color: var(--gold);
+  background: var(--cream-dark);
+}
+
+.email-form__file:focus {
+  outline: none;
+}
+
+.email-form__file:focus::file-selector-button {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(176, 141, 87, 0.15);
+}
+
+.email-form__file-name {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
 .email-template-presets {
   display: flex;
   gap: 0.5rem;

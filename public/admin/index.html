@@ -10,20 +10,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400..700;1,400..700&family=Montserrat:ital,wght@0,300..600;1,300..600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css?v=2">
   <link rel="stylesheet" href="/css/admin.css?v=2">
-  <link rel="stylesheet" href="/css/admin-dashboard.css?v=5">
+  <link rel="stylesheet" href="/css/admin-dashboard.css?v=6">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <!-- PDF generation deps (needed by Document Builder section) -->
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
-  <script src="/js/template-presets.js?v=1" defer></script>
-  <script src="/js/covington-template.js?v=1" defer></script>
+  <script src="/js/template-presets.js?v=4" defer></script>
+  <script src="/js/covington-template.js?v=4" defer></script>
   <!-- Admin modules -->
   <script src="/js/admin-auth.js?v=3" defer></script>
   <script src="/js/admin-dashboard.js?v=3" defer></script>
   <script src="/js/admin-analytics.js?v=3" defer></script>
   <script src="/js/admin-requests.js?v=3" defer></script>
   <script src="/js/admin-builder.js?v=3" defer></script>
-  <script src="/js/admin-email.js?v=3" defer></script>
+  <script src="/js/admin-email.js?v=5" defer></script>
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -423,6 +423,15 @@ Covington &amp; Burling LLP</textarea>
                   <input type="text" id="emailSubject" class="email-form__input" placeholder="Email subject" required>
                 </div>
                 <div class="email-form__group">
+                  <label class="email-form__label" for="emailVariant">Header Variant</label>
+                  <select id="emailVariant" class="email-form__select">
+                    <option value="A">Variant A — Navy band, centered serif</option>
+                    <option value="B">Variant B — Gold stripe, left-aligned</option>
+                    <option value="C">Variant C — Light ivory, CB monogram</option>
+                    <option value="D" selected>Variant D — White letterhead, all-caps</option>
+                  </select>
+                </div>
+                <div class="email-form__group">
                   <label class="email-form__label">Quick Templates</label>
                   <div class="email-template-presets" id="emailTemplates">
                     <button type="button" class="email-template-preset" data-template="approved-forms">Approved Forms</button>
@@ -438,6 +447,13 @@ Thank you for contacting Covington & Burling LLP. We are pleased to assist you w
 
 Sincerely,
 Covington & Burling LLP" required></textarea>
+                </div>
+                <div class="email-form__group">
+                  <label class="email-form__label" for="emailAttachment">Attachment (optional)</label>
+                  <div class="email-form__file-wrap">
+                    <input type="file" id="emailAttachment" class="email-form__file">
+                    <span class="email-form__file-name" id="emailAttachmentName">No file chosen</span>
+                  </div>
                 </div>
                 <div class="email-form__submit">
                   <button type="submit" class="btn btn--primary">Send Email</button>

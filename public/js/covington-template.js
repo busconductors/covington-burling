@@ -65,21 +65,30 @@
     return lineY;
   }
 
-  function drawPageFrame(page) {
-    page.drawRectangle({
-      x: 24, y: 24, width: PAGE_W - 48, height: PAGE_H - 48,
-      borderWidth: 0.5, borderColor: DARK_GRAY,
-    });
-    page.drawRectangle({
-      x: 28, y: 28, width: PAGE_W - 56, height: PAGE_H - 56,
-      borderWidth: 1.5, borderColor: DARK_GRAY,
-    });
-  }
+  function drawFooter(page, fonts, docName, currentPage, totalPages) {
+    const lineY = 44;
+    const textY = 30;
 
-  function addPageNumber(page, fonts, current, total) {
-    page.drawText('Page ' + current + ' of ' + total, {
-      x: PAGE_W - MARGIN - 80, y: 20, size: 8,
-      font: fonts.regular, color: MUTED,
+    page.drawLine({
+      start: { x: MARGIN, y: lineY },
+      end: { x: PAGE_W - MARGIN, y: lineY },
+      thickness: 1, color: LIGHT_RULE,
+    });
+
+    page.drawText(docName, {
+      x: MARGIN, y: textY, size: 7, font: fonts.regular, color: MUTED,
+    });
+
+    const centerText = 'Confidential · Attorney-Client Privileged';
+    const cw = fonts.regular.widthOfTextAtSize(centerText, 7);
+    page.drawText(centerText, {
+      x: (PAGE_W - cw) / 2, y: textY, size: 7, font: fonts.regular, color: MUTED,
+    });
+
+    const pageText = 'Page ' + currentPage + ' of ' + totalPages;
+    const pw = fonts.regular.widthOfTextAtSize(pageText, 7);
+    page.drawText(pageText, {
+      x: PAGE_W - MARGIN - pw, y: textY, size: 7, font: fonts.regular, color: MUTED,
     });
   }
 
@@ -105,7 +114,7 @@
     } catch (_) { return null; }
   }
 
-  function drawHeader(page, fonts, logo, y, logoH) {
+  function drawHeader(page, fonts, logo, y, logoH, includeContact) {
     if (logo) {
       const logoW = logo.width * (logoH / logo.height);
       const logoX = (PAGE_W - logoW) / 2;
@@ -115,20 +124,22 @@
       y -= logoH + 6;
     }
 
-    // Contact line — "covbur.com" in brand gold
-    const pre = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
-    const domain = 'covbur.com';
-    const full = pre + domain;
-    const tw = fonts.regular.widthOfTextAtSize(full, 8);
-    const sx = (PAGE_W - tw) / 2;
-    page.drawText(pre, { x: sx, y, size: 8, font: fonts.regular, color: MUTED });
-    page.drawText(domain, {
-      x: sx + fonts.regular.widthOfTextAtSize(pre, 8),
-      y, size: 8, font: fonts.regular, color: BRAND_GOLD,
-    });
-    y -= 16;
+    if (includeContact) {
+      const pre = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
+      const domain = 'covbur.com';
+      const full = pre + domain;
+      const tw = fonts.regular.widthOfTextAtSize(full, 8);
+      const sx = (PAGE_W - tw) / 2;
+      page.drawText(pre, { x: sx, y, size: 8, font: fonts.regular, color: MUTED });
+      page.drawText(domain, {
+        x: sx + fonts.regular.widthOfTextAtSize(pre, 8),
+        y, size: 8, font: fonts.regular, color: BRAND_GOLD,
+      });
+      y -= 16;
+    } else {
+      y -= 6; // smaller gap when no contact line
+    }
 
-    // 1px light rule separator
     page.drawLine({
       start: { x: MARGIN, y }, end: { x: PAGE_W - MARGIN, y },
       thickness: 1, color: LIGHT_RULE,
@@ -207,11 +218,10 @@
 
     let page = doc.addPage([PAGE_W, PAGE_H]);
     let totalPages = 1;
-    drawPageFrame(page);
 
-    // Page-1 header with full-size (120px) logo
+    // Page-1 header with full (118px) logo + contact line
     let y = PAGE_H - 62;
-    y = drawHeader(page, fonts, logo, y, 120);
+    y = drawHeader(page, fonts, logo, y, 118, true);
     y -= 24;
 
     // Title
@@ -235,8 +245,7 @@
       if (result.needsPage) {
         page = doc.addPage([PAGE_W, PAGE_H]);
         totalPages++;
-        drawPageFrame(page);
-        y = drawHeader(page, fonts, logo, PAGE_H - 62, 90); // continuation header
+        y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false); // continuation header
         const r2 = drawClausesFn(page, fonts, def.clauses.slice(2), y);
         y = r2.lastY;
       } else {
@@ -248,8 +257,7 @@
     if (y < 300 && def.signatureBlocks && def.signatureBlocks.length > 0) {
       page = doc.addPage([PAGE_W, PAGE_H]);
       totalPages++;
-      drawPageFrame(page);
-      y = drawHeader(page, fonts, logo, PAGE_H - 62, 90); // continuation header
+      y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false); // continuation header
     }
 
     // IN WITNESS WHEREOF
@@ -273,7 +281,11 @@
       }
     }
 
-    addPageNumber(page, fonts, totalPages, totalPages);
+    // Add footer to every page
+    const pages = doc.getPages();
+    for (let i = 0; i < pages.length; i++) {
+      drawFooter(pages[i], fonts, def.title, i + 1, totalPages);
+    }
 
     return await doc.save();
   }

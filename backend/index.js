@@ -619,58 +619,109 @@ app.get('/api/admin/analytics', requireAuth, function (req, res) {
 });
 
 // ── Admin send email ──────────────────────────────────────────────────
-function buildEmailHtml(body) {
-  // Escape HTML special chars
+
+// ── Email Header Variants ────────────────────────────────────────────
+// All variants return raw HTML strings; callers wrap them in the shared layout.
+
+function emailHeaderA() {
+  // Navy band, centered serif wordmark + gold rule
+  return '<td style="background-color:#0A1628;padding:36px 40px 30px;text-align:center;">'
+    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:26px;font-weight:bold;color:#FFFFFF;letter-spacing:1px;">Covington <span style="color:#B08D57;">&amp;</span> Burling</div>'
+    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:6px;color:#9AA3B2;margin-top:6px;text-transform:uppercase;">L L P</div>'
+    + '<div style="width:36px;height:2px;background-color:#B08D57;margin:14px auto 6px;"></div>'
+    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:4px;color:#B08D57;text-transform:uppercase;">Attorneys at Law</div>'
+    + '</td>';
+}
+
+function emailHeaderB() {
+  // Thin gold top stripe over slim left-aligned navy header
+  return '<td style="padding:0;">'
+    + '<div style="height:3px;background-color:#B08D57;line-height:3px;font-size:0;">&nbsp;</div>'
+    + '<div style="background-color:#0A1628;padding:20px 40px;">'
+    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:20px;font-weight:bold;color:#FFFFFF;letter-spacing:0.5px;">Covington <span style="color:#B08D57;">&amp;</span> Burling</div>'
+    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:10px;letter-spacing:5px;color:#9AA3B2;margin-top:4px;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; Attorneys at Law</div>'
+    + '</div>'
+    + '</td>';
+}
+
+function emailHeaderC() {
+  // Light ivory header with gold-on-navy circular CB chip beside navy wordmark
+  return '<td style="background-color:#FAF9F6;padding:28px 40px 24px;">'
+    + '<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;"><tr>'
+    + '<td style="width:56px;vertical-align:middle;">'
+    + '<div style="width:48px;height:48px;border-radius:50%;background-color:#0A1628;text-align:center;line-height:48px;">'
+    + '<span style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:22px;font-weight:bold;color:#FFFFFF;">C</span><span style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:22px;font-weight:bold;color:#B08D57;">B</span>'
+    + '</div></td>'
+    + '<td style="vertical-align:middle;padding-left:14px;">'
+    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:21px;font-weight:bold;color:#0A1628;letter-spacing:0.3px;">Covington <span style="color:#B08D57;">&amp;</span> Burling</div>'
+    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:10px;letter-spacing:5px;color:#5A6577;margin-top:3px;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; Attorneys at Law</div>'
+    + '</td></tr></table>'
+    + '</td>';
+}
+
+function emailHeaderD() {
+  // White letterhead: all-caps serif name with flanking gold rules over navy baseline
+  return '<td style="background-color:#FFFFFF;padding:34px 40px 22px;text-align:center;">'
+    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:28px;font-weight:bold;color:#0A1628;letter-spacing:1.5px;">COVINGTON <span style="color:#B08D57;">&amp;</span> BURLING</div>'
+    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:7px;color:#5A6577;margin-top:7px;">L L P</div>'
+    + '<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin-top:16px;"><tr>'
+    + '<td style="width:30px;height:1px;background-color:#B08D57;line-height:1px;font-size:0;">&nbsp;</td>'
+    + '<td style="padding:0 10px;font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:4px;color:#B08D57;text-transform:uppercase;">Attorneys at Law</td>'
+    + '<td style="width:30px;height:1px;background-color:#B08D57;line-height:1px;font-size:0;">&nbsp;</td>'
+    + '</tr></table>'
+    + '</td>'
+    + '</tr>'
+    + '<tr><td style="background-color:#0A1628;height:3px;line-height:3px;font-size:0;">&nbsp;</td>';
+}
+
+var EMAIL_HEADERS = { A: emailHeaderA, B: emailHeaderB, C: emailHeaderC, D: emailHeaderD };
+
+// ── Shared Email Footer ──────────────────────────────────────────────
+
+function emailFooter() {
+  return '<td style="background-color:#FAF9F6;padding:26px 40px 30px;border-top:1px solid #E4E0D8;text-align:center;font-family:Arial,Helvetica,sans-serif;">'
+    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:15px;font-weight:bold;color:#0A1628;letter-spacing:0.3px;">Covington &amp; Burling LLP</div>'
+    + '<div style="font-size:12px;color:#5A6577;margin-top:8px;line-height:1.6;">850 Tenth Street NW, Washington, DC 20001<br>'
+    + '202&#8209;662&#8209;6000 &nbsp;|&nbsp; <a href="https://covbur.com" style="color:#B08D57;text-decoration:none;">covbur.com</a></div>'
+    + '<div style="font-size:10px;color:#9AA3B2;margin-top:12px;letter-spacing:0.5px;text-transform:uppercase;">'
+    + 'Founded 1919 &nbsp;&#183;&nbsp; This message is confidential &amp; attorney&#8209;client privileged</div>'
+    + '</td>';
+}
+
+// ── Layout Wrapper ───────────────────────────────────────────────────
+
+function buildEmailLayout(headerHtml, bodyHtml) {
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>'
+    + '<body style="margin:0;padding:0;background-color:#ECECEC;">'
+    + '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#ECECEC;padding:24px 0;">'
+    + '<tr><td align="center">'
+    + '<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;background-color:#FFFFFF;border-radius:6px;overflow:hidden;">'
+    + '<tr>' + headerHtml + '</tr>'
+    + '<tr><td style="padding:34px 40px;font-family:Georgia,\'Times New Roman\',Times,serif;font-size:15px;line-height:1.7;color:#1A1A1A;">' + bodyHtml + '</td></tr>'
+    + '<tr>' + emailFooter() + '</tr>'
+    + '</table>'
+    + '</td></tr></table>'
+    + '</body></html>';
+}
+
+function buildEmailHtml(body, variant) {
   var escaped = body
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-  // Turn double-newline blocks into <p> paragraphs, single newlines into <br>
   var bodyHtml = escaped
     .split(/\n\n+/)
     .map(function (p) {
       var t = p.trim();
       if (!t) return '';
-      return '<p style="margin:0 0 1em;font-family:Georgia,Times,serif;font-size:15px;line-height:1.7;color:#1A1A1A;">'
-        + t.replace(/\n/g, '<br>') + '</p>';
+      return '<p style="margin:0 0 16px;">' + t.replace(/\n/g, '<br>') + '</p>';
     })
     .join('');
 
-  // Inline SVG monogram
-  var monogram = '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 160 160" style="display:block;margin:0 auto 10px;">'
-    + '<g transform="translate(20,20)">'
-    + '<circle cx="60" cy="60" r="56" fill="none" stroke="#FFFFFF" stroke-width="1.2" opacity="0.6"/>'
-    + '<circle cx="60" cy="60" r="50" fill="none" stroke="#B08D57" stroke-width="2" opacity="0.9"/>'
-    + '<text x="60" y="60" text-anchor="middle" dominant-baseline="central" font-family="Georgia,Times,serif" font-weight="600" font-size="46" letter-spacing="-2" fill="#FFFFFF">C<tspan fill="#B08D57">B</tspan></text>'
-    + '</g></svg>';
-
-  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>'
-    + '<body style="margin:0;padding:0;background-color:#F4F2EE;">'
-    + '<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#F4F2EE;padding:24px 0;">'
-    + '<tr><td align="center">'
-    + '<table width="600" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#FFFFFF;border-radius:4px;overflow:hidden;max-width:600px;">'
-    + '<tr><td style="background-color:#0A1628;padding:28px 40px 24px;text-align:center;">'
-    + monogram
-    + '<div style="font-family:Georgia,Times,serif;font-size:20px;color:#FFFFFF;font-weight:700;letter-spacing:0.04em;">'
-    + 'COVINGTON<span style="font-weight:400;"> &amp; </span>BURLING<span style="font-weight:400;color:#B08D57;"> LLP</span>'
-    + '</div>'
-    + '<div style="width:32px;height:2px;background-color:#B08D57;margin:12px auto 0;"></div>'
-    + '</td></tr>'
-    + '<tr><td style="padding:36px 40px 20px;">' + bodyHtml + '</td></tr>'
-    + '<tr><td style="background-color:#F9F8F6;padding:20px 40px;border-top:1px solid #E8E4DD;text-align:center;">'
-    + '<div style="font-family:Georgia,Times,serif;font-size:13px;color:#666;line-height:1.7;">'
-    + '<strong style="color:#0A1628;">Covington &amp; Burling LLP</strong><br>'
-    + '850 Tenth Street NW, Washington, DC 20001<br>'
-    + '202-662-6000 &nbsp;|&nbsp; covington.com'
-    + '</div>'
-    + '<div style="font-family:Georgia,Times,serif;font-size:11px;color:#A0A0A0;margin-top:6px;">'
-    + 'Founded 1919 &nbsp;|&nbsp; This message is confidential.'
-    + '</div>'
-    + '</td></tr>'
-    + '</table>'
-    + '</td></tr></table>'
-    + '</body></html>';
+  var v = (variant || 'D').toUpperCase();
+  var headerFn = EMAIL_HEADERS[v] || EMAIL_HEADERS.D;
+  return buildEmailLayout(headerFn(), bodyHtml);
 }
 
 app.post('/api/admin/send-email', requireAuth, function (req, res) {
@@ -680,6 +731,8 @@ app.post('/api/admin/send-email', requireAuth, function (req, res) {
     var toName = _a.toName || '';
     var subject = _a.subject;
     var body = _a.body;
+    var variant = _a.variant || 'D';
+    var attachment = _a.attachment || null;
 
     if (!toEmail || !subject || !body) {
       return res.status(400).json({ error: 'Missing required fields: toEmail, subject, body.' });
@@ -695,8 +748,12 @@ app.post('/api/admin/send-email', requireAuth, function (req, res) {
       to: [{ email: toEmail, name: toName }],
       subject: subject,
       textContent: body,
-      htmlContent: buildEmailHtml(body),
+      htmlContent: buildEmailHtml(body, variant),
     };
+
+    if (attachment && attachment.name && attachment.content) {
+      payload.attachment = [{ name: attachment.name, content: attachment.content }];
+    }
 
     fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
@@ -709,7 +766,10 @@ app.post('/api/admin/send-email', requireAuth, function (req, res) {
       if (!r.ok) return r.json().then(function (e) { throw e; });
       return r.json();
     }).then(function () {
-      logActivity('send-email', { toEmail: toEmail, toName: toName, subject: subject });
+      logActivity('send-email', {
+        toEmail: toEmail, toName: toName, subject: subject,
+        variant: variant, filename: attachment ? attachment.name : null
+      });
       res.json({ message: 'Email sent to ' + toEmail + '.' });
     }).catch(function (err) {
       console.error('Send email error:', err);
