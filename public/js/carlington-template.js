@@ -1,157 +1,148 @@
-/**
- * Carlington & Burling LLP — Official Document Template Engine
- * Browser-side pdf-lib template. Generates fillable PDFs in the
- * Bordered Traditional (Variant C) style.
- *
- * Depends on pdf-lib loaded via CDN: window.PDFLib
- *
- * Usage:
- *   const pdfBytes = await CarlingtonTemplate.generate({
- *     title: 'DOCUMENT TITLE',
- *     fields: [{ label: 'Name:', name: 'fullName', width: 400 }],
- *     clauses: [{ num: '1.', title: 'Section.', body: 'Text...' }],
- *     signatureBlocks: [{ label: 'Party', fields: [...] }],
- *   });
- *   // pdfBytes is a Uint8Array — call CarlingtonTemplate.download(pdfBytes, 'file.pdf')
- */
 (function (global) {
   'use strict';
-
-  const { PDFDocument, StandardFonts, rgb } = global.PDFLib || {};
+  var PDFDocument = global.PDFLib.PDFDocument;
+  var StandardFonts = global.PDFLib.StandardFonts;
+  var rgb = global.PDFLib.rgb;
 
   // ── Constants ──────────────────────────────────────────────────────────
-  const PAGE_W = 612;
-  const PAGE_H = 792;
-  const MARGIN = 50;
-  const NAVY = rgb(0.039, 0.086, 0.157);
-  const BRAND_GOLD = rgb(0.690, 0.553, 0.341);   // #B08D57 — header accent
-  const LIGHT_GOLD = rgb(0.788, 0.651, 0.420);    // #C9A66B — light gold for navy band
-  const GOLD = rgb(0.761, 0.643, 0.310);          // title rule
-  const SLATE = rgb(0.353, 0.341, 0.467);         // #5A6577 — muted slate
-  const MUTED = rgb(0.353, 0.353, 0.431);
-  const LIGHT_RULE = rgb(0.851, 0.835, 0.800);    // #D9D5CC — header divider
-  const BLACK = rgb(0, 0, 0);
-  const WHITE = rgb(1, 1, 1);
-  const DARK_GRAY = rgb(0.267, 0.267, 0.267);
-
-  const CONTACT_LINE = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  carlingtonburling.com';
-  const TAGLINE_YEAR = '1919';
+  var PAGE_W = 612;
+  var PAGE_H = 792;
+  var MARGIN = 50;
+  var HEADER_START_Y = PAGE_H - 62;
+  var MIN_Y_BEFORE_BREAK = 120;
+  var NAVY = rgb(0.039, 0.086, 0.157);
+  var BRAND_GOLD = rgb(0.690, 0.553, 0.341);
+  var LIGHT_GOLD = rgb(0.788, 0.651, 0.420);
+  var TITLE_GOLD = rgb(0.761, 0.643, 0.310);
+  var SLATE = rgb(0.353, 0.341, 0.467);
+  var MUTED = rgb(0.353, 0.353, 0.431);
+  var LIGHT_RULE = rgb(0.851, 0.835, 0.800);
+  var BLACK = rgb(0, 0, 0);
+  var WHITE = rgb(1, 1, 1);
+  var DARK_GRAY = rgb(0.267, 0.267, 0.267);
+  var CONTACT_LINE = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  carlingtonburling.com';
+  var TAGLINE_YEAR = '1919';
+  var LOGO_PATHS = [
+    { key: 'stacked',  url: '/images/brand/logo_stacked.png?v=2' },
+    { key: 'reversed', url: '/images/brand/logo_reversed.png' },
+    { key: 'primary',  url: '/images/brand/logo_primary.png' },
+    { key: 'monogram', url: '/images/brand/logo_monogram.png' },
+  ];
 
   // ── Utility Functions ──────────────────────────────────────────────────
 
-  // Synchronous in pdf-lib (both browser and Node)
   function embedFonts(doc) {
     return {
       regular: doc.embedStandardFont(StandardFonts.TimesRoman),
-      bold: doc.embedStandardFont(StandardFonts.TimesRomanBold),
+      bold:    doc.embedStandardFont(StandardFonts.TimesRomanBold),
     };
   }
 
   function drawWrapped(page, text, x, y, font, size, color, maxWidth) {
-    const words = text.split(' ');
-    let line = '';
-    let lineY = y;
-    for (const word of words) {
-      const test = line ? line + ' ' + word : word;
-      if (font.widthOfTextAtSize(test, size) < maxWidth && line !== '') {
-        line = test;
+    var words = text.split(' ');
+    var line = '';
+    var currentY = y;
+    var lineHeight = size * 1.6;
+
+    for (var i = 0; i < words.length; i++) {
+      var testLine = line.length === 0 ? words[i] : line + ' ' + words[i];
+      var testWidth = font.widthOfTextAtSize(testLine, size);
+
+      if (testWidth > maxWidth && line.length > 0) {
+        page.drawText(line, { x: x, y: currentY, font: font, size: size, color: color });
+        line = words[i];
+        currentY -= lineHeight;
       } else {
-        if (line) {
-          page.drawText(line, { x, y: lineY, size, font, color });
-          lineY -= size * 1.6;
-        }
-        line = word;
+        line = testLine;
       }
     }
-    if (line) {
-      page.drawText(line, { x, y: lineY, size, font, color });
-      lineY -= size * 1.6;
+    if (line.length > 0) {
+      page.drawText(line, { x: x, y: currentY, font: font, size: size, color: color });
+      currentY -= lineHeight;
     }
-    return lineY;
+    return currentY;
   }
 
-  function drawFooter(page, fonts, docName, currentPage, totalPages) {
-    const lineY = 44;
-    const textY = 30;
+  function lineCount(text, font, size, maxWidth) {
+    var words = text.split(' ');
+    var line = '';
+    var count = 0;
 
-    page.drawLine({
-      start: { x: MARGIN, y: lineY },
-      end: { x: PAGE_W - MARGIN, y: lineY },
-      thickness: 1, color: LIGHT_RULE,
-    });
+    for (var i = 0; i < words.length; i++) {
+      var testLine = line.length === 0 ? words[i] : line + ' ' + words[i];
+      var testWidth = font.widthOfTextAtSize(testLine, size);
 
-    page.drawText(docName, {
-      x: MARGIN, y: textY, size: 7, font: fonts.regular, color: MUTED,
-    });
+      if (testWidth > maxWidth && line.length > 0) {
+        count++;
+        line = words[i];
+      } else {
+        line = testLine;
+      }
+    }
+    if (line.length > 0) count++;
+    return count;
+  }
 
-    const centerText = 'Confidential · Attorney-Client Privileged';
-    const cw = fonts.regular.widthOfTextAtSize(centerText, 7);
-    page.drawText(centerText, {
-      x: (PAGE_W - cw) / 2, y: textY, size: 7, font: fonts.regular, color: MUTED,
-    });
-
-    const pageText = 'Page ' + currentPage + ' of ' + totalPages;
-    const pw = fonts.regular.widthOfTextAtSize(pageText, 7);
-    page.drawText(pageText, {
-      x: PAGE_W - MARGIN - pw, y: textY, size: 7, font: fonts.regular, color: MUTED,
-    });
+  function estimateClauseHeight(clause, font, size, maxWidth) {
+    var lines = lineCount(clause.body, font, size, maxWidth);
+    return 18 + lines * (size * 1.6) + 12;
   }
 
   function addUnderlineField(form, page, name, x, y, width, font) {
-    const field = form.createTextField(name);
+    var field = form.createTextField(name);
     field.addToPage(page, {
-      x, y: y - 3, width, height: 14,
+      x: x, y: y - 3, width: width, height: 14,
       borderWidth: 0, borderColor: WHITE, backgroundColor: WHITE,
     });
     page.drawLine({
-      start: { x, y: y + 2 }, end: { x: x + width, y: y + 2 },
-      thickness: 0.5, color: DARK_GRAY,
+      start: { x: x, y: y + 2 },
+      end:   { x: x + width, y: y + 2 },
+      thickness: 0.5,
+      color: DARK_GRAY,
     });
     if (font) field.defaultUpdateAppearances(font);
     return field;
   }
 
-  async function embedAllLogos(doc) {
+  // ── Logo Loading ───────────────────────────────────────────────────────
+
+  async function preloadLogos(doc) {
     var logos = {};
-    var fetches = [
-      { key: 'stacked', url: '/images/brand/logo_stacked.png?v=2' },
-      { key: 'reversed', url: '/images/brand/logo_reversed.png' },
-      { key: 'primary', url: '/images/brand/logo_primary.png' },
-      { key: 'monogram', url: '/images/brand/logo_monogram.png' },
-    ];
-    var results = await Promise.allSettled
-      ? await Promise.allSettled(fetches.map(function (f) {
-          return fetch(f.url).then(function (r) { if (!r.ok) throw new Error('404'); return r.arrayBuffer(); });
-        }))
-      : [];
-    for (var i = 0; i < fetches.length; i++) {
-      try {
-        if (results.length > 0 && results[i].status === 'fulfilled') {
-          logos[fetches[i].key] = await doc.embedPng(results[i].value);
-        } else if (results.length === 0) {
-          // Fallback without Promise.allSettled
-          try {
-            var resp = await fetch(fetches[i].url);
-            if (resp.ok) logos[fetches[i].key] = await doc.embedPng(await resp.arrayBuffer());
-          } catch (_) {}
+
+    if (typeof Promise.allSettled === 'function') {
+      var results = await Promise.allSettled(LOGO_PATHS.map(function (p) {
+        return fetch(p.url).then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.arrayBuffer();
+        });
+      }));
+
+      for (var i = 0; i < LOGO_PATHS.length; i++) {
+        if (results[i].status === 'fulfilled') {
+          try { logos[LOGO_PATHS[i].key] = await doc.embedPng(results[i].value); } catch (_) {}
         }
-      } catch (_) {}
+      }
+    } else {
+      for (var i = 0; i < LOGO_PATHS.length; i++) {
+        try {
+          var r = await fetch(LOGO_PATHS[i].url);
+          if (r.ok) logos[LOGO_PATHS[i].key] = await doc.embedPng(await r.arrayBuffer());
+        } catch (_) {}
+      }
     }
+
     return logos;
   }
 
   // ── Header Variants ──────────────────────────────────────────────────
-  // Each returns the new Y position after drawing the header.
-  // Shared interface: { page, fonts, logos, y, isFirstPage }
+  // Each: function(page, fonts, logos, y, isFirstPage) → newY
 
   function drawHeaderA(page, fonts, logos, y, isFirstPage) {
-    // Centered Stacked — current behavior
     var logo = logos.stacked;
     var logoH = isFirstPage ? 118 : 78;
     if (logo) {
       var logoW = logo.width * (logoH / logo.height);
-      var logoX = (PAGE_W - logoW) / 2;
-      page.drawImage(logo, { x: logoX, y: y - logoH, width: logoW, height: logoH });
+      page.drawImage(logo, { x: (PAGE_W - logoW) / 2, y: y - logoH, width: logoW, height: logoH });
       y -= logoH + 6;
     }
 
@@ -161,10 +152,10 @@
       var full = pre + domain;
       var tw = fonts.regular.widthOfTextAtSize(full, 8);
       var sx = (PAGE_W - tw) / 2;
-      page.drawText(pre, { x: sx, y, size: 8, font: fonts.regular, color: MUTED });
+      page.drawText(pre, { x: sx, y: y, size: 8, font: fonts.regular, color: MUTED });
       page.drawText(domain, {
         x: sx + fonts.regular.widthOfTextAtSize(pre, 8),
-        y, size: 8, font: fonts.regular, color: BRAND_GOLD,
+        y: y, size: 8, font: fonts.regular, color: BRAND_GOLD,
       });
       y -= 16;
     } else {
@@ -172,23 +163,17 @@
     }
 
     page.drawLine({
-      start: { x: MARGIN, y }, end: { x: PAGE_W - MARGIN, y },
+      start: { x: MARGIN, y: y }, end: { x: PAGE_W - MARGIN, y: y },
       thickness: 1, color: LIGHT_RULE,
     });
     return y - 8;
   }
 
   function drawHeaderB(page, fonts, logos, y, isFirstPage) {
-    // Navy Band with reversed logo
     var logo = logos.reversed || logos.primary;
     var bandH = isFirstPage ? 62 : 44;
-    var topY = y;
 
-    // Navy band background
-    page.drawRectangle({
-      x: 0, y: y - bandH, width: PAGE_W, height: bandH,
-      color: NAVY,
-    });
+    page.drawRectangle({ x: 0, y: y - bandH, width: PAGE_W, height: bandH, color: NAVY });
 
     if (logo) {
       var logoH = isFirstPage ? 28 : 20;
@@ -198,32 +183,23 @@
     }
 
     if (isFirstPage) {
-      // Right-aligned contact block
-      var domainY = y - 16;
       var domainText = 'carlingtonburling.com';
       var dw = fonts.regular.widthOfTextAtSize(domainText, 9);
-      page.drawText(domainText, { x: PAGE_W - MARGIN - dw, y: domainY, size: 9, font: fonts.regular, color: LIGHT_GOLD });
+      page.drawText(domainText, { x: PAGE_W - MARGIN - dw, y: y - 16, size: 9, font: fonts.regular, color: LIGHT_GOLD });
 
-      var contactY = domainY - 14;
       var cw = fonts.regular.widthOfTextAtSize(CONTACT_LINE, 7);
-      page.drawText(CONTACT_LINE, { x: PAGE_W - MARGIN - cw, y: contactY, size: 7, font: fonts.regular, color: WHITE });
+      page.drawText(CONTACT_LINE, { x: PAGE_W - MARGIN - cw, y: y - 30, size: 7, font: fonts.regular, color: WHITE });
     }
 
     y -= bandH;
-    // 3px gold rule beneath band
-    page.drawRectangle({
-      x: 0, y: y - 3, width: PAGE_W, height: 3,
-      color: BRAND_GOLD,
-    });
+    page.drawRectangle({ x: 0, y: y - 3, width: PAGE_W, height: 3, color: BRAND_GOLD });
     y -= 3;
     return y - 4;
   }
 
   function drawHeaderC(page, fonts, logos, y, isFirstPage) {
-    // Corporate Left-Align with primary horizontal logo
     var logo = logos.primary;
     var logoH = isFirstPage ? 42 : 28;
-    var topY = y;
 
     if (logo) {
       var logoW = logo.width * (logoH / logo.height);
@@ -231,49 +207,40 @@
     }
 
     if (isFirstPage) {
-      // Right-aligned contact block
       var domainText = 'carlingtonburling.com';
       var dw = fonts.regular.widthOfTextAtSize(domainText, 9);
       page.drawText(domainText, { x: PAGE_W - MARGIN - dw, y: y - 20, size: 9, font: fonts.regular, color: BRAND_GOLD });
 
       var cw = fonts.regular.widthOfTextAtSize(CONTACT_LINE, 7);
       page.drawText(CONTACT_LINE, { x: PAGE_W - MARGIN - cw, y: y - 34, size: 7, font: fonts.regular, color: MUTED });
-
-      y -= logoH + 6;
-    } else {
-      y -= logoH + 6;
     }
 
+    y -= logoH + 6;
+
     page.drawLine({
-      start: { x: MARGIN, y }, end: { x: PAGE_W - MARGIN, y },
+      start: { x: MARGIN, y: y }, end: { x: PAGE_W - MARGIN, y: y },
       thickness: 1, color: LIGHT_RULE,
     });
     return y - 8;
   }
 
   function drawHeaderD(page, fonts, logos, y, isFirstPage) {
-    // Formal Classic — centered monogram + live-text wordmark + flanked-rule tagline
     var logo = logos.monogram;
     var monoH = isFirstPage ? 56 : 36;
 
     if (logo) {
       var monoW = logo.width * (monoH / logo.height);
-      var monoX = (PAGE_W - monoW) / 2;
-      page.drawImage(logo, { x: monoX, y: y - monoH, width: monoW, height: monoH });
+      page.drawImage(logo, { x: (PAGE_W - monoW) / 2, y: y - monoH, width: monoW, height: monoH });
       y -= monoH + 10;
     }
 
-    // Live-text serif wordmark
     var wordmark = 'Carlington & Burling LLP';
     var wmSize = isFirstPage ? 18 : 13;
     var wmW = fonts.bold.widthOfTextAtSize(wordmark, wmSize);
-    page.drawText(wordmark, {
-      x: (PAGE_W - wmW) / 2, y, size: wmSize, font: fonts.bold, color: NAVY,
-    });
+    page.drawText(wordmark, { x: (PAGE_W - wmW) / 2, y: y, size: wmSize, font: fonts.bold, color: NAVY });
     y -= wmSize * 1.8;
 
     if (isFirstPage) {
-      // Flanked-rule tagline
       var tagline = 'ATTORNEYS AT LAW · SINCE ' + TAGLINE_YEAR;
       var tlSize = 8;
       var tlW = fonts.regular.widthOfTextAtSize(tagline, tlSize);
@@ -290,184 +257,229 @@
       });
       page.drawLine({
         start: { x: startX + ruleW + 10 + tlW + 10, y: y - 3 },
-        end: { x: totalW + (PAGE_W - totalW) / 2, y: y - 3 },
+        end: { x: totalW + startX, y: y - 3 },
         thickness: 0.5, color: BRAND_GOLD,
       });
       y -= 20;
 
-      // Centered contact line
       var cw = fonts.regular.widthOfTextAtSize(CONTACT_LINE, 7);
-      page.drawText(CONTACT_LINE, { x: (PAGE_W - cw) / 2, y, size: 7, font: fonts.regular, color: MUTED });
+      page.drawText(CONTACT_LINE, { x: (PAGE_W - cw) / 2, y: y, size: 7, font: fonts.regular, color: MUTED });
       y -= 14;
     } else {
       y -= 6;
     }
 
     page.drawLine({
-      start: { x: MARGIN, y }, end: { x: PAGE_W - MARGIN, y },
+      start: { x: MARGIN, y: y }, end: { x: PAGE_W - MARGIN, y: y },
       thickness: 1, color: LIGHT_RULE,
     });
     return y - 8;
   }
 
-  // ── Header Dispatcher ─────────────────────────────────────────────────
   var HEADER_FNS = { a: drawHeaderA, b: drawHeaderB, c: drawHeaderC, d: drawHeaderD };
 
-  function drawHeaderVariant(page, fonts, logos, variant, y, isFirstPage) {
+  function drawHeader(page, fonts, logos, variant, y, isFirstPage) {
     var fn = HEADER_FNS[variant] || drawHeaderA;
     return fn(page, fonts, logos, y, isFirstPage);
   }
 
+  // ── Body Rendering ────────────────────────────────────────────────────
+
   function drawTitle(page, fonts, title, y) {
-    page.drawText(title, {
-      x: PAGE_W / 2 - fonts.bold.widthOfTextAtSize(title, 13) / 2,
-      y, size: 13, font: fonts.bold, color: NAVY,
-    });
+    var tw = fonts.bold.widthOfTextAtSize(title, 13);
+    page.drawText(title, { x: (PAGE_W - tw) / 2, y: y, size: 13, font: fonts.bold, color: NAVY });
     y -= 20;
     page.drawLine({
-      start: { x: 120, y }, end: { x: PAGE_W - 120, y },
-      thickness: 0.5, color: GOLD,
+      start: { x: 120, y: y }, end: { x: PAGE_W - 120, y: y },
+      thickness: 0.5, color: TITLE_GOLD,
     });
     return y - 22;
   }
 
   function drawFields(page, fonts, form, fields, y) {
-    for (const f of fields) {
-      page.drawText(f.label, { x: MARGIN, y, size: 11, font: fonts.bold, color: BLACK });
-      const labelW = fonts.bold.widthOfTextAtSize(f.label, 11);
+    for (var i = 0; i < fields.length; i++) {
+      var f = fields[i];
+      page.drawText(f.label, { x: MARGIN, y: y, size: 11, font: fonts.bold, color: BLACK });
+      var labelW = fonts.bold.widthOfTextAtSize(f.label, 11);
       addUnderlineField(form, page, f.name, MARGIN + labelW + 4, y - 14, f.width || 370, fonts.regular);
       y -= 30;
     }
     return y;
   }
 
-  function drawClausesFn(page, fonts, clauses, y) {
-    for (const clause of clauses) {
-      if (y < 200) return { needsPage: true, lastY: y };
-
-      const label = clause.num + ' ' + clause.title;
-      page.drawText(label, { x: MARGIN, y, size: 11, font: fonts.bold, color: BLACK });
-      y -= 18;
-      y = drawWrapped(page, clause.body, MARGIN + 24, y, fonts.regular, 10.5, BLACK, PAGE_W - MARGIN * 2 - 24);
-      y -= 12;
-    }
-    return { needsPage: false, lastY: y };
+  function drawIntro(page, fonts, text, y) {
+    y = drawWrapped(page, text, MARGIN, y, fonts.regular, 10.5, BLACK, PAGE_W - MARGIN * 2);
+    return y - 12;
   }
 
-  function drawSigBlock(form, page, x, y, fonts, label, fields) {
-    page.drawText(label, { x, y, size: 10, font: fonts.bold, color: BLACK });
-    let sy = y - 22;
-    for (const f of fields) {
+  function drawClauses(page, fonts, clauses, y) {
+    var remaining = [];
+    var maxWidth = PAGE_W - MARGIN * 2 - 24;
+    for (var i = 0; i < clauses.length; i++) {
+      var clause = clauses[i];
+      var needed = estimateClauseHeight(clause, fonts.regular, 10.5, maxWidth);
+      if (y - needed < MIN_Y_BEFORE_BREAK) {
+        for (var j = i; j < clauses.length; j++) remaining.push(clauses[j]);
+        break;
+      }
+      page.drawText(clause.num + ' ' + clause.title, { x: MARGIN, y: y, size: 11, font: fonts.bold, color: BLACK });
+      y -= 18;
+      y = drawWrapped(page, clause.body, MARGIN + 24, y, fonts.regular, 10.5, BLACK, maxWidth);
+      y -= 12;
+    }
+    return { y: y, remaining: remaining };
+  }
+
+  function drawWitness(page, fonts, text, y) {
+    page.drawText(text, { x: MARGIN + 8, y: y, size: 10, font: fonts.bold, color: BLACK });
+    return y - 30;
+  }
+
+  function drawSignatureBlocks(form, page, fonts, blocks, y) {
+    if (blocks.length >= 2) {
+      var origY = y;
+      y = drawOneSigBlock(form, page, fonts, blocks[0], MARGIN + 8, y);
+      drawOneSigBlock(form, page, fonts, blocks[1], MARGIN + 310, origY);
+      return y;
+    }
+    if (blocks.length === 1) {
+      return drawOneSigBlock(form, page, fonts, blocks[0], MARGIN + 8, y);
+    }
+    return y;
+  }
+
+  function drawOneSigBlock(form, page, fonts, block, x, y) {
+    page.drawText(block.label, { x: x, y: y, size: 10, font: fonts.bold, color: BLACK });
+    var sy = y - 22;
+    for (var i = 0; i < block.fields.length; i++) {
+      var f = block.fields[i];
       if (f.label === 'Signature') {
         page.drawLine({
-          start: { x, y: sy }, end: { x: x + 200, y: sy },
+          start: { x: x, y: sy }, end: { x: x + 200, y: sy },
           thickness: 0.5, color: DARK_GRAY,
         });
         page.drawText('[SEAL]', { x: x + 185, y: sy, size: 6, font: fonts.regular, color: MUTED });
         addUnderlineField(form, page, f.name, x, sy - 14, 200, fonts.regular);
       } else {
         addUnderlineField(form, page, f.name, x, sy, 200, fonts.regular);
+        page.drawText(f.label, { x: x, y: sy - 10, size: 8, font: fonts.regular, color: MUTED });
       }
-      page.drawText(f.label, { x, y: sy - 10, size: 8, font: fonts.regular, color: MUTED });
       sy -= 38;
     }
     return sy - 8;
   }
 
-  // ── Main Builder ──────────────────────────────────────────────────────
+  // ── Footer ────────────────────────────────────────────────────────────
 
-  async function buildBorderedTraditionalPDF(def) {
+  function drawFooter(page, fonts, docTitle, currentPage, totalPages) {
+    page.drawLine({
+      start: { x: MARGIN, y: 44 }, end: { x: PAGE_W - MARGIN, y: 44 },
+      thickness: 1, color: LIGHT_RULE,
+    });
+
+    page.drawText(docTitle, { x: MARGIN, y: 30, size: 7, font: fonts.regular, color: MUTED });
+
+    var centerText = 'Confidential · Attorney-Client Privileged';
+    var cw = fonts.regular.widthOfTextAtSize(centerText, 7);
+    page.drawText(centerText, { x: (PAGE_W - cw) / 2, y: 30, size: 7, font: fonts.regular, color: MUTED });
+
+    var rightText = 'Page ' + currentPage + ' of ' + totalPages;
+    var rw = fonts.regular.widthOfTextAtSize(rightText, 7);
+    page.drawText(rightText, { x: PAGE_W - MARGIN - rw, y: 30, size: 7, font: fonts.regular, color: MUTED });
+  }
+
+  // ── Orchestrator ──────────────────────────────────────────────────────
+
+  function normalizeDef(def) {
+    var validVariants = { a: 1, b: 1, c: 1, d: 1 };
+    return {
+      title:           def.title || '',
+      headerVariant:   validVariants[def.headerVariant] ? def.headerVariant : 'a',
+      fields:          def.fields || [],
+      intro:           def.intro || '',
+      clauses:         def.clauses || [],
+      witnessText:     def.witnessText || 'IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above.',
+      signatureBlocks: def.signatureBlocks || [],
+    };
+  }
+
+  async function buildPDF(def) {
     if (!global.PDFLib) throw new Error('pdf-lib not loaded. Include pdf-lib script before this one.');
 
+    var d = normalizeDef(def);
     var doc = await PDFDocument.create();
-    var fonts = {
-      regular: doc.embedStandardFont(StandardFonts.TimesRoman),
-      bold: doc.embedStandardFont(StandardFonts.TimesRomanBold),
-    };
+    var fonts = embedFonts(doc);
+    var logos = await preloadLogos(doc);
     var form = doc.getForm();
-    var logos = await embedAllLogos(doc);
-    var variant = (def.headerVariant || 'a').toLowerCase();
-    if (!HEADER_FNS[variant]) variant = 'a';
 
     var page = doc.addPage([PAGE_W, PAGE_H]);
     var totalPages = 1;
+    var y = HEADER_START_Y;
 
-    // Page-1 header with chosen variant
-    var y = PAGE_H - 62;
-    y = drawHeaderVariant(page, fonts, logos, variant, y, true);
+    // First-page header
+    y = drawHeader(page, fonts, logos, d.headerVariant, y, true);
     y -= 24;
 
     // Title
-    y = drawTitle(page, fonts, def.title, y);
+    y = drawTitle(page, fonts, d.title, y);
 
     // Form fields
-    if (def.fields && def.fields.length > 0) {
-      y = drawFields(page, fonts, form, def.fields, y);
+    if (d.fields.length > 0) {
+      y = drawFields(page, fonts, form, d.fields, y);
       y -= 4;
     }
 
     // Intro paragraph
-    if (def.intro) {
-      y = drawWrapped(page, def.intro, MARGIN, y, fonts.regular, 10.5, BLACK, PAGE_W - MARGIN * 2);
-      y -= 12;
+    if (d.intro) {
+      y = drawIntro(page, fonts, d.intro, y);
     }
 
-    // Clauses
-    if (def.clauses && def.clauses.length > 0) {
-      const result = drawClausesFn(page, fonts, def.clauses, y);
-      if (result.needsPage) {
+    // Clauses with proper pagination
+    var pending = d.clauses.slice();
+    while (pending.length > 0) {
+      var result = drawClauses(page, fonts, pending, y);
+      y = result.y;
+      pending = result.remaining;
+      if (pending.length > 0) {
         page = doc.addPage([PAGE_W, PAGE_H]);
         totalPages++;
-        y = drawHeaderVariant(page, fonts, logos, variant, PAGE_H - 62, false);
-        const r2 = drawClausesFn(page, fonts, def.clauses.slice(2), y);
-        y = r2.lastY;
-      } else {
-        y = result.lastY;
+        y = drawHeader(page, fonts, logos, d.headerVariant, HEADER_START_Y, false);
       }
     }
 
-    y -= 10;
-    if (y < 300 && def.signatureBlocks && def.signatureBlocks.length > 0) {
-      page = doc.addPage([PAGE_W, PAGE_H]);
-      totalPages++;
-      y = drawHeaderVariant(page, fonts, logos, variant, PAGE_H - 62, false);
-    }
-
-    // IN WITNESS WHEREOF
-    if (def.signatureBlocks && def.signatureBlocks.length > 0) {
-      const witnessText = def.witnessText || 'IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above.';
-      page.drawText(witnessText, {
-        x: MARGIN + 8, y, size: 10, font: fonts.bold, color: BLACK,
-      });
-      y -= 30;
-
-      // Draw signature blocks side by side (up to 2)
-      if (def.signatureBlocks.length >= 2) {
-        const block0extra = def.signatureBlocks[0].fields.length * 38 + 22;
-        y = drawSigBlock(form, page, MARGIN + 8, y, fonts,
-          def.signatureBlocks[0].label, def.signatureBlocks[0].fields);
-        drawSigBlock(form, page, MARGIN + 310, y + block0extra, fonts,
-          def.signatureBlocks[1].label, def.signatureBlocks[1].fields);
-      } else if (def.signatureBlocks.length === 1) {
-        drawSigBlock(form, page, MARGIN + 8, y, fonts,
-          def.signatureBlocks[0].label, def.signatureBlocks[0].fields);
+    // Signature blocks
+    if (d.signatureBlocks.length > 0) {
+      var maxFields = 0;
+      for (var si = 0; si < d.signatureBlocks.length; si++) {
+        if (d.signatureBlocks[si].fields.length > maxFields)
+          maxFields = d.signatureBlocks[si].fields.length;
       }
+      var estimatedSigH = 60 + maxFields * 38;
+      if (y - estimatedSigH < MIN_Y_BEFORE_BREAK) {
+        page = doc.addPage([PAGE_W, PAGE_H]);
+        totalPages++;
+        y = drawHeader(page, fonts, logos, d.headerVariant, HEADER_START_Y, false);
+      }
+      y -= 10;
+      y = drawWitness(page, fonts, d.witnessText, y);
+      y = drawSignatureBlocks(form, page, fonts, d.signatureBlocks, y);
     }
 
-    // Add footer to every page
-    const pages = doc.getPages();
-    for (let i = 0; i < pages.length; i++) {
-      drawFooter(pages[i], fonts, def.title, i + 1, totalPages);
+    // Footer on every page
+    var pages = doc.getPages();
+    for (var i = 0; i < pages.length; i++) {
+      drawFooter(pages[i], fonts, d.title, i + 1, pages.length);
     }
 
     return await doc.save();
   }
 
-  /** Trigger a browser download of the PDF bytes. */
+  // ── Public API ────────────────────────────────────────────────────────
+
   function downloadPDF(pdfBytes, filename) {
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    var blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
     a.href = url;
     a.download = filename || 'document.pdf';
     document.body.appendChild(a);
@@ -476,9 +488,10 @@
     URL.revokeObjectURL(url);
   }
 
-  // ── Exports ───────────────────────────────────────────────────────────
+  // ── Export ────────────────────────────────────────────────────────────
+
   global.CarlingtonTemplate = {
-    generate: buildBorderedTraditionalPDF,
+    generate: buildPDF,
     download: downloadPDF,
   };
 })(typeof window !== 'undefined' ? window : this);
