@@ -15,8 +15,10 @@ const FORMS_DIR = path.join(__dirname, '..', 'public', 'forms');
 
 // ── Color Palette ──────────────────────────────────────────────────────────
 const NAVY = rgb(0.039, 0.086, 0.157);       // #0A1628
-const GOLD = rgb(0.761, 0.643, 0.310);       // #C2A44F
+const BRAND_GOLD = rgb(0.690, 0.553, 0.341);// #B08D57 — header accent
+const GOLD = rgb(0.761, 0.643, 0.310);       // #C2A44F — title rule
 const MUTED = rgb(0.353, 0.353, 0.431);      // #5A5A6E
+const LIGHT_RULE = rgb(0.851, 0.835, 0.800); // #D9D5CC — header divider
 const BLACK = rgb(0, 0, 0);
 const WHITE = rgb(1, 1, 1);
 const LIGHT_GRAY = rgb(0.96, 0.96, 0.96);    // #F5F5F5
@@ -163,70 +165,42 @@ function addPageNumber(page, fonts, current, total) {
   });
 }
 
-// ── Letterhead Variants ────────────────────────────────────────────────────
+// ── Standard Firm Header ──────────────────────────────────────────────────
 
-/** Shared: simple letterhead with gold rule (used by A, B, C with tweaks). */
-function letterheadStandard(page, fonts, yStart, alignment) {
-  const x = alignment === 'center' ? PAGE_W / 2 : MARGIN;
-  const opts = alignment === 'center' ? { x, y: yStart, size: 14, font: fonts.bold, color: NAVY } : { x, y: yStart, size: 14, font: fonts.bold, color: NAVY };
-  if (alignment === 'center') {
-    page.drawText('Covington & Burling LLP', {
-      x: PAGE_W / 2 - fonts.bold.widthOfTextAtSize('Covington & Burling LLP', 14) / 2,
-      y: yStart, size: 14, font: fonts.bold, color: NAVY,
+async function embedStackedLogo(doc) {
+  const logoPath = path.join(__dirname, '..', 'public', 'images', 'brand', 'logo_stacked.png');
+  return doc.embedPng(fs.readFileSync(logoPath));
+}
+
+function drawHeader(page, fonts, logo, y, logoH) {
+  if (logo) {
+    const logoW = logo.width * (logoH / logo.height);
+    const logoX = (PAGE_W - logoW) / 2;
+    page.drawImage(logo, {
+      x: logoX, y: y - logoH, width: logoW, height: logoH,
     });
-    page.drawText('850 Tenth Street NW, Washington, DC 20001  |  202-662-6000  |  covbur.com', {
-      x: PAGE_W / 2 - fonts.regular.widthOfTextAtSize('850 Tenth Street NW, Washington, DC 20001  |  202-662-6000  |  covbur.com', 8.5) / 2,
-      y: yStart - 18, size: 8.5, font: fonts.regular, color: MUTED,
-    });
-  } else {
-    page.drawText('Covington & Burling LLP', { x: MARGIN, y: yStart, size: 14, font: fonts.bold, color: NAVY });
-    page.drawText('850 Tenth Street NW, Washington, DC 20001  |  202-662-6000  |  covbur.com', {
-      x: MARGIN, y: yStart - 18, size: 8.5, font: fonts.regular, color: MUTED,
-    });
+    y -= logoH + 6;
   }
-  page.drawLine({
-    start: { x: MARGIN, y: yStart - 28 },
-    end: { x: PAGE_W - MARGIN, y: yStart - 28 },
-    thickness: 1, color: GOLD,
-  });
-  return yStart - 28;
-}
 
-/** Premium header band (Variant D). */
-function letterheadBand(page, fonts, yStart) {
-  // Navy band
-  page.drawRectangle({
-    x: 0, y: yStart - 72, width: PAGE_W, height: 72,
-    color: NAVY,
+  // Contact line — "covbur.com" in brand gold
+  const pre = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
+  const domain = 'covbur.com';
+  const full = pre + domain;
+  const tw = fonts.regular.widthOfTextAtSize(full, 8);
+  const sx = (PAGE_W - tw) / 2;
+  page.drawText(pre, { x: sx, y, size: 8, font: fonts.regular, color: MUTED });
+  page.drawText(domain, {
+    x: sx + fonts.regular.widthOfTextAtSize(pre, 8),
+    y, size: 8, font: fonts.regular, color: BRAND_GOLD,
   });
-  // Gold accent line at bottom of band
-  page.drawLine({
-    start: { x: 0, y: yStart - 72 }, end: { x: PAGE_W, y: yStart - 72 },
-    thickness: 2, color: GOLD,
-  });
-  // Firm name in gold/white
-  page.drawText('Covington & Burling LLP', {
-    x: PAGE_W / 2 - fonts.bold.widthOfTextAtSize('Covington & Burling LLP', 18) / 2,
-    y: yStart - 30, size: 18, font: fonts.bold, color: GOLD,
-  });
-  // Address below firm name
-  page.drawText('850 Tenth Street NW  •  Washington, DC 20001  •  202-662-6000  •  covbur.com', {
-    x: PAGE_W / 2 - fonts.regular.widthOfTextAtSize('850 Tenth Street NW  •  Washington, DC 20001  •  202-662-6000  •  covbur.com', 8) / 2,
-    y: yStart - 52, size: 8, font: fonts.regular, color: WHITE,
-  });
-  return yStart - 90;
-}
+  y -= 16;
 
-/** Continuation page header for premium variant. */
-function continuationHeader(page, fonts, yStart) {
-  page.drawRectangle({
-    x: 0, y: yStart - 24, width: PAGE_W, height: 24,
-    color: NAVY,
+  // 1px light rule separator
+  page.drawLine({
+    start: { x: MARGIN, y }, end: { x: PAGE_W - MARGIN, y },
+    thickness: 1, color: LIGHT_RULE,
   });
-  page.drawText('Covington & Burling LLP', {
-    x: MARGIN, y: yStart - 16, size: 8, font: fonts.bold, color: GOLD,
-  });
-  return yStart - 36;
+  return y - 8;
 }
 
 /** Draw double-line page frame (Variant C). */
@@ -351,11 +325,12 @@ async function buildWaiverA() {
   const doc = await PDFDocument.create();
   const fonts = await embedFonts(doc);
   const form = doc.getForm();
+  const logo = await embedStackedLogo(doc);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let y = PAGE_H - 50;
 
-  y = letterheadStandard(page, fonts, y, 'left');
+  y = drawHeader(page, fonts, logo, y, 120);
   y -= 22;
 
   // Title
@@ -381,18 +356,15 @@ async function buildWaiverA() {
   const result = drawClauses(page, fonts, waiverClauses, y, PAGE_W - MARGIN * 2, 0);
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
-    result.lastY = PAGE_H - 50;
-    // Continue clauses on new page
-    // Re-draw only remaining clauses that didn't fit
-    // For simplicity, restart with all clauses on fresh page
-    const r2 = drawClauses(page, fonts, waiverClauses.slice(2), PAGE_H - 50, PAGE_W - MARGIN * 2, 0);
+    const contY = drawHeader(page, fonts, logo, PAGE_H - 50, 90);
+    const r2 = drawClauses(page, fonts, waiverClauses.slice(2), contY, PAGE_W - MARGIN * 2, 0);
     y = r2.lastY;
   } else {
     y = result.lastY;
   }
 
   y -= 16;
-  if (y < 220) { page = doc.addPage([PAGE_W, PAGE_H]); y = PAGE_H - 60; }
+  if (y < 220) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, logo, PAGE_H - 50, 90); }
 
   // Signature blocks — side by side
   page.drawLine({ start: { x: MARGIN, y }, end: { x: MARGIN + 230, y }, thickness: 0.5, color: DARK_GRAY });
@@ -430,21 +402,12 @@ async function buildWaiverB() {
   const doc = await PDFDocument.create();
   const fonts = await embedFonts(doc);
   const form = doc.getForm();
+  const logo = await embedStackedLogo(doc);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let y = PAGE_H - 50;
 
-  // Letterhead
-  page.drawText('Covington & Burling LLP', { x: MARGIN, y, size: 16, font: fonts.bold, color: NAVY });
-  y -= 20;
-  page.drawText('850 Tenth Street NW, Washington, DC 20001  |  202-662-6000  |  covbur.com', {
-    x: MARGIN, y, size: 9, font: fonts.helvetica, color: MUTED,
-  });
-  y -= 9;
-  page.drawLine({
-    start: { x: MARGIN, y }, end: { x: PAGE_W - MARGIN, y },
-    thickness: 2, color: GOLD,
-  });
+  y = drawHeader(page, fonts, logo, y, 120);
   y -= 24;
 
   // Title
@@ -481,7 +444,7 @@ async function buildWaiverB() {
 
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
-    y = PAGE_H - 50;
+    y = drawHeader(page, fonts, logo, PAGE_H - 50, 90);
     const r2 = drawClauses(page, fonts, waiverClauses.slice(2), y, PAGE_W - MARGIN * 2 - 16, 16);
     y = r2.lastY;
   } else {
@@ -489,7 +452,7 @@ async function buildWaiverB() {
   }
 
   y -= 14;
-  if (y < 260) { page = doc.addPage([PAGE_W, PAGE_H]); y = PAGE_H - 60; }
+  if (y < 260) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, logo, PAGE_H - 50, 90); }
 
   // Signature blocks
   y = sigBlockB(form, page, MARGIN, y, fonts, 'Client', [
@@ -517,14 +480,14 @@ async function buildWaiverC(outputName) {
   const doc = await PDFDocument.create();
   const fonts = await embedFonts(doc);
   const form = doc.getForm();
+  const logo = await embedStackedLogo(doc);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
   drawPageFrame(page);
 
   let y = PAGE_H - 62; // inside the frame
 
-  // Centered letterhead
-  y = letterheadStandard(page, fonts, y, 'center');
+  y = drawHeader(page, fonts, logo, y, 120);
   y -= 24;
 
   // Title — centered
@@ -556,7 +519,7 @@ async function buildWaiverC(outputName) {
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
     drawPageFrame(page);
-    y = PAGE_H - 62;
+    y = drawHeader(page, fonts, logo, PAGE_H - 62, 90);
     const r2 = drawClauses(page, fonts, waiverClauses.slice(2), y, PAGE_W - MARGIN * 2, 24);
     y = r2.lastY;
   } else {
@@ -564,7 +527,7 @@ async function buildWaiverC(outputName) {
   }
 
   y -= 14;
-  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); drawPageFrame(page); y = PAGE_H - 62; }
+  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); drawPageFrame(page); y = drawHeader(page, fonts, logo, PAGE_H - 62, 90); }
 
   // IN WITNESS WHEREOF
   page.drawText('IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above.', {
@@ -601,12 +564,13 @@ async function buildWaiverD() {
   const doc = await PDFDocument.create();
   const fonts = await embedFonts(doc);
   const form = doc.getForm();
+  const logo = await embedStackedLogo(doc);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let y = PAGE_H;
 
-  // Navy header band
-  y = letterheadBand(page, fonts, y) - 14;
+  y = drawHeader(page, fonts, logo, y, 120);
+  y -= 14;
 
   // Title
   page.drawText('WAIVER AND RELEASE OF LIABILITY', {
@@ -675,7 +639,7 @@ async function buildWaiverD() {
   const result = drawClauses(page, fonts, waiverClauses, y, PAGE_W - MARGIN * 2 - 24, 24);
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
-    y = continuationHeader(page, fonts, PAGE_H);
+    y = drawHeader(page, fonts, logo, PAGE_H, 90);
     const r2 = drawClauses(page, fonts, waiverClauses.slice(2), y, PAGE_W - MARGIN * 2 - 24, 24);
     y = r2.lastY;
   } else {
@@ -683,7 +647,7 @@ async function buildWaiverD() {
   }
 
   y -= 10;
-  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); y = continuationHeader(page, fonts, PAGE_H); }
+  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, logo, PAGE_H, 90); }
 
   // Premium signature blocks
   y = sigBlockD(form, page, MARGIN, y, fonts, 'Client', [
@@ -717,13 +681,14 @@ async function buildNdaC(outputName) {
   const doc = await PDFDocument.create();
   const fonts = await embedFonts(doc);
   const form = doc.getForm();
+  const logo = await embedStackedLogo(doc);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let totalPages = 1;
   drawPageFrame(page);
 
   let y = PAGE_H - 62;
-  y = letterheadStandard(page, fonts, y, 'center');
+  y = drawHeader(page, fonts, logo, y, 120);
   y -= 24;
 
   // Title — centered
@@ -761,7 +726,7 @@ async function buildNdaC(outputName) {
     page = doc.addPage([PAGE_W, PAGE_H]);
     totalPages++;
     drawPageFrame(page);
-    y = PAGE_H - 62;
+    y = drawHeader(page, fonts, logo, PAGE_H - 62, 90);
     const r2 = drawClauses(page, fonts, ndaClauses.slice(2), y, PAGE_W - MARGIN * 2, 24);
     y = r2.lastY;
   } else {
@@ -773,7 +738,7 @@ async function buildNdaC(outputName) {
     page = doc.addPage([PAGE_W, PAGE_H]);
     totalPages++;
     drawPageFrame(page);
-    y = PAGE_H - 62;
+    y = drawHeader(page, fonts, logo, PAGE_H - 62, 90);
   }
 
   // IN WITNESS WHEREOF
@@ -834,12 +799,13 @@ async function buildWaiverDigitalC(outputName) {
   const doc = await PDFDocument.create();
   const fonts = await embedFonts(doc);
   const form = doc.getForm();
+  const logo = await embedStackedLogo(doc);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
   drawPageFrame(page);
 
   let y = PAGE_H - 62;
-  y = letterheadStandard(page, fonts, y, 'center');
+  y = drawHeader(page, fonts, logo, y, 120);
   y -= 16;
 
   // Digital instruction badge
@@ -879,7 +845,7 @@ async function buildWaiverDigitalC(outputName) {
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
     drawPageFrame(page);
-    y = PAGE_H - 62;
+    y = drawHeader(page, fonts, logo, PAGE_H - 62, 90);
     const r2 = drawClauses(page, fonts, waiverClauses.slice(2), y, PAGE_W - MARGIN * 2, 24);
     y = r2.lastY;
   } else {
@@ -887,7 +853,7 @@ async function buildWaiverDigitalC(outputName) {
   }
 
   y -= 14;
-  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); drawPageFrame(page); y = PAGE_H - 62; }
+  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); drawPageFrame(page); y = drawHeader(page, fonts, logo, PAGE_H - 62, 90); }
 
   page.drawText('IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above.', {
     x: MARGIN + 8, y, size: 10, font: fonts.bold, color: BLACK,
@@ -918,13 +884,14 @@ async function buildNdaDigitalC(outputName) {
   const doc = await PDFDocument.create();
   const fonts = await embedFonts(doc);
   const form = doc.getForm();
+  const logo = await embedStackedLogo(doc);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let totalPages = 1;
   drawPageFrame(page);
 
   let y = PAGE_H - 62;
-  y = letterheadStandard(page, fonts, y, 'center');
+  y = drawHeader(page, fonts, logo, y, 120);
   y -= 16;
 
   // Digital instruction badge
@@ -970,7 +937,7 @@ async function buildNdaDigitalC(outputName) {
     page = doc.addPage([PAGE_W, PAGE_H]);
     totalPages++;
     drawPageFrame(page);
-    y = PAGE_H - 62;
+    y = drawHeader(page, fonts, logo, PAGE_H - 62, 90);
     const r2 = drawClauses(page, fonts, ndaClauses.slice(2), y, PAGE_W - MARGIN * 2, 24);
     y = r2.lastY;
   } else {
@@ -982,7 +949,7 @@ async function buildNdaDigitalC(outputName) {
     page = doc.addPage([PAGE_W, PAGE_H]);
     totalPages++;
     drawPageFrame(page);
-    y = PAGE_H - 62;
+    y = drawHeader(page, fonts, logo, PAGE_H - 62, 90);
   }
 
   page.drawText('IN WITNESS WHEREOF, the parties have executed this Agreement as of the Effective Date.', {

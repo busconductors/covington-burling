@@ -24,8 +24,10 @@
   const PAGE_H = 792;
   const MARGIN = 50;
   const NAVY = rgb(0.039, 0.086, 0.157);
-  const GOLD = rgb(0.761, 0.643, 0.310);
+  const BRAND_GOLD = rgb(0.690, 0.553, 0.341);   // #B08D57 — header accent
+  const GOLD = rgb(0.761, 0.643, 0.310);          // title rule
   const MUTED = rgb(0.353, 0.353, 0.431);
+  const LIGHT_RULE = rgb(0.851, 0.835, 0.800);    // #D9D5CC — header divider
   const BLACK = rgb(0, 0, 0);
   const WHITE = rgb(1, 1, 1);
   const DARK_GRAY = rgb(0.267, 0.267, 0.267);
@@ -95,24 +97,43 @@
     return field;
   }
 
-  function drawLetterhead(page, fonts, y) {
-    // Centered letterhead
-    const name = 'Covington & Burling LLP';
-    const addr = '850 Tenth Street NW, Washington, DC 20001  |  202-662-6000  |  covbur.com';
-    page.drawText(name, {
-      x: PAGE_W / 2 - fonts.bold.widthOfTextAtSize(name, 14) / 2,
-      y, size: 14, font: fonts.bold, color: NAVY,
+  async function embedStackedLogo(doc) {
+    try {
+      const resp = await fetch('/images/brand/logo_stacked.png');
+      if (!resp.ok) return null;
+      return doc.embedPng(await resp.arrayBuffer());
+    } catch (_) { return null; }
+  }
+
+  function drawHeader(page, fonts, logo, y, logoH) {
+    if (logo) {
+      const logoW = logo.width * (logoH / logo.height);
+      const logoX = (PAGE_W - logoW) / 2;
+      page.drawImage(logo, {
+        x: logoX, y: y - logoH, width: logoW, height: logoH,
+      });
+      y -= logoH + 6;
+    }
+
+    // Contact line — "covbur.com" in brand gold
+    const pre = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
+    const domain = 'covbur.com';
+    const full = pre + domain;
+    const tw = fonts.regular.widthOfTextAtSize(full, 8);
+    const sx = (PAGE_W - tw) / 2;
+    page.drawText(pre, { x: sx, y, size: 8, font: fonts.regular, color: MUTED });
+    page.drawText(domain, {
+      x: sx + fonts.regular.widthOfTextAtSize(pre, 8),
+      y, size: 8, font: fonts.regular, color: BRAND_GOLD,
     });
-    page.drawText(addr, {
-      x: PAGE_W / 2 - fonts.regular.widthOfTextAtSize(addr, 8.5) / 2,
-      y: y - 18, size: 8.5, font: fonts.regular, color: MUTED,
-    });
+    y -= 16;
+
+    // 1px light rule separator
     page.drawLine({
-      start: { x: MARGIN, y: y - 28 },
-      end: { x: PAGE_W - MARGIN, y: y - 28 },
-      thickness: 1, color: GOLD,
+      start: { x: MARGIN, y }, end: { x: PAGE_W - MARGIN, y },
+      thickness: 1, color: LIGHT_RULE,
     });
-    return y - 28;
+    return y - 8;
   }
 
   function drawTitle(page, fonts, title, y) {
@@ -182,14 +203,15 @@
       bold: doc.embedStandardFont(StandardFonts.TimesRomanBold),
     };
     const form = doc.getForm();
+    const logo = await embedStackedLogo(doc);
 
     let page = doc.addPage([PAGE_W, PAGE_H]);
     let totalPages = 1;
     drawPageFrame(page);
 
-    // Letterhead
+    // Page-1 header with full-size (120px) logo
     let y = PAGE_H - 62;
-    y = drawLetterhead(page, fonts, y);
+    y = drawHeader(page, fonts, logo, y, 120);
     y -= 24;
 
     // Title
@@ -214,8 +236,7 @@
         page = doc.addPage([PAGE_W, PAGE_H]);
         totalPages++;
         drawPageFrame(page);
-        y = PAGE_H - 62;
-        // Draw remaining clauses on new page (naive: just restart all)
+        y = drawHeader(page, fonts, logo, PAGE_H - 62, 90); // continuation header
         const r2 = drawClausesFn(page, fonts, def.clauses.slice(2), y);
         y = r2.lastY;
       } else {
@@ -228,7 +249,7 @@
       page = doc.addPage([PAGE_W, PAGE_H]);
       totalPages++;
       drawPageFrame(page);
-      y = PAGE_H - 62;
+      y = drawHeader(page, fonts, logo, PAGE_H - 62, 90); // continuation header
     }
 
     // IN WITNESS WHEREOF
@@ -252,7 +273,7 @@
       }
     }
 
-    addPageNumber(page, fonts, 1, totalPages);
+    addPageNumber(page, fonts, totalPages, totalPages);
 
     return await doc.save();
   }
