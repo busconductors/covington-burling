@@ -25,12 +25,17 @@
   const MARGIN = 50;
   const NAVY = rgb(0.039, 0.086, 0.157);
   const BRAND_GOLD = rgb(0.690, 0.553, 0.341);   // #B08D57 — header accent
+  const LIGHT_GOLD = rgb(0.788, 0.651, 0.420);    // #C9A66B — light gold for navy band
   const GOLD = rgb(0.761, 0.643, 0.310);          // title rule
+  const SLATE = rgb(0.353, 0.341, 0.467);         // #5A6577 — muted slate
   const MUTED = rgb(0.353, 0.353, 0.431);
   const LIGHT_RULE = rgb(0.851, 0.835, 0.800);    // #D9D5CC — header divider
   const BLACK = rgb(0, 0, 0);
   const WHITE = rgb(1, 1, 1);
   const DARK_GRAY = rgb(0.267, 0.267, 0.267);
+
+  const CONTACT_LINE = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  carlingtonburling.com';
+  const TAGLINE_YEAR = '1919';
 
   // ── Utility Functions ──────────────────────────────────────────────────
 
@@ -106,30 +111,56 @@
     return field;
   }
 
-  async function embedStackedLogo(doc) {
-    try {
-      const resp = await fetch('/images/brand/logo_stacked.png?v=2');
-      if (!resp.ok) return null;
-      return doc.embedPng(await resp.arrayBuffer());
-    } catch (_) { return null; }
+  async function embedAllLogos(doc) {
+    var logos = {};
+    var fetches = [
+      { key: 'stacked', url: '/images/brand/logo_stacked.png?v=2' },
+      { key: 'reversed', url: '/images/brand/logo_reversed.png' },
+      { key: 'primary', url: '/images/brand/logo_primary.png' },
+      { key: 'monogram', url: '/images/brand/logo_monogram.png' },
+    ];
+    var results = await Promise.allSettled
+      ? await Promise.allSettled(fetches.map(function (f) {
+          return fetch(f.url).then(function (r) { if (!r.ok) throw new Error('404'); return r.arrayBuffer(); });
+        }))
+      : [];
+    for (var i = 0; i < fetches.length; i++) {
+      try {
+        if (results.length > 0 && results[i].status === 'fulfilled') {
+          logos[fetches[i].key] = await doc.embedPng(results[i].value);
+        } else if (results.length === 0) {
+          // Fallback without Promise.allSettled
+          try {
+            var resp = await fetch(fetches[i].url);
+            if (resp.ok) logos[fetches[i].key] = await doc.embedPng(await resp.arrayBuffer());
+          } catch (_) {}
+        }
+      } catch (_) {}
+    }
+    return logos;
   }
 
-  function drawHeader(page, fonts, logo, y, logoH, includeContact) {
+  // ── Header Variants ──────────────────────────────────────────────────
+  // Each returns the new Y position after drawing the header.
+  // Shared interface: { page, fonts, logos, y, isFirstPage }
+
+  function drawHeaderA(page, fonts, logos, y, isFirstPage) {
+    // Centered Stacked — current behavior
+    var logo = logos.stacked;
+    var logoH = isFirstPage ? 118 : 78;
     if (logo) {
-      const logoW = logo.width * (logoH / logo.height);
-      const logoX = (PAGE_W - logoW) / 2;
-      page.drawImage(logo, {
-        x: logoX, y: y - logoH, width: logoW, height: logoH,
-      });
+      var logoW = logo.width * (logoH / logo.height);
+      var logoX = (PAGE_W - logoW) / 2;
+      page.drawImage(logo, { x: logoX, y: y - logoH, width: logoW, height: logoH });
       y -= logoH + 6;
     }
 
-    if (includeContact) {
-      const pre = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
-      const domain = 'carlingtonburling.com';
-      const full = pre + domain;
-      const tw = fonts.regular.widthOfTextAtSize(full, 8);
-      const sx = (PAGE_W - tw) / 2;
+    if (isFirstPage) {
+      var pre = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
+      var domain = 'carlingtonburling.com';
+      var full = pre + domain;
+      var tw = fonts.regular.widthOfTextAtSize(full, 8);
+      var sx = (PAGE_W - tw) / 2;
       page.drawText(pre, { x: sx, y, size: 8, font: fonts.regular, color: MUTED });
       page.drawText(domain, {
         x: sx + fonts.regular.widthOfTextAtSize(pre, 8),
@@ -137,7 +168,7 @@
       });
       y -= 16;
     } else {
-      y -= 6; // smaller gap when no contact line
+      y -= 6;
     }
 
     page.drawLine({
@@ -145,6 +176,146 @@
       thickness: 1, color: LIGHT_RULE,
     });
     return y - 8;
+  }
+
+  function drawHeaderB(page, fonts, logos, y, isFirstPage) {
+    // Navy Band with reversed logo
+    var logo = logos.reversed || logos.primary;
+    var bandH = isFirstPage ? 62 : 44;
+    var topY = y;
+
+    // Navy band background
+    page.drawRectangle({
+      x: 0, y: y - bandH, width: PAGE_W, height: bandH,
+      color: NAVY,
+    });
+
+    if (logo) {
+      var logoH = isFirstPage ? 28 : 20;
+      var logoW = logo.width * (logoH / logo.height);
+      var logoY = y - bandH + (bandH - logoH) / 2;
+      page.drawImage(logo, { x: MARGIN, y: logoY, width: logoW, height: logoH });
+    }
+
+    if (isFirstPage) {
+      // Right-aligned contact block
+      var domainY = y - 16;
+      var domainText = 'carlingtonburling.com';
+      var dw = fonts.regular.widthOfTextAtSize(domainText, 9);
+      page.drawText(domainText, { x: PAGE_W - MARGIN - dw, y: domainY, size: 9, font: fonts.regular, color: LIGHT_GOLD });
+
+      var contactY = domainY - 14;
+      var cw = fonts.regular.widthOfTextAtSize(CONTACT_LINE, 7);
+      page.drawText(CONTACT_LINE, { x: PAGE_W - MARGIN - cw, y: contactY, size: 7, font: fonts.regular, color: WHITE });
+    }
+
+    y -= bandH;
+    // 3px gold rule beneath band
+    page.drawRectangle({
+      x: 0, y: y - 3, width: PAGE_W, height: 3,
+      color: BRAND_GOLD,
+    });
+    y -= 3;
+    return y - 4;
+  }
+
+  function drawHeaderC(page, fonts, logos, y, isFirstPage) {
+    // Corporate Left-Align with primary horizontal logo
+    var logo = logos.primary;
+    var logoH = isFirstPage ? 42 : 28;
+    var topY = y;
+
+    if (logo) {
+      var logoW = logo.width * (logoH / logo.height);
+      page.drawImage(logo, { x: MARGIN, y: y - logoH, width: logoW, height: logoH });
+    }
+
+    if (isFirstPage) {
+      // Right-aligned contact block
+      var domainText = 'carlingtonburling.com';
+      var dw = fonts.regular.widthOfTextAtSize(domainText, 9);
+      page.drawText(domainText, { x: PAGE_W - MARGIN - dw, y: y - 20, size: 9, font: fonts.regular, color: BRAND_GOLD });
+
+      var cw = fonts.regular.widthOfTextAtSize(CONTACT_LINE, 7);
+      page.drawText(CONTACT_LINE, { x: PAGE_W - MARGIN - cw, y: y - 34, size: 7, font: fonts.regular, color: MUTED });
+
+      y -= logoH + 6;
+    } else {
+      y -= logoH + 6;
+    }
+
+    page.drawLine({
+      start: { x: MARGIN, y }, end: { x: PAGE_W - MARGIN, y },
+      thickness: 1, color: LIGHT_RULE,
+    });
+    return y - 8;
+  }
+
+  function drawHeaderD(page, fonts, logos, y, isFirstPage) {
+    // Formal Classic — centered monogram + live-text wordmark + flanked-rule tagline
+    var logo = logos.monogram;
+    var monoH = isFirstPage ? 56 : 36;
+
+    if (logo) {
+      var monoW = logo.width * (monoH / logo.height);
+      var monoX = (PAGE_W - monoW) / 2;
+      page.drawImage(logo, { x: monoX, y: y - monoH, width: monoW, height: monoH });
+      y -= monoH + 10;
+    }
+
+    // Live-text serif wordmark
+    var wordmark = 'Carlington & Burling LLP';
+    var wmSize = isFirstPage ? 18 : 13;
+    var wmW = fonts.bold.widthOfTextAtSize(wordmark, wmSize);
+    page.drawText(wordmark, {
+      x: (PAGE_W - wmW) / 2, y, size: wmSize, font: fonts.bold, color: NAVY,
+    });
+    y -= wmSize * 1.8;
+
+    if (isFirstPage) {
+      // Flanked-rule tagline
+      var tagline = 'ATTORNEYS AT LAW · SINCE ' + TAGLINE_YEAR;
+      var tlSize = 8;
+      var tlW = fonts.regular.widthOfTextAtSize(tagline, tlSize);
+      var ruleW = 36;
+      var totalW = ruleW + 10 + tlW + 10 + ruleW;
+      var startX = (PAGE_W - totalW) / 2;
+
+      page.drawLine({
+        start: { x: startX, y: y - 3 }, end: { x: startX + ruleW, y: y - 3 },
+        thickness: 0.5, color: BRAND_GOLD,
+      });
+      page.drawText(tagline, {
+        x: startX + ruleW + 10, y: y - 6, size: tlSize, font: fonts.regular, color: BRAND_GOLD,
+      });
+      page.drawLine({
+        start: { x: startX + ruleW + 10 + tlW + 10, y: y - 3 },
+        end: { x: totalW + (PAGE_W - totalW) / 2, y: y - 3 },
+        thickness: 0.5, color: BRAND_GOLD,
+      });
+      y -= 20;
+
+      // Centered contact line
+      var cw = fonts.regular.widthOfTextAtSize(CONTACT_LINE, 7);
+      page.drawText(CONTACT_LINE, { x: (PAGE_W - cw) / 2, y, size: 7, font: fonts.regular, color: MUTED });
+      y -= 14;
+    } else {
+      y -= 6;
+    }
+
+    page.drawLine({
+      start: { x: MARGIN, y }, end: { x: PAGE_W - MARGIN, y },
+      thickness: 1, color: LIGHT_RULE,
+    });
+    return y - 8;
+  }
+
+  // ── Header Dispatcher ─────────────────────────────────────────────────
+  var HEADER_FNS = { a: drawHeaderA, b: drawHeaderB, c: drawHeaderC, d: drawHeaderD };
+
+  function drawHeaderVariant(page, fonts, logos, variant, y, isFirstPage) {
+    var fn = HEADER_FNS[variant] || drawHeaderA;
+    return fn(page, fonts, logos, y, isFirstPage);
   }
 
   function drawTitle(page, fonts, title, y) {
@@ -208,20 +379,22 @@
   async function buildBorderedTraditionalPDF(def) {
     if (!global.PDFLib) throw new Error('pdf-lib not loaded. Include pdf-lib script before this one.');
 
-    const doc = await PDFDocument.create();
-    const fonts = {
+    var doc = await PDFDocument.create();
+    var fonts = {
       regular: doc.embedStandardFont(StandardFonts.TimesRoman),
       bold: doc.embedStandardFont(StandardFonts.TimesRomanBold),
     };
-    const form = doc.getForm();
-    const logo = await embedStackedLogo(doc);
+    var form = doc.getForm();
+    var logos = await embedAllLogos(doc);
+    var variant = (def.headerVariant || 'a').toLowerCase();
+    if (!HEADER_FNS[variant]) variant = 'a';
 
-    let page = doc.addPage([PAGE_W, PAGE_H]);
-    let totalPages = 1;
+    var page = doc.addPage([PAGE_W, PAGE_H]);
+    var totalPages = 1;
 
-    // Page-1 header with full (118px) logo + contact line
-    let y = PAGE_H - 62;
-    y = drawHeader(page, fonts, logo, y, 118, true);
+    // Page-1 header with chosen variant
+    var y = PAGE_H - 62;
+    y = drawHeaderVariant(page, fonts, logos, variant, y, true);
     y -= 24;
 
     // Title
@@ -245,7 +418,7 @@
       if (result.needsPage) {
         page = doc.addPage([PAGE_W, PAGE_H]);
         totalPages++;
-        y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false); // continuation header
+        y = drawHeaderVariant(page, fonts, logos, variant, PAGE_H - 62, false);
         const r2 = drawClausesFn(page, fonts, def.clauses.slice(2), y);
         y = r2.lastY;
       } else {
@@ -257,7 +430,7 @@
     if (y < 300 && def.signatureBlocks && def.signatureBlocks.length > 0) {
       page = doc.addPage([PAGE_W, PAGE_H]);
       totalPages++;
-      y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false); // continuation header
+      y = drawHeaderVariant(page, fonts, logos, variant, PAGE_H - 62, false);
     }
 
     // IN WITNESS WHEREOF

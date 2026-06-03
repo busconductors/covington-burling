@@ -9,20 +9,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400..700;1,400..700&family=Montserrat:ital,wght@0,300..600;1,300..600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css?v=3">
-  <link rel="stylesheet" href="/css/admin.css?v=3">
+  <link rel="stylesheet" href="/css/admin.css?v=4">
   <link rel="stylesheet" href="/css/admin-dashboard.css?v=6">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <!-- PDF generation deps (needed by Document Builder section) -->
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
   <script src="/js/template-presets.js?v=6" defer></script>
-  <script src="/js/carlington-template.js?v=6" defer></script>
+  <script src="/js/carlington-template.js?v=7" defer></script>
   <!-- Admin modules -->
   <script src="/js/admin-auth.js?v=3" defer></script>
   <script src="/js/admin-dashboard.js?v=3" defer></script>
   <script src="/js/admin-analytics.js?v=3" defer></script>
   <script src="/js/admin-requests.js?v=3" defer></script>
-  <script src="/js/admin-builder.js?v=5" defer></script>
+  <script src="/js/admin-builder.js?v=6" defer></script>
   <script src="/js/admin-email.js?v=6" defer></script>
 </head>
 <body>
@@ -216,6 +216,11 @@
                     <option value="nda">Mutual Non-Disclosure Agreement</option>
                     <option value="custom">— Custom (current) —</option>
                   </select>
+                </div>
+
+                <div class="admin-builder__section">
+                  <label class="admin-label">Header Style</label>
+                  <div class="admin-header-picker" id="headerPicker"></div>
                 </div>
 
                 <div class="admin-builder__section">
