@@ -33,9 +33,11 @@
 
   // ── Load Preset ─────────────────────────────────────────────────────
   function loadPreset(name) {
+    var presets = window.CarlingtonPresets || window.CovingtonPresets;
+    if (!presets) return;
     var preset;
     if (name === 'waiver' || name === 'nda' || name === 'blank') {
-      preset = window.CarlingtonPresets[name];
+      preset = presets[name];
     }
     if (!preset) return;
     docState = JSON.parse(JSON.stringify(preset));
@@ -253,9 +255,15 @@
 
     var placeholder = document.getElementById('previewPlaceholder');
     var badge = document.getElementById('previewBadge');
+    var Template = window.CarlingtonTemplate || window.CovingtonTemplate;
+    if (!Template) {
+      badge.textContent = 'Template engine not loaded';
+      placeholder.style.display = 'none';
+      return;
+    }
 
     try {
-      window.CarlingtonTemplate.generate({
+      Template.generate({
         title: docState.title,
         fields: docState.fields,
         intro: docState.intro || undefined,
@@ -287,9 +295,16 @@
           });
         });
       }).catch(function (err) {
+        console.error('Preview render error:', err);
         badge.textContent = 'Preview unavailable';
+        placeholder.style.display = 'none';
       });
     } catch (err) {
+      console.error('Preview generation error:', err);
+      var badge = document.getElementById('previewBadge');
+      var placeholder = document.getElementById('previewPlaceholder');
+      if (badge) badge.textContent = 'Preview error — check console';
+      if (placeholder) placeholder.style.display = 'none';
     }
   }
 
@@ -426,9 +441,15 @@
     var status = document.getElementById('generationStatus');
     status.textContent = 'Generating...';
     status.className = 'admin-status admin-status--loading';
+    var T = window.CarlingtonTemplate || window.CovingtonTemplate;
+    if (!T) {
+      status.textContent = 'Error: Template engine not loaded.';
+      status.className = 'admin-status admin-status--error';
+      return;
+    }
 
     try {
-      window.CarlingtonTemplate.generate({
+      T.generate({
         title: docState.title,
         fields: docState.fields,
         intro: docState.intro || undefined,
@@ -437,7 +458,7 @@
         signatureBlocks: docState.signatureBlocks,
       }).then(function (pdfBytes) {
         var filename = document.getElementById('outputName').value || 'document.pdf';
-        window.CarlingtonTemplate.download(pdfBytes, filename);
+        T.download(pdfBytes, filename);
         status.textContent = 'PDF downloaded successfully.';
         status.className = 'admin-status admin-status--success';
       }).catch(function (err) {
@@ -553,8 +574,14 @@
 
     showSendStatus('Generating PDF...', 'loading');
 
+    var T = window.CarlingtonTemplate || window.CovingtonTemplate;
+    if (!T) {
+      showSendStatus('Error: Template engine not loaded.', 'error');
+      return;
+    }
+
     try {
-      window.CarlingtonTemplate.generate({
+      T.generate({
         title: docState.title,
         fields: docState.fields,
         intro: docState.intro || undefined,
@@ -755,7 +782,9 @@
     },
     generatePdfBytes: function () {
       syncState();
-      return window.CarlingtonTemplate.generate({
+      var T = window.CarlingtonTemplate || window.CovingtonTemplate;
+      if (!T) return Promise.reject(new Error('Template engine not loaded'));
+      return T.generate({
         title: docState.title,
         fields: docState.fields,
         intro: docState.intro || undefined,
