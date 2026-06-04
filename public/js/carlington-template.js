@@ -59,26 +59,39 @@
     return _fontPromise;
   }
 
-  var _logoCache = null;
-  var _logoPromise = null;
-  function loadLogos(doc) {
-    if (_logoCache) return Promise.resolve(_logoCache);
-    if (_logoPromise) return _logoPromise;
-    _logoPromise = Promise.all(LOGO_PATHS.map(function (p) {
+  var _pngBufs = null;
+  var _pngPromise = null;
+  function loadPngBufs() {
+    if (_pngBufs) return Promise.resolve(_pngBufs);
+    if (_pngPromise) return _pngPromise;
+    _pngPromise = Promise.all(LOGO_PATHS.map(function (p) {
       return fetch(p.url).then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.arrayBuffer().then(function (buf) {
-          return doc.embedPng(buf).then(function (img) { return { key: p.key, img: img }; }).catch(function () { return null; });
-        });
+        return r.arrayBuffer().then(function (buf) { return { key: p.key, buf: buf }; });
       }).catch(function () { return null; });
     })).then(function (results) {
-      _logoCache = {};
+      _pngBufs = {};
       for (var i = 0; i < results.length; i++) {
-        if (results[i]) _logoCache[results[i].key] = results[i].img;
+        if (results[i]) _pngBufs[results[i].key] = results[i].buf;
       }
-      return _logoCache;
-    }).catch(function (e) { _logoPromise = null; throw e; });
-    return _logoPromise;
+      return _pngBufs;
+    }).catch(function (e) { _pngPromise = null; throw e; });
+    return _pngPromise;
+  }
+  function loadLogos(doc) {
+    return loadPngBufs().then(function (pngs) {
+      var keys = Object.keys(pngs);
+      var jobs = keys.map(function (k) {
+        return doc.embedPng(pngs[k]).then(function (img) { return { key: k, img: img }; }).catch(function () { return null; });
+      });
+      return Promise.all(jobs).then(function (results) {
+        var logos = {};
+        for (var i = 0; i < results.length; i++) {
+          if (results[i]) logos[results[i].key] = results[i].img;
+        }
+        return logos;
+      });
+    });
   }
 
   // ── Utility Functions ──────────────────────────────────────────────────
