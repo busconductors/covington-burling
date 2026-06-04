@@ -60,33 +60,25 @@
   }
 
   var _logoCache = null;
+  var _logoPromise = null;
   function loadLogos(doc) {
     if (_logoCache) return Promise.resolve(_logoCache);
-    if (typeof Promise.allSettled === 'function') {
-      return Promise.allSettled(LOGO_PATHS.map(function (p) {
-        return fetch(p.url).then(function (r) {
-          if (!r.ok) throw new Error('HTTP ' + r.status);
-          return r.arrayBuffer();
-        });
-      })).then(function (results) {
-        _logoCache = {};
-        return Promise.all(results.map(function (r, i) {
-          if (r.status === 'fulfilled') {
-            return doc.embedPng(r.value).then(function (img) { _logoCache[LOGO_PATHS[i].key] = img; }).catch(function () {});
-          }
-        })).then(function () { return _logoCache; });
-      });
-    }
-    // Fallback for older browsers
-    _logoCache = {};
-    return Promise.all(LOGO_PATHS.map(function (p) {
+    if (_logoPromise) return _logoPromise;
+    _logoPromise = Promise.all(LOGO_PATHS.map(function (p) {
       return fetch(p.url).then(function (r) {
         if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.arrayBuffer();
-      }).then(function (buf) {
-        return doc.embedPng(buf).then(function (img) { _logoCache[p.key] = img; }).catch(function () {});
-      }).catch(function () {});
-    })).then(function () { return _logoCache; });
+        return r.arrayBuffer().then(function (buf) {
+          return doc.embedPng(buf).then(function (img) { return { key: p.key, img: img }; }).catch(function () { return null; });
+        });
+      }).catch(function () { return null; });
+    })).then(function (results) {
+      _logoCache = {};
+      for (var i = 0; i < results.length; i++) {
+        if (results[i]) _logoCache[results[i].key] = results[i].img;
+      }
+      return _logoCache;
+    }).catch(function (e) { _logoPromise = null; throw e; });
+    return _logoPromise;
   }
 
   // ── Utility Functions ──────────────────────────────────────────────────
@@ -408,10 +400,9 @@
     if (!global.PDFLib) throw new Error('pdf-lib not loaded.');
     if (!global.fontkit) throw new Error('fontkit not loaded. Include @pdf-lib/fontkit script before this one.');
 
-    PDFDocument.registerFontkit(global.fontkit);
-
     var d = normalizeDef(def);
     var doc = await PDFDocument.create();
+    doc.registerFontkit(global.fontkit);
 
     // Load fonts & logos in parallel
     var [fontBufs, logos] = await Promise.all([loadFontBufs(), loadLogos(doc)]);
