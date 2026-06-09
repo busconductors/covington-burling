@@ -10,21 +10,21 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400..700;1,400..700&family=Montserrat:ital,wght@0,300..600;1,300..600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/styles.css?v=3">
   <link rel="stylesheet" href="/css/admin.css?v=4">
-  <link rel="stylesheet" href="/css/admin-dashboard.css?v=6">
+  <link rel="stylesheet" href="/css/admin-dashboard.css?v=7">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <!-- PDF generation deps (needed by Document Builder section) -->
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" defer></script>
   <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
-  <script src="/js/template-presets.js?v=6" defer></script>
-  <script src="/js/carlington-template.js?v=10" defer></script>
+  <script src="/js/template-presets.js?v=7" defer></script>
+  <script src="/js/carlington-template.js?v=12" defer></script>
   <!-- Admin modules -->
   <script src="/js/admin-auth.js?v=3" defer></script>
   <script src="/js/admin-dashboard.js?v=3" defer></script>
   <script src="/js/admin-analytics.js?v=3" defer></script>
   <script src="/js/admin-requests.js?v=3" defer></script>
-  <script src="/js/admin-builder.js?v=6" defer></script>
-  <script src="/js/admin-email.js?v=6" defer></script>
+  <script src="/js/admin-builder.js?v=7" defer></script>
+  <script src="/js/admin-email.js?v=7" defer></script>
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -220,11 +220,6 @@
                 </div>
 
                 <div class="admin-builder__section">
-                  <label class="admin-label">Header Style</label>
-                  <div class="admin-header-picker" id="headerPicker"></div>
-                </div>
-
-                <div class="admin-builder__section">
                   <label class="admin-label" for="docTitle">Document Title</label>
                   <input type="text" id="docTitle" class="admin-input" value="NEW DOCUMENT">
                 </div>
@@ -317,7 +312,7 @@
                       <span class="admin-preview__page-info" id="pageInfo">—</span>
                       <button class="admin-preview__ctrl-btn" id="nextPageBtn" title="Next page" disabled>&#9660;</button>
                     </div>
-                    <span class="admin-preview__badge" id="previewBadge">Bordered Traditional</span>
+                    <span class="admin-preview__badge" id="previewBadge">Carlington &amp; Burling LLP</span>
                   </div>
                   <div class="admin-preview__body" id="previewBody">
                     <div id="previewPages" class="admin-preview__pages"></div>
@@ -328,7 +323,7 @@
                   </div>
                   <div class="admin-preview__summary" id="previewSummary">
                     <div class="admin-summary-grid">
-                      <div class="admin-summary-item"><strong>Template:</strong> Bordered Traditional (Variant C)</div>
+                      <div class="admin-summary-item"><strong>Template:</strong> <span id="sumTemplate">Navy Band Letterhead</span></div>
                       <div class="admin-summary-item"><strong>Title:</strong> <span id="sumTitle">—</span></div>
                       <div class="admin-summary-item"><strong>Fields:</strong> <span id="sumFields">0</span></div>
                       <div class="admin-summary-item"><strong>Clauses:</strong> <span id="sumClauses">0</span></div>
@@ -427,15 +422,6 @@ Carlington &amp; Burling LLP</textarea>
                 <div class="email-form__group">
                   <label class="email-form__label" for="emailSubject">Subject *</label>
                   <input type="text" id="emailSubject" class="email-form__input" placeholder="Email subject" required>
-                </div>
-                <div class="email-form__group">
-                  <label class="email-form__label" for="emailVariant">Header Variant</label>
-                  <select id="emailVariant" class="email-form__select">
-                    <option value="A">Variant A — Navy band, centered serif</option>
-                    <option value="B">Variant B — Gold stripe, left-aligned</option>
-                    <option value="C">Variant C — Light ivory, CB monogram</option>
-                    <option value="D" selected>Variant D — White letterhead, all-caps</option>
-                  </select>
                 </div>
                 <div class="email-form__group">
                   <label class="email-form__label">Quick Templates</label>
