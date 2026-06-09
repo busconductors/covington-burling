@@ -32,10 +32,10 @@
   ];
 
   var FONT_PATHS = [
-    { key: 'serif',     url: '/fonts/cormorant-garamond-latin-400-normal.woff' },
-    { key: 'serifBold', url: '/fonts/cormorant-garamond-latin-600-normal.woff' },
-    { key: 'sans',      url: '/fonts/montserrat-latin-400-normal.woff' },
-    { key: 'sansMed',   url: '/fonts/montserrat-latin-500-normal.woff' },
+    { key: 'serif',     url: '/fonts/cormorant-garamond-latin-400-normal.ttf' },
+    { key: 'serifBold', url: '/fonts/cormorant-garamond-latin-600-normal.ttf' },
+    { key: 'sans',      url: '/fonts/montserrat-latin-400-normal.ttf' },
+    { key: 'sansMed',   url: '/fonts/montserrat-latin-500-normal.ttf' },
   ];
 
   // ── Font & Logo Caches ─────────────────────────────────────────────────
