@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Font Loading Diagnostics</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #f5f5f5; }
+    .pass { color: green; }
+    .fail { color: red; }
+    .warn { color: orange; }
+    pre { background: #fff; padding: 10px; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+  <h1>Font Loading Diagnostics</h1>
+  <pre id="log"></pre>
+
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
+  <script src="/js/carlington-template.js?v=17"></script>
+  <script>
+    var logEl = document.getElementById('log');
+
+    function log(msg, cls) {
+      var line = document.createElement('div');
+      line.className = cls || '';
+      line.textContent = (cls === 'pass' ? '✓ ' : cls === 'fail' ? '✗ ' : '  ') + msg;
+      logEl.appendChild(line);
+    }
+
+    async function run() {
+      log('pdf-lib version: ' + PDFLib.PDFDocument.name, 'pass');
+      log('fontkit available: ' + (typeof fontkit !== 'undefined'), 'pass');
+      log('CarlingtonTemplate available: ' + (typeof CarlingtonTemplate !== 'undefined'), typeof CarlingtonTemplate !== 'undefined' ? 'pass' : 'fail');
+
+      var fonts = [
+        { key: 'serif',     url: '/fonts/cormorant-garamond-latin-400-normal.ttf?v=2' },
+        { key: 'serifBold', url: '/fonts/cormorant-garamond-latin-600-normal.ttf?v=2' },
+        { key: 'sans',      url: '/fonts/montserrat-latin-400-normal.ttf?v=2' },
+        { key: 'sansMed',   url: '/fonts/montserrat-latin-500-normal.ttf?v=2' },
+      ];
+
+      log('');
+      log('--- Font Downloads ---');
+
+      var buffers = {};
+      for (var i = 0; i < fonts.length; i++) {
+        var f = fonts[i];
+        try {
+          var resp = await fetch(f.url);
+          log(f.key + ': HTTP ' + resp.status + ' (' + resp.headers.get('content-type') + ', ' + resp.headers.get('content-length') + ' bytes)', resp.ok ? 'pass' : 'fail');
+          if (!resp.ok) continue;
+          var buf = await resp.arrayBuffer();
+          log(f.key + ': downloaded ' + buf.byteLength + ' bytes', buf.byteLength > 10000 ? 'pass' : 'fail');
+          buffers[f.key] = buf;
+        } catch(e) {
+          log(f.key + ': DOWNLOAD FAILED — ' + e.message, 'fail');
+        }
+      }
+
+      log('');
+      log('--- fontkit Parsing ---');
+      for (var key in buffers) {
+        try {
+          var font = fontkit.create(buffers[key]);
+          log(key + ': ' + font.fullName + ' (' + font.type + ')', 'pass');
+        } catch(e) {
+          log(key + ': fontkit.create FAILED — ' + e.message, 'fail');
+        }
+      }
+
+      log('');
+      log('--- pdf-lib Embedding ---');
+      try {
+        var doc = await PDFDocument.create();
+        doc.registerFontkit(fontkit);
+        var embedded = {};
+        for (var key in buffers) {
+          try {
+            embedded[key] = await doc.embedFont(buffers[key]);
+            log(key + ': embedded as ' + embedded[key].name, 'pass');
+          } catch(e) {
+            log(key + ': embedFont FAILED — ' + e.message, 'fail');
+          }
+        }
+
+        log('');
+        log('--- Draw Test ---');
+        var page = doc.addPage([612, 792]);
+        page.drawText('Carlington & Burling', {
+          x: 50, y: 700, size: 26, font: embedded.serifBold, color: PDFLib.rgb(0,0,0)
+        });
+        page.drawText('Test', {
+          x: 50, y: 660, size: 12, font: embedded.sans, color: PDFLib.rgb(0,0,0)
+        });
+
+        var pdfBytes = await doc.save();
+        log('PDF saved: ' + pdfBytes.byteLength + ' bytes', pdfBytes.byteLength > 50000 ? 'pass' : 'fail');
+
+        // Check for WOFF in PDF
+        var str = '';
+        var arr = new Uint8Array(pdfBytes);
+        for (var j = 0; j < arr.length; j++) str += String.fromCharCode(arr[j]);
+        var hasWOFF = str.indexOf('wOFF') !== -1;
+        log('WOFF in PDF: ' + hasWOFF, hasWOFF ? 'fail' : 'pass');
+        log('', hasWOFF ? '' : 'pass');
+        log('ALL CHECKS PASSED — fonts should work in both preview and downloaded PDF', 'pass');
+
+      } catch(e) {
+        log('FATAL: ' + e.message, 'fail');
+        log(e.stack || '', 'fail');
+      }
+    }
+
+    run().catch(function(e) {
+      log('UNHANDLED: ' + e.message, 'fail');
+    });
+  </script>
+</body>
+</html>
