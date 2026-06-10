@@ -5,16 +5,19 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const admin = require('firebase-admin');
+const { Resend } = require('resend');
 
 // ── Config from environment ──────────────────────────────────────────
 const config = {
   password: process.env.PASSWORD || '',
   apiKey: process.env.API_KEY || '',
-  brevoApiKey: process.env.BREVO_API_KEY || '',
-  brevoSender: process.env.BREVO_SENDER || 'noreply@covbur.com',
+  resendApiKey: process.env.RESEND_API_KEY || '',
+  resendSender: process.env.RESEND_SENDER || 'noreply@carlingtonburling.com',
   siteUrl: process.env.SITE_URL || 'https://covington-burling-llp.web.app',
   port: process.env.PORT || 3000,
 };
+
+const resend = config.resendApiKey ? new Resend(config.resendApiKey) : null;
 
 // ── Firebase Admin init ──────────────────────────────────────────────
 let db = null;
@@ -65,17 +68,22 @@ const fonts = {
     italics: 'Times-Italic',
     bolditalics: 'Times-BoldItalic',
   },
+  Helvetica: {
+    normal: 'Helvetica',
+    bold: 'Helvetica-Bold',
+    italics: 'Helvetica-Oblique',
+    bolditalics: 'Helvetica-BoldOblique',
+  },
 };
 
 const printer = new PdfPrinter(fonts);
 const waiverDefinition = require('./waiver-definition');
 const ndaDefinition = require('./nda-definition');
 
-// ── Brevo email ──────────────────────────────────────────────────────
-function sendBrevoEmail(toEmail, toName, formType, downloadToken, adminMessage) {
-  const apiKey = config.brevoApiKey;
-  if (!apiKey) {
-    console.error('BREVO_API_KEY not configured');
+// ── Resend email ──────────────────────────────────────────────────────
+function sendResendEmail(toEmail, toName, formType, downloadToken, adminMessage) {
+  if (!resend) {
+    console.error('RESEND_API_KEY not configured');
     return Promise.reject(new Error('Email service not configured'));
   }
 
@@ -127,31 +135,18 @@ function sendBrevoEmail(toEmail, toName, formType, downloadToken, adminMessage) 
 </body>
 </html>`;
 
-  const payload = {
-    sender: { name: 'Carlington & Burling LLP', email: config.brevoSender },
-    to: [{ email: toEmail, name: toName }],
+  return resend.emails.send({
+    from: 'Carlington & Burling LLP <' + config.resendSender + '>',
+    to: [toEmail],
     subject: 'Your Carlington & Burling Legal Forms Are Ready',
-    htmlContent: html,
-  };
-
-  return fetch('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST',
-    headers: {
-      'api-key': apiKey,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  }).then(function (r) {
-    if (!r.ok) return r.json().then(function (e) { throw e; });
-    return r.json();
+    html: html,
   });
 }
 
-// ── Brevo rejection email ─────────────────────────────────────────────
-function sendRejectionEmail(toEmail, toName, reason) {
-  var apiKey = config.brevoApiKey;
-  if (!apiKey) {
-    console.error('BREVO_API_KEY not configured');
+// ── Resend rejection email ─────────────────────────────────────────────
+function sendResendRejectionEmail(toEmail, toName, reason) {
+  if (!resend) {
+    console.error('RESEND_API_KEY not configured');
     return Promise.reject(new Error('Email service not configured'));
   }
 
@@ -184,23 +179,11 @@ function sendRejectionEmail(toEmail, toName, reason) {
     '</body>' +
     '</html>';
 
-  var payload = {
-    sender: { name: 'Carlington & Burling LLP', email: config.brevoSender },
-    to: [{ email: toEmail, name: toName }],
+  return resend.emails.send({
+    from: 'Carlington & Burling LLP <' + config.resendSender + '>',
+    to: [toEmail],
     subject: 'Your form request has been declined',
-    htmlContent: html,
-  };
-
-  return fetch('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST',
-    headers: {
-      'api-key': apiKey,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  }).then(function (r) {
-    if (!r.ok) return r.json().then(function (e) { throw e; });
-    return r.json();
+    html: html,
   });
 }
 
@@ -405,8 +388,8 @@ app.post('/api/admin/requests/:id/approve', requireAuth, function (req, res) {
       if (documentFields) updateData.documentFields = documentFields;
 
       return firestore.collection('form-requests').doc(id).update(updateData).then(function () {
-        sendBrevoEmail(data.email, data.name, data.formType, downloadToken, adminMessage).catch(function (err) {
-          console.error('Brevo email error:', err);
+        sendResendEmail(data.email, data.name, data.formType, downloadToken, adminMessage).catch(function (err) {
+          console.error('Resend email error:', err);
         });
 
         logActivity('approve', {
@@ -462,8 +445,8 @@ app.post('/api/admin/requests/:id/reject', requireAuth, function (req, res) {
         approvedBy: 'admin',
         rejectionReason: rejectionReason,
       }).then(function () {
-        sendRejectionEmail(data.email, data.name, rejectionReason).catch(function (err) {
-          console.error('Brevo rejection email error:', err);
+        sendResendRejectionEmail(data.email, data.name, rejectionReason).catch(function (err) {
+          console.error('Resend rejection email error:', err);
         });
 
         logActivity('reject', {
@@ -620,61 +603,22 @@ app.get('/api/admin/analytics', requireAuth, function (req, res) {
 
 // ── Admin send email ──────────────────────────────────────────────────
 
-// ── Email Header Variants ────────────────────────────────────────────
-// All variants return raw HTML strings; callers wrap them in the shared layout.
+// ── Email Header ───────────────────────────────────────────────────
 
-function emailHeaderA() {
-  // Navy band, centered serif wordmark + gold rule
-  return '<td style="background-color:#0A1628;padding:36px 40px 30px;text-align:center;">'
-    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:26px;font-weight:bold;color:#FFFFFF;letter-spacing:1px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
-    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:6px;color:#9AA3B2;margin-top:6px;text-transform:uppercase;">L L P</div>'
-    + '<div style="width:36px;height:2px;background-color:#B08D57;margin:14px auto 6px;"></div>'
-    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:4px;color:#B08D57;text-transform:uppercase;">Attorneys at Law</div>'
-    + '</td>';
-}
-
-function emailHeaderB() {
-  // Thin gold top stripe over slim left-aligned navy header
-  return '<td style="padding:0;">'
-    + '<div style="height:3px;background-color:#B08D57;line-height:3px;font-size:0;">&nbsp;</div>'
-    + '<div style="background-color:#0A1628;padding:20px 40px;">'
-    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:20px;font-weight:bold;color:#FFFFFF;letter-spacing:0.5px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
-    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:10px;letter-spacing:5px;color:#9AA3B2;margin-top:4px;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; Attorneys at Law</div>'
-    + '</div>'
-    + '</td>';
-}
-
-function emailHeaderC() {
-  // Light ivory header with gold-on-navy circular CB chip beside navy wordmark
-  return '<td style="background-color:#FAF9F6;padding:28px 40px 24px;">'
+function emailHeader() {
+  return '<td style="background-color:#0A1628;padding:32px 36px 28px;">'
     + '<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;"><tr>'
-    + '<td style="width:56px;vertical-align:middle;">'
-    + '<div style="width:48px;height:48px;border-radius:50%;background-color:#0A1628;text-align:center;line-height:48px;">'
-    + '<span style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:22px;font-weight:bold;color:#FFFFFF;">C</span><span style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:22px;font-weight:bold;color:#B08D57;">B</span>'
-    + '</div></td>'
-    + '<td style="vertical-align:middle;padding-left:14px;">'
-    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:21px;font-weight:bold;color:#0A1628;letter-spacing:0.3px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
-    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:10px;letter-spacing:5px;color:#5A6577;margin-top:3px;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; Attorneys at Law</div>'
-    + '</td></tr></table>'
-    + '</td>';
-}
-
-function emailHeaderD() {
-  // White letterhead: all-caps serif name with flanking gold rules over navy baseline
-  return '<td style="background-color:#FFFFFF;padding:34px 40px 22px;text-align:center;">'
-    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:28px;font-weight:bold;color:#0A1628;letter-spacing:1.5px;">CARLINGTON <span style="color:#B08D57;">&amp;</span> BURLING</div>'
-    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:7px;color:#5A6577;margin-top:7px;">L L P</div>'
-    + '<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin-top:16px;"><tr>'
-    + '<td style="width:30px;height:1px;background-color:#B08D57;line-height:1px;font-size:0;">&nbsp;</td>'
-    + '<td style="padding:0 10px;font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:4px;color:#B08D57;text-transform:uppercase;">Attorneys at Law</td>'
-    + '<td style="width:30px;height:1px;background-color:#B08D57;line-height:1px;font-size:0;">&nbsp;</td>'
-    + '</tr></table>'
+    + '<td style="vertical-align:top;">'
+    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:22px;font-weight:bold;color:#FFFFFF;letter-spacing:0.3px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
+    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:3px;color:#9AA3B2;margin-top:4px;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; Attorneys at Law</div>'
     + '</td>'
-    + '</tr>'
-    + '<tr><td style="background-color:#0A1628;height:3px;line-height:3px;font-size:0;">&nbsp;</td>';
+    + '<td style="vertical-align:top;text-align:right;">'
+    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;color:#A0A0B4;line-height:1.7;">850 Tenth Street NW<br>Washington, DC 20001<br>202-662-6000</div>'
+    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:bold;color:#C9A66B;margin-top:2px;">carlingtonburling.com</div>'
+    + '</td></tr></table>'
+    + '</td></tr>'
+    + '<tr><td style="background-color:#B08D57;height:2px;line-height:2px;font-size:0;">&nbsp;</td>';
 }
-
-var EMAIL_HEADERS = { A: emailHeaderA, B: emailHeaderB, C: emailHeaderC, D: emailHeaderD };
 
 // ── Shared Email Footer ──────────────────────────────────────────────
 
@@ -704,7 +648,7 @@ function buildEmailLayout(headerHtml, bodyHtml) {
     + '</body></html>';
 }
 
-function buildEmailHtml(body, variant) {
+function buildEmailHtml(body) {
   var escaped = body
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -719,9 +663,7 @@ function buildEmailHtml(body, variant) {
     })
     .join('');
 
-  var v = (variant || 'D').toUpperCase();
-  var headerFn = EMAIL_HEADERS[v] || EMAIL_HEADERS.D;
-  return buildEmailLayout(headerFn(), bodyHtml);
+  return buildEmailLayout(emailHeader(), bodyHtml);
 }
 
 app.post('/api/admin/send-email', requireAuth, function (req, res) {
@@ -731,44 +673,31 @@ app.post('/api/admin/send-email', requireAuth, function (req, res) {
     var toName = _a.toName || '';
     var subject = _a.subject;
     var body = _a.body;
-    var variant = _a.variant || 'D';
     var attachment = _a.attachment || null;
 
     if (!toEmail || !subject || !body) {
       return res.status(400).json({ error: 'Missing required fields: toEmail, subject, body.' });
     }
 
-    var apiKey = config.brevoApiKey;
-    if (!apiKey) {
+    if (!resend) {
       return res.status(500).json({ error: 'Email service not configured.' });
     }
 
-    var payload = {
-      sender: { name: 'Carlington & Burling LLP', email: config.brevoSender },
-      to: [{ email: toEmail, name: toName }],
+    var emailPayload = {
+      from: 'Carlington & Burling LLP <' + config.resendSender + '>',
+      to: [toEmail],
       subject: subject,
-      textContent: body,
-      htmlContent: buildEmailHtml(body, variant),
+      html: buildEmailHtml(body),
     };
 
     if (attachment && attachment.name && attachment.content) {
-      payload.attachment = [{ name: attachment.name, content: attachment.content }];
+      emailPayload.attachments = [{ filename: attachment.name, content: attachment.content }];
     }
 
-    fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'api-key': apiKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    }).then(function (r) {
-      if (!r.ok) return r.json().then(function (e) { throw e; });
-      return r.json();
-    }).then(function () {
+    resend.emails.send(emailPayload).then(function () {
       logActivity('send-email', {
         toEmail: toEmail, toName: toName, subject: subject,
-        variant: variant, filename: attachment ? attachment.name : null
+        filename: attachment ? attachment.name : null
       });
       res.json({ message: 'Email sent to ' + toEmail + '.' });
     }).catch(function (err) {
@@ -799,33 +728,21 @@ app.post('/api/admin/send-email-attachment', requireAuth, function (req, res) {
       return res.status(400).json({ error: 'Missing attachment with name and base64 content.' });
     }
 
-    var apiKey = config.brevoApiKey;
-    if (!apiKey) {
+    if (!resend) {
       return res.status(500).json({ error: 'Email service not configured.' });
     }
 
-    var payload = {
-      sender: { name: 'Carlington & Burling LLP', email: config.brevoSender },
-      to: [{ email: toEmail, name: toName }],
+    var emailPayload = {
+      from: 'Carlington & Burling LLP <' + config.resendSender + '>',
+      to: [toEmail],
       subject: subject,
-      textContent: body,
-      htmlContent: buildEmailHtml(body),
-      attachment: [
-        { name: attachment.name, content: attachment.content },
+      html: buildEmailHtml(body),
+      attachments: [
+        { filename: attachment.name, content: attachment.content },
       ],
     };
 
-    fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'api-key': apiKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    }).then(function (r) {
-      if (!r.ok) return r.json().then(function (e) { throw e; });
-      return r.json();
-    }).then(function () {
+    resend.emails.send(emailPayload).then(function () {
       logActivity('send-email-attachment', { toEmail: toEmail, toName: toName, subject: subject, filename: attachment.name });
       res.json({ message: 'Email with attachment sent to ' + toEmail + '.' });
     }).catch(function (err) {
