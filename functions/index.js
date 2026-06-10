@@ -4,10 +4,13 @@ const cors = require('cors');
 const PdfPrinter = require('pdfmake');
 const crypto = require('crypto');
 const functions = require('firebase-functions/v1');
+const { Resend } = require('resend');
 
 function config(key, fallback) {
   try { return functions.config().admin[key] || fallback; } catch (e) { return fallback; }
 }
+
+const resend = config('resend_api_key') ? new Resend(config('resend_api_key')) : null;
 
 const fonts = {
   Times: {
@@ -32,11 +35,10 @@ function getDb() {
   return db;
 }
 
-// Brevo init (lazy)
-function sendBrevoEmail(toEmail, toName, formType, downloadToken) {
-  const apiKey = config('brevo_api_key');
-  if (!apiKey) {
-    console.error('BREVO_API_KEY not configured');
+// Resend email
+function sendResendEmail(toEmail, toName, formType, downloadToken) {
+  if (!resend) {
+    console.error('RESEND_API_KEY not configured');
     return Promise.reject(new Error('Email service not configured'));
   }
 
@@ -85,23 +87,11 @@ function sendBrevoEmail(toEmail, toName, formType, downloadToken) {
 </body>
 </html>`;
 
-  const payload = {
-    sender: { name: 'Carlington & Burling LLP', email: config('brevo_sender', 'noreply@carlingtonburling.com') || 'noreply@carlingtonburling.com' },
-    to: [{ email: toEmail, name: toName }],
+  return resend.emails.send({
+    from: 'Carlington & Burling LLP <' + (config('resend_sender', 'noreply@carlingtonburling.com') || 'noreply@carlingtonburling.com') + '>',
+    to: [toEmail],
     subject: 'Your Carlington & Burling Legal Forms Are Ready',
-    htmlContent: html,
-  };
-
-  return fetch('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST',
-    headers: {
-      'api-key': apiKey,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  }).then(function (r) {
-    if (!r.ok) return r.json().then(function (e) { throw e; });
-    return r.json();
+    html: html,
   });
 }
 
@@ -246,8 +236,8 @@ app.post('/api/admin/requests/:id/approve', requireAuth, function (req, res) {
         tokenExpiresAt: tokenExpiresAt,
       }).then(function () {
         // Send email (fire-and-forget — don't block response on email)
-        sendBrevoEmail(data.email, data.name, data.formType, downloadToken).catch(function (err) {
-          console.error('Brevo email error:', err);
+        sendResendEmail(data.email, data.name, data.formType, downloadToken).catch(function (err) {
+          console.error('Resend email error:', err);
         });
 
         res.json({ message: 'Request approved. Email sent to ' + data.email + '.' });

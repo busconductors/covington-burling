@@ -13,7 +13,6 @@
   // ── Document State ──────────────────────────────────────────────────
   var docState = {
     title: 'NEW DOCUMENT',
-    headerVariant: 'a',
     fields: [{ label: 'Date:', name: 'date', width: 200 }],
     intro: '',
     witnessText: 'IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above.',
@@ -41,9 +40,7 @@
       preset = presets[name];
     }
     if (!preset) return;
-    var currentVariant = docState.headerVariant;
     docState = JSON.parse(JSON.stringify(preset));
-    docState.headerVariant = currentVariant;
     var dt = document.getElementById('docTitle');
     var it = document.getElementById('introText');
     var wt = document.getElementById('witnessText');
@@ -61,33 +58,6 @@
     loadPreset(this.value);
     this.value = 'custom';
   });
-
-  // ── Header Variant Picker ────────────────────────────────────────────
-  var HEADER_VARIANTS = [
-    { id: 'a', label: 'Centered Stacked', desc: 'Centered stacked logo, contact line, thin rule' },
-    { id: 'b', label: 'Navy Band', desc: 'Full-width navy band, reversed logo, gold accent' },
-    { id: 'c', label: 'Corporate Left-Align', desc: 'Horizontal logo left, contact right, thin rule' },
-    { id: 'd', label: 'Formal Classic', desc: 'Centered monogram, live-text wordmark, flanked-rule tagline' },
-  ];
-
-  function renderHeaderPicker() {
-    var container = document.getElementById('headerPicker');
-    if (!container) return;
-    container.innerHTML = HEADER_VARIANTS.map(function (v) {
-      var sel = docState.headerVariant === v.id ? ' admin-header-picker__card--selected' : '';
-      return '<button type="button" class="admin-header-picker__card' + sel + '" data-variant="' + v.id + '" title="' + AdminUtils.escAttr(v.desc) + '">' +
-        '<span class="admin-header-picker__label">' + AdminUtils.escHtml(v.label) + '</span>' +
-      '</button>';
-    }).join('');
-
-    container.querySelectorAll('.admin-header-picker__card').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        docState.headerVariant = this.dataset.variant;
-        renderHeaderPicker();
-        updatePreview();
-      });
-    });
-  }
 
   // ── Render ──────────────────────────────────────────────────────────
   function renderAll() {
@@ -247,10 +217,12 @@
     var sf = document.getElementById('sumFields');
     var sc = document.getElementById('sumClauses');
     var ss = document.getElementById('sumSigs');
+    var sm = document.getElementById('sumTemplate');
     if (st) st.textContent = docState.title;
     if (sf) sf.textContent = docState.fields.length;
     if (sc) sc.textContent = docState.clauses.length;
     if (ss) ss.textContent = docState.signatureBlocks.length;
+    if (sm) sm.textContent = 'Navy Band Letterhead';
     scheduleAutoSave();
     schedulePreviewRefresh();
   }
@@ -295,7 +267,7 @@
     try {
       Template.generate({
         title: docState.title,
-        headerVariant: docState.headerVariant,
+
         fields: docState.fields,
         intro: docState.intro || undefined,
         witnessText: docState.witnessText,
@@ -482,7 +454,7 @@
     try {
       T.generate({
         title: docState.title,
-        headerVariant: docState.headerVariant,
+
         fields: docState.fields,
         intro: docState.intro || undefined,
         witnessText: docState.witnessText,
@@ -615,7 +587,7 @@
     try {
       T.generate({
         title: docState.title,
-        headerVariant: docState.headerVariant,
+
         fields: docState.fields,
         intro: docState.intro || undefined,
         witnessText: docState.witnessText,
@@ -690,13 +662,11 @@
 
   function restoreDraft(draft) {
     docState = draft.data;
-    if (!docState.headerVariant) docState.headerVariant = 'a';
     document.getElementById('docTitle').value = docState.title || '';
     document.getElementById('introText').value = docState.intro || '';
     document.getElementById('witnessText').value = docState.witnessText || '';
     document.getElementById('outputName').value = 'document.pdf';
     document.getElementById('presetSelect').value = 'custom';
-    renderHeaderPicker();
     renderAll();
     updatePreview();
   }
@@ -791,7 +761,6 @@
 
     loadPreset('blank');
     document.getElementById('presetSelect').value = 'blank';
-    renderHeaderPicker();
 
     var saved = loadDraft();
     if (saved) {
@@ -822,7 +791,7 @@
       if (!T) return Promise.reject(new Error('Template engine not loaded'));
       return T.generate({
         title: docState.title,
-        headerVariant: docState.headerVariant,
+
         fields: docState.fields,
         intro: docState.intro || undefined,
         witnessText: docState.witnessText,

@@ -17,7 +17,8 @@
     "express": "^4.21.0",
     "firebase-admin": "^13.10.0",
     "fonteditor-core": "^2.6.3",
-    "pdfmake": "^0.2.18"
+    "pdfmake": "^0.2.18",
+    "resend": "^6.12.4"
   },
   "devDependencies": {
     "jsdom": "^29.1.1",

@@ -83,56 +83,20 @@
   // ── Branded HTML Email Template ──────────────────────────────────
   // Wraps plain-text body in a Carlington & Burling branded HTML email.
   // Email-safe: table-based layout, ALL inline styles, live text (no images).
-  // 4 selectable header variants (A/B/C/D), default D.
-
-  function emailHeaderA() {
-    return '<td style="background-color:#0A1628;padding:36px 40px 30px;text-align:center;">'
-      + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:26px;font-weight:bold;color:#FFFFFF;letter-spacing:1px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
-      + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:6px;color:#9AA3B2;margin-top:6px;text-transform:uppercase;">L L P</div>'
-      + '<div style="width:36px;height:2px;background-color:#B08D57;margin:14px auto 6px;"></div>'
-      + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:4px;color:#B08D57;text-transform:uppercase;">Attorneys at Law</div>'
-      + '</td>';
-  }
-
-  function emailHeaderB() {
-    return '<td style="padding:0;">'
-      + '<div style="height:3px;background-color:#B08D57;line-height:3px;font-size:0;">&nbsp;</div>'
-      + '<div style="background-color:#0A1628;padding:20px 40px;">'
-      + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:20px;font-weight:bold;color:#FFFFFF;letter-spacing:0.5px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
-      + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:10px;letter-spacing:5px;color:#9AA3B2;margin-top:4px;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; Attorneys at Law</div>'
-      + '</div>'
-      + '</td>';
-  }
-
-  function emailHeaderC() {
-    return '<td style="background-color:#FAF9F6;padding:28px 40px 24px;">'
+  function emailHeader() {
+    return '<td style="background-color:#0A1628;padding:32px 36px 28px;">'
       + '<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;"><tr>'
-      + '<td style="width:56px;vertical-align:middle;">'
-      + '<div style="width:48px;height:48px;border-radius:50%;background-color:#0A1628;text-align:center;line-height:48px;">'
-      + '<span style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:22px;font-weight:bold;color:#FFFFFF;">C</span><span style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:22px;font-weight:bold;color:#B08D57;">B</span>'
-      + '</div></td>'
-      + '<td style="vertical-align:middle;padding-left:14px;">'
-      + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:21px;font-weight:bold;color:#0A1628;letter-spacing:0.3px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
-      + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:10px;letter-spacing:5px;color:#5A6577;margin-top:3px;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; Attorneys at Law</div>'
-      + '</td></tr></table>'
-      + '</td>';
-  }
-
-  function emailHeaderD() {
-    return '<td style="background-color:#FFFFFF;padding:34px 40px 22px;text-align:center;">'
-      + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:28px;font-weight:bold;color:#0A1628;letter-spacing:1.5px;">CARLINGTON <span style="color:#B08D57;">&amp;</span> BURLING</div>'
-      + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:7px;color:#5A6577;margin-top:7px;">L L P</div>'
-      + '<table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin-top:16px;"><tr>'
-      + '<td style="width:30px;height:1px;background-color:#B08D57;line-height:1px;font-size:0;">&nbsp;</td>'
-      + '<td style="padding:0 10px;font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:4px;color:#B08D57;text-transform:uppercase;">Attorneys at Law</td>'
-      + '<td style="width:30px;height:1px;background-color:#B08D57;line-height:1px;font-size:0;">&nbsp;</td>'
-      + '</tr></table>'
+      + '<td style="vertical-align:top;">'
+      + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:22px;font-weight:bold;color:#FFFFFF;letter-spacing:0.3px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
+      + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:3px;color:#9AA3B2;margin-top:4px;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; Attorneys at Law</div>'
       + '</td>'
-      + '</tr>'
-      + '<tr><td style="background-color:#0A1628;height:3px;line-height:3px;font-size:0;">&nbsp;</td>';
+      + '<td style="vertical-align:top;text-align:right;">'
+      + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;color:#A0A0B4;line-height:1.7;">850 Tenth Street NW<br>Washington, DC 20001<br>202-662-6000</div>'
+      + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:bold;color:#C9A66B;margin-top:2px;">carlingtonburling.com</div>'
+      + '</td></tr></table>'
+      + '</td></tr>'
+      + '<tr><td style="background-color:#B08D57;height:2px;line-height:2px;font-size:0;">&nbsp;</td>';
   }
-
-  var EMAIL_HEADERS = { A: emailHeaderA, B: emailHeaderB, C: emailHeaderC, D: emailHeaderD };
 
   function emailFooter() {
     return '<td style="background-color:#FAF9F6;padding:26px 40px 30px;border-top:1px solid #E4E0D8;text-align:center;font-family:Arial,Helvetica,sans-serif;">'
@@ -158,7 +122,7 @@
       + '</body></html>';
   }
 
-  function buildEmailHtml(body, variant) {
+  function buildEmailHtml(body) {
     var escaped = body
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -178,9 +142,7 @@
         + 'Email body will appear here&hellip;</p>';
     }
 
-    var v = (variant || 'D').toUpperCase();
-    var headerFn = EMAIL_HEADERS[v] || EMAIL_HEADERS.D;
-    return buildEmailLayout(headerFn(), bodyHtml);
+    return buildEmailLayout(emailHeader(), bodyHtml);
   }
 
   // ── Live Email Preview ──────────────────────────────────────────
@@ -188,12 +150,7 @@
   var previewSubject = document.getElementById('emailPreviewSubject');
   var bodyInput = document.getElementById('emailBody');
   var subjectInput = document.getElementById('emailSubject');
-  var variantSelect = document.getElementById('emailVariant');
   var previewDebounce = null;
-
-  function getSelectedVariant() {
-    return variantSelect ? variantSelect.value : 'D';
-  }
 
   function updateEmailPreview() {
     if (previewSubject) {
@@ -201,7 +158,7 @@
       previewSubject.textContent = subj || '(No subject)';
     }
     if (previewIframe) {
-      previewIframe.srcdoc = buildEmailHtml(bodyInput ? bodyInput.value : '', getSelectedVariant());
+      previewIframe.srcdoc = buildEmailHtml(bodyInput ? bodyInput.value : '');
     }
   }
 
@@ -212,7 +169,6 @@
 
   if (bodyInput) bodyInput.addEventListener('input', schedulePreview);
   if (subjectInput) subjectInput.addEventListener('input', schedulePreview);
-  if (variantSelect) variantSelect.addEventListener('change', updateEmailPreview);
 
   // Set a default template so preview is visible on load
   if (bodyInput && !bodyInput.value) {
@@ -283,7 +239,7 @@
       submitBtn.disabled = true;
       hideStatus();
 
-      var payload = { toEmail: toEmail, toName: toName, subject: subject, body: body, variant: getSelectedVariant() };
+      var payload = { toEmail: toEmail, toName: toName, subject: subject, body: body };
       if (attachmentData) {
         payload.attachment = attachmentData;
       }

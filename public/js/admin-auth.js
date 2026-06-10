@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var API_BASE = 'https://covington-api-production.up.railway.app/api/admin';
+  var API_BASE = 'https://covington-api.onrender.com/api/admin';
   var token = sessionStorage.getItem('admin_token');
 
   // Elements
