@@ -2,9 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const PdfPrinter = require('pdfmake');
 const crypto = require('crypto');
-const fs = require('fs');
 const path = require('path');
-const admin = require('firebase-admin');
+const { neon } = require('@neondatabase/serverless');
 const { Resend } = require('resend');
 
 // ── Config from environment ──────────────────────────────────────────
@@ -19,45 +18,16 @@ const config = {
 
 const resend = config.resendApiKey ? new Resend(config.resendApiKey) : null;
 
-// ── Firebase Admin init ──────────────────────────────────────────────
-let db = null;
-let dbInitError = null;
+// ── Neon Postgres init ───────────────────────────────────────────────
+let sql = null;
 
-function getDb() {
-  if (!db && !dbInitError) {
-    try {
-      let cred = null;
-
-      // 1) GOOGLE_APPLICATION_CREDENTIALS_JSON env var (JSON string)
-      if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
-        console.log('Firebase: using GOOGLE_APPLICATION_CREDENTIALS_JSON env var');
-        cred = admin.credential.cert(JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON));
-      }
-      // 2) Local service-account.json file (bundled with deploy)
-      else if (fs.existsSync(path.join(__dirname, 'service-account.json'))) {
-        console.log('Firebase: using local service-account.json');
-        const sa = JSON.parse(fs.readFileSync(path.join(__dirname, 'service-account.json'), 'utf8'));
-        cred = admin.credential.cert(sa);
-      }
-      // 3) Application Default Credentials (works on GCP, not Railway)
-      else {
-        console.log('Firebase: using Application Default Credentials');
-      }
-
-      if (cred) {
-        admin.initializeApp({ credential: cred });
-      } else {
-        admin.initializeApp();
-      }
-      db = admin.firestore();
-      console.log('Firebase: initialized successfully');
-    } catch (err) {
-      dbInitError = err;
-      console.error('Firebase init failed:', err.message);
-    }
+function getSql() {
+  if (!sql) {
+    if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL not configured');
+    sql = neon(process.env.DATABASE_URL);
+    console.log('Neon: initialized');
   }
-  if (dbInitError) throw new Error('Firestore unavailable: ' + dbInitError.message);
-  return db;
+  return sql;
 }
 
 // ── PDF setup ────────────────────────────────────────────────────────
@@ -213,12 +183,8 @@ function sendTelegramMessage(text) {
 // ── Activity logging ──────────────────────────────────────────────────
 function logActivity(action, details) {
   try {
-    const firestore = getDb();
-    return firestore.collection('admin-activity').add({
-      action: action,
-      details: details,
-      timestamp: new Date().toISOString(),
-    });
+    const s = getSql();
+    return s`INSERT INTO admin_activity (action, details) VALUES (${action}, ${JSON.stringify(details)})`.then(function () {});
   } catch (err) {
     console.error('Activity log error:', err);
     return Promise.resolve();
@@ -278,43 +244,40 @@ app.post('/api/request-forms', function (req, res) {
       return res.status(400).json({ error: 'Invalid email address.' });
     }
 
-    var firestore = getDb();
-    var doc = {
-      name: data.name.trim(),
-      email: data.email.trim().toLowerCase(),
-      phone: (data.phone || '').trim(),
-      company: (data.company || '').trim(),
-      contactMethod: (data.contactMethod || '').trim(),
-      formType: data.formType,
-      matterDescription: data.matterDescription.trim(),
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      approvedAt: null,
-      approvedBy: null,
-      downloadToken: null,
-      tokenExpiresAt: null,
-    };
+    var name = data.name.trim();
+    var email = data.email.trim().toLowerCase();
+    var phone = (data.phone || '').trim();
+    var company = (data.company || '').trim();
+    var contactMethod = (data.contactMethod || '').trim();
+    var formType = data.formType;
+    var matterDescription = data.matterDescription.trim();
 
-    firestore.collection('form-requests').add(doc).then(function (ref) {
-      logActivity('form-submitted', {
-        requestId: ref.id,
-        name: doc.name,
-        email: doc.email,
-        formType: doc.formType,
+    var s = getSql();
+    s`INSERT INTO form_requests (name, email, phone, company, contact_method, form_type, matter_description)
+       VALUES (${name}, ${email}, ${phone}, ${company}, ${contactMethod}, ${formType}, ${matterDescription})
+       RETURNING id`
+      .then(function (rows) {
+        var id = rows[0].id;
+        logActivity('form-submitted', {
+          requestId: id,
+          name: name,
+          email: email,
+          formType: formType,
+        });
+        sendTelegramMessage(
+          '<b>\u{1F4CB} New Form Request</b>\n' +
+          '<b>Name:</b> ' + name + '\n' +
+          '<b>Email:</b> ' + email + '\n' +
+          (company ? '<b>Company:</b> ' + company + '\n' : '') +
+          '<b>Form:</b> ' + formType + '\n' +
+          '<b>Matter:</b> ' + matterDescription
+        ).catch(console.error);
+        res.status(201).json({ id: id, message: 'Request submitted successfully.' });
+      })
+      .catch(function (err) {
+        console.error('Database write error:', err);
+        res.status(500).json({ error: 'Failed to save request.' });
       });
-      sendTelegramMessage(
-        '<b>\u{1F4CB} New Form Request</b>\n' +
-        '<b>Name:</b> ' + doc.name + '\n' +
-        '<b>Email:</b> ' + doc.email + '\n' +
-        (doc.company ? '<b>Company:</b> ' + doc.company + '\n' : '') +
-        '<b>Form:</b> ' + doc.formType + '\n' +
-        '<b>Matter:</b> ' + doc.matterDescription
-      ).catch(console.error);
-      res.status(201).json({ id: ref.id, message: 'Request submitted successfully.' });
-    }).catch(function (err) {
-      console.error('Firestore write error:', err);
-      res.status(500).json({ error: 'Failed to save request.' });
-    });
   } catch (err) {
     console.error('Request error:', err);
     res.status(500).json({ error: 'Internal server error.' });
@@ -339,22 +302,14 @@ app.post('/api/admin/login', function (req, res) {
 // List all requests
 app.get('/api/admin/requests', requireAuth, function (req, res) {
   try {
-    var firestore = getDb();
-    firestore.collection('form-requests')
-      .orderBy('createdAt', 'desc')
-      .limit(100)
-      .get()
-      .then(function (snapshot) {
-        var requests = [];
-        snapshot.forEach(function (doc) {
-          var d = doc.data();
-          d.id = doc.id;
-          requests.push(d);
-        });
+    var s = getSql();
+    s`SELECT * FROM form_requests ORDER BY created_at DESC LIMIT 100`
+      .then(function (rows) {
+        var requests = rows.map(function (r) { return r; });
         res.json({ requests: requests });
       })
       .catch(function (err) {
-        console.error('Firestore read error:', err);
+        console.error('Database read error:', err);
         res.status(500).json({ error: 'Failed to load requests.' });
       });
   } catch (err) {
@@ -366,7 +321,7 @@ app.get('/api/admin/requests', requireAuth, function (req, res) {
 // Approve request + send email
 app.post('/api/admin/requests/:id/approve', requireAuth, function (req, res) {
   try {
-    var firestore = getDb();
+    var s = getSql();
     var id = req.params.id;
     var body = req.body || {};
     var adminMessage = body.adminMessage || null;
@@ -374,52 +329,53 @@ app.post('/api/admin/requests/:id/approve', requireAuth, function (req, res) {
     var downloadToken = crypto.randomBytes(16).toString('hex');
     var tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    firestore.collection('form-requests').doc(id).get().then(function (doc) {
-      if (!doc.exists) {
-        return res.status(404).json({ error: 'Request not found.' });
-      }
+    s`SELECT * FROM form_requests WHERE id = ${id}`
+      .then(function (rows) {
+        if (rows.length === 0) {
+          return res.status(404).json({ error: 'Request not found.' });
+        }
 
-      var data = doc.data();
-      if (data.status !== 'pending') {
-        return res.status(400).json({ error: 'Request is not in pending status.' });
-      }
+        var data = rows[0];
+        if (data.status !== 'pending') {
+          return res.status(400).json({ error: 'Request is not in pending status.' });
+        }
 
-      var now = new Date().toISOString();
-      var updateData = {
-        status: 'approved',
-        approvedAt: now,
-        approvedBy: 'admin',
-        downloadToken: downloadToken,
-        tokenExpiresAt: tokenExpiresAt,
-      };
-      if (adminMessage) updateData.adminMessage = adminMessage;
-      if (documentFields) updateData.documentFields = documentFields;
+        var now = new Date().toISOString();
+        return s`UPDATE form_requests SET
+          status = 'approved',
+          approved_at = ${now},
+          approved_by = 'admin',
+          download_token = ${downloadToken},
+          token_expires_at = ${tokenExpiresAt}
+          ${adminMessage ? s` , admin_message = ${adminMessage}` : s``}
+          ${documentFields ? s` , document_fields = ${JSON.stringify(documentFields)}` : s``}
+          WHERE id = ${id}`
+          .then(function () {
+            sendResendEmail(data.email, data.name, data.form_type, downloadToken, adminMessage).catch(function (err) {
+              console.error('Resend email error:', err);
+            });
 
-      return firestore.collection('form-requests').doc(id).update(updateData).then(function () {
-        sendResendEmail(data.email, data.name, data.formType, downloadToken, adminMessage).catch(function (err) {
-          console.error('Resend email error:', err);
-        });
+            logActivity('approve', {
+              requestId: id,
+              name: data.name,
+              email: data.email,
+              formType: data.form_type,
+            });
 
-        logActivity('approve', {
-          requestId: id,
-          name: data.name,
-          email: data.email,
-          formType: data.formType,
-        });
+            var telegramMsg = '<b>✅ Request Approved</b>\n' +
+              '<b>Name:</b> ' + data.name + '\n' +
+              '<b>Email:</b> ' + data.email + '\n' +
+              '<b>Form:</b> ' + data.form_type;
+            if (adminMessage) telegramMsg += '\n<b>Note:</b> ' + adminMessage;
+            sendTelegramMessage(telegramMsg).catch(console.error);
 
-        var telegramMsg = '<b>✅ Request Approved</b>\n' +
-          '<b>Name:</b> ' + data.name + '\n' +
-          '<b>Email:</b> ' + data.email + '\n' +
-          '<b>Form:</b> ' + data.formType;
-        if (adminMessage) telegramMsg += '\n<b>Note:</b> ' + adminMessage;
-        sendTelegramMessage(telegramMsg).catch(console.error);
-
-        res.json({ message: 'Request approved. Email sent to ' + data.email + '.' });
+            res.json({ message: 'Request approved. Email sent to ' + data.email + '.' });
+          });
+      })
+      .catch(function (err) {
+        console.error('Approve error:', err);
+        res.status(500).json({ error: 'Failed to approve request.' });
       });
-    }).catch(function (err) {
-      console.error('Approve error:', err);
-      res.status(500).json({ error: 'Failed to approve request.' });
-    });
   } catch (err) {
     console.error('Approve error:', err);
     res.status(500).json({ error: 'Internal server error.' });
@@ -429,7 +385,7 @@ app.post('/api/admin/requests/:id/approve', requireAuth, function (req, res) {
 // Reject request
 app.post('/api/admin/requests/:id/reject', requireAuth, function (req, res) {
   try {
-    var firestore = getDb();
+    var s = getSql();
     var id = req.params.id;
     var body = req.body || {};
     var rejectionReason = (body.rejectionReason || '').trim();
@@ -438,47 +394,50 @@ app.post('/api/admin/requests/:id/reject', requireAuth, function (req, res) {
       return res.status(400).json({ error: 'Rejection reason is required.' });
     }
 
-    firestore.collection('form-requests').doc(id).get().then(function (doc) {
-      if (!doc.exists) {
-        return res.status(404).json({ error: 'Request not found.' });
-      }
-      var data = doc.data();
-      if (data.status !== 'pending') {
-        return res.status(400).json({ error: 'Request is not in pending status.' });
-      }
-      var now = new Date().toISOString();
-      return firestore.collection('form-requests').doc(id).update({
-        status: 'rejected',
-        rejectedAt: now,
-        approvedBy: 'admin',
-        rejectionReason: rejectionReason,
-      }).then(function () {
-        sendResendRejectionEmail(data.email, data.name, rejectionReason).catch(function (err) {
-          console.error('Resend rejection email error:', err);
-        });
+    s`SELECT * FROM form_requests WHERE id = ${id}`
+      .then(function (rows) {
+        if (rows.length === 0) {
+          return res.status(404).json({ error: 'Request not found.' });
+        }
+        var data = rows[0];
+        if (data.status !== 'pending') {
+          return res.status(400).json({ error: 'Request is not in pending status.' });
+        }
+        var now = new Date().toISOString();
+        return s`UPDATE form_requests SET
+          status = 'rejected',
+          rejected_at = ${now},
+          approved_by = 'admin',
+          rejection_reason = ${rejectionReason}
+          WHERE id = ${id}`
+          .then(function () {
+            sendResendRejectionEmail(data.email, data.name, rejectionReason).catch(function (err) {
+              console.error('Resend rejection email error:', err);
+            });
 
-        logActivity('reject', {
-          requestId: id,
-          name: data.name,
-          email: data.email,
-          formType: data.formType,
-          reason: rejectionReason,
-        });
+            logActivity('reject', {
+              requestId: id,
+              name: data.name,
+              email: data.email,
+              formType: data.form_type,
+              reason: rejectionReason,
+            });
 
-        sendTelegramMessage(
-          '<b>❌ Request Rejected</b>\n' +
-          '<b>Name:</b> ' + data.name + '\n' +
-          '<b>Email:</b> ' + data.email + '\n' +
-          '<b>Form:</b> ' + data.formType + '\n' +
-          '<b>Reason:</b> ' + rejectionReason
-        ).catch(console.error);
+            sendTelegramMessage(
+              '<b>❌ Request Rejected</b>\n' +
+              '<b>Name:</b> ' + data.name + '\n' +
+              '<b>Email:</b> ' + data.email + '\n' +
+              '<b>Form:</b> ' + data.form_type + '\n' +
+              '<b>Reason:</b> ' + rejectionReason
+            ).catch(console.error);
 
-        res.json({ message: 'Request rejected. Rejection email sent to ' + data.email + '.' });
+            res.json({ message: 'Request rejected. Rejection email sent to ' + data.email + '.' });
+          });
+      })
+      .catch(function (err) {
+        console.error('Reject error:', err);
+        res.status(500).json({ error: 'Failed to reject request.' });
       });
-    }).catch(function (err) {
-      console.error('Reject error:', err);
-      res.status(500).json({ error: 'Failed to reject request.' });
-    });
   } catch (err) {
     console.error('Reject error:', err);
     res.status(500).json({ error: 'Internal server error.' });
@@ -488,22 +447,18 @@ app.post('/api/admin/requests/:id/reject', requireAuth, function (req, res) {
 // Secure PDF download (token-based)
 app.get('/api/download/:token', function (req, res) {
   try {
-    var firestore = getDb();
+    var s = getSql();
     var token = req.params.token;
     var formType = req.query.form || 'waiver';
 
-    firestore.collection('form-requests')
-      .where('downloadToken', '==', token)
-      .where('status', '==', 'approved')
-      .limit(1)
-      .get()
-      .then(function (snapshot) {
-        if (snapshot.empty) {
+    s`SELECT * FROM form_requests WHERE download_token = ${token} AND status = 'approved' LIMIT 1`
+      .then(function (rows) {
+        if (rows.length === 0) {
           return res.status(404).send('<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Link Expired</title><link rel="stylesheet" href="' + config.siteUrl + '/css/styles.css"></head><body style="display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;font-family:sans-serif;"><div><h1 style="color:#0A1628;">Link Expired or Invalid</h1><p style="color:#5A5A6E;">This download link is no longer valid. Please submit a new request if you need access to these forms.</p><a href="' + config.siteUrl + '/waiver-nda.html" style="color:#B08D57;">Request Forms</a></div></body></html>');
         }
 
-        var data = snapshot.docs[0].data();
-        var expiresAt = data.tokenExpiresAt ? new Date(data.tokenExpiresAt) : null;
+        var data = rows[0];
+        var expiresAt = data.token_expires_at ? new Date(data.token_expires_at) : null;
         if (expiresAt && expiresAt < new Date()) {
           return res.status(410).send('<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Link Expired</title><link rel="stylesheet" href="' + config.siteUrl + '/css/styles.css"></head><body style="display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;font-family:sans-serif;"><div><h1 style="color:#0A1628;">Link Expired</h1><p style="color:#5A5A6E;">This download link has expired. Please submit a new request for access.</p><a href="' + config.siteUrl + '/waiver-nda.html" style="color:#B08D57;">Request Forms</a></div></body></html>');
         }
@@ -511,11 +466,11 @@ app.get('/api/download/:token', function (req, res) {
         var doc;
         var filename;
         if (formType === 'nda') {
-          var ndaFields = data.documentFields || { clientName: data.name, clientAddress: data.company, effectiveDate: '' };
+          var ndaFields = data.document_fields || { clientName: data.name, clientAddress: data.company, effectiveDate: '' };
           doc = ndaDefinition(ndaFields);
           filename = 'mutual-nda.pdf';
         } else {
-          var waiverFields = data.documentFields || { clientName: data.name, date: '', matter: data.matterDescription };
+          var waiverFields = data.document_fields || { clientName: data.name, date: '', matter: data.matter_description };
           doc = waiverDefinition(waiverFields);
           filename = 'waiver-release-of-liability.pdf';
         }
@@ -539,9 +494,9 @@ app.get('/api/download/:token', function (req, res) {
 // ── Analytics ─────────────────────────────────────────────────────────
 app.get('/api/admin/analytics', requireAuth, function (req, res) {
   try {
-    var firestore = getDb();
-    firestore.collection('form-requests').get()
-      .then(function (snapshot) {
+    var s = getSql();
+    s`SELECT status, form_type, created_at, approved_at FROM form_requests`
+      .then(function (rows) {
         var total = 0;
         var pending = 0;
         var approved = 0;
@@ -550,25 +505,24 @@ app.get('/api/admin/analytics', requireAuth, function (req, res) {
         var monthlySubmissions = {};
         var approvalDurations = [];
 
-        snapshot.forEach(function (doc) {
-          var d = doc.data();
+        rows.forEach(function (d) {
           total++;
 
           if (d.status === 'pending') pending++;
           else if (d.status === 'approved') approved++;
           else if (d.status === 'rejected') rejected++;
 
-          var ft = d.formType;
+          var ft = d.form_type;
           if (byFormType[ft] !== undefined) byFormType[ft]++;
 
-          if (d.createdAt) {
-            var month = d.createdAt.substring(0, 7);
+          if (d.created_at) {
+            var month = (typeof d.created_at === 'string' ? d.created_at : d.created_at.toISOString()).substring(0, 7);
             monthlySubmissions[month] = (monthlySubmissions[month] || 0) + 1;
           }
 
-          if (d.status === 'approved' && d.createdAt && d.approvedAt) {
-            var created = new Date(d.createdAt).getTime();
-            var approvedAt = new Date(d.approvedAt).getTime();
+          if (d.status === 'approved' && d.created_at && d.approved_at) {
+            var created = new Date(d.created_at).getTime();
+            var approvedAt = new Date(d.approved_at).getTime();
             if (!isNaN(created) && !isNaN(approvedAt)) {
               approvalDurations.push(approvedAt - created);
             }
@@ -608,8 +562,6 @@ app.get('/api/admin/analytics', requireAuth, function (req, res) {
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
-
-// ── Admin send email ──────────────────────────────────────────────────
 
 // ── Email Header ───────────────────────────────────────────────────
 
@@ -766,22 +718,13 @@ app.post('/api/admin/send-email-attachment', requireAuth, function (req, res) {
 // ── Activity log ──────────────────────────────────────────────────────
 app.get('/api/admin/activity', requireAuth, function (req, res) {
   try {
-    var firestore = getDb();
+    var s = getSql();
     var limit = parseInt((req.query.limit || '50'), 10);
     if (isNaN(limit) || limit < 1) limit = 50;
     if (limit > 200) limit = 200;
-    firestore.collection('admin-activity')
-      .orderBy('timestamp', 'desc')
-      .limit(limit)
-      .get()
-      .then(function (snapshot) {
-        var entries = [];
-        snapshot.forEach(function (doc) {
-          var d = doc.data();
-          d.id = doc.id;
-          entries.push(d);
-        });
-        res.json({ activity: entries });
+    s`SELECT * FROM admin_activity ORDER BY timestamp DESC LIMIT ${limit}`
+      .then(function (rows) {
+        res.json({ activity: rows });
       })
       .catch(function (err) {
         console.error('Activity read error:', err);

@@ -1,1 +1,0 @@
-../pdf-templates/waiver-definition.js
