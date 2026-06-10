@@ -6,3 +6,5 @@ dist/
 .firebase/
 .gstack/
 .superpowers/
+.vercel/
+backend/service-account.json

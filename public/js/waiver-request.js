@@ -127,7 +127,7 @@
     var controller = new AbortController();
     var timeoutId = setTimeout(function () { controller.abort(); }, 15000);
 
-    fetch('https://covington-api.onrender.com/api/request-forms', {
+    fetch('/api/request-forms', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),

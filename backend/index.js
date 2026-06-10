@@ -13,7 +13,7 @@ const config = {
   apiKey: process.env.API_KEY || '',
   resendApiKey: process.env.RESEND_API_KEY || '',
   resendSender: process.env.RESEND_SENDER || 'noreply@carlingtonburling.com',
-  siteUrl: process.env.SITE_URL || 'https://covington-burling-llp.web.app',
+  siteUrl: process.env.SITE_URL || 'https://carlingtonburling.com',
   port: process.env.PORT || 3000,
 };
 
@@ -189,8 +189,12 @@ function sendResendRejectionEmail(toEmail, toName, reason) {
 
 // ── Telegram notifications ────────────────────────────────────────────
 function sendTelegramMessage(text) {
-  var token = process.env.TELEGRAM_BOT_TOKEN || '8774901284:AAEd4rUxpTUgrGr8ieqy0Fgwfq9Ew9nYZ_U';
-  var chatId = process.env.TELEGRAM_CHAT_ID || '7771296485';
+  var token = process.env.TELEGRAM_BOT_TOKEN;
+  var chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) {
+    console.warn('Telegram not configured — skipping notification');
+    return Promise.resolve();
+  }
 
   return fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
     method: 'POST',
@@ -782,7 +786,11 @@ app.get('/api/admin/activity', requireAuth, function (req, res) {
   }
 });
 
-// ── Start server ─────────────────────────────────────────────────────
-app.listen(config.port, function () {
-  console.log('Carlington & Burling API listening on port ' + config.port);
-});
+// ── Export for Vercel / listen when run directly ─────────────────────
+module.exports = app;
+
+if (require.main === module) {
+  app.listen(config.port, function () {
+    console.log('Carlington & Burling API listening on port ' + config.port);
+  });
+}
