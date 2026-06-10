@@ -84,18 +84,13 @@
   // Wraps plain-text body in a Carlington & Burling branded HTML email.
   // Email-safe: table-based layout, ALL inline styles, live text (no images).
   function emailHeader() {
-    return '<td style="background-color:#0A1628;padding:32px 36px 28px;">'
-      + '<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;"><tr>'
-      + '<td style="vertical-align:top;">'
-      + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:22px;font-weight:bold;color:#FFFFFF;letter-spacing:0.3px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
-      + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:3px;color:#9AA3B2;margin-top:4px;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; Attorneys at Law</div>'
-      + '</td>'
-      + '<td style="vertical-align:top;text-align:right;">'
-      + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;color:#A0A0B4;line-height:1.7;">850 Tenth Street NW<br>Washington, DC 20001<br>202-662-6000</div>'
-      + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:bold;color:#C9A66B;margin-top:2px;">carlingtonburling.com</div>'
-      + '</td></tr></table>'
-      + '</td></tr>'
-      + '<tr><td style="background-color:#B08D57;height:2px;line-height:2px;font-size:0;">&nbsp;</td>';
+    return '<td style="padding:36px 40px 0;text-align:center;">'
+      + '<p style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:24px;font-weight:bold;color:#0A1628;margin:0;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</p>'
+      + '<hr style="border:none;border-top:1px solid #B08D57;margin:14px 80px 10px;">'
+      + '<p style="font-family:Arial,Helvetica,sans-serif;font-size:8.5px;letter-spacing:4px;color:#5A5A6E;text-transform:uppercase;margin:0;">LLP &nbsp;&#183;&nbsp; ATTORNEYS AT LAW &nbsp;&#183;&nbsp; SINCE 1919</p>'
+      + '<p style="font-family:Arial,Helvetica,sans-serif;font-size:8px;color:#5A5A6E;margin:14px 0 0;">850 Tenth Street NW, Washington, DC 20001 &nbsp;&#183;&nbsp; 202-662-6000 &nbsp;&#183;&nbsp; <span style="font-weight:bold;color:#B08D57;">covbur.com</span></p>'
+      + '<hr style="border:none;border-top:1px solid #D9D5CC;margin:18px 0 0;">'
+      + '</td></tr>';
   }
 
   function emailFooter() {
@@ -104,7 +99,7 @@
       + '<div style="font-size:12px;color:#5A6577;margin-top:8px;line-height:1.6;">850 Tenth Street NW, Washington, DC 20001<br>'
       + '202&#8209;662&#8209;6000 &nbsp;|&nbsp; <a href="https://carlingtonburling.com" style="color:#B08D57;text-decoration:none;">carlingtonburling.com</a></div>'
       + '<div style="font-size:10px;color:#9AA3B2;margin-top:12px;letter-spacing:0.5px;text-transform:uppercase;">'
-      + 'Founded 1919 &nbsp;&#183;&nbsp; This message is confidential &amp; attorney&#8209;client privileged</div>'
+      + 'SINCE 1919 &nbsp;&#183;&nbsp; This message is confidential &amp; attorney&#8209;client privileged</div>'
       + '</td>';
   }
 

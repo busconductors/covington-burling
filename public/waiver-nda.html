@@ -92,6 +92,68 @@
       </div>
     </section>
 
+    <!-- Direct Download Section -->
+    <section class="section" aria-labelledby="download-heading">
+      <div class="container container--narrow">
+        <h2 class="section-title text-center" id="download-heading">Download Forms</h2>
+        <p class="text-muted text-center" style="margin-bottom:2.5rem;max-width:560px;margin-left:auto;margin-right:auto;">Download our standard forms below. Choose Fill Online for interactive fields you can type into, or Print &amp; Sign for a flat PDF to print and complete by hand.</p>
+
+        <div class="download-cards" style="grid-template-columns:1fr 1fr;">
+          <!-- Waiver Card -->
+          <div class="download-card" id="waiver-download-card">
+            <div class="download-card__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+            </div>
+            <h3 class="download-card__title">Waiver and Release of Liability</h3>
+            <p class="download-card__desc">Acknowledgment of risk, release, indemnification, governing law, and entire agreement.</p>
+            <div class="download-card__features">
+              <span class="download-card__feature">Acknowledgment of Risk</span>
+              <span class="download-card__feature">Release Clause</span>
+              <span class="download-card__feature">Indemnification</span>
+              <span class="download-card__feature">Governing Law (DC)</span>
+              <span class="download-card__feature">Entire Agreement</span>
+            </div>
+            <div class="download-card__actions">
+              <button type="button" class="btn btn--primary" data-action="fill-online" data-form="waiver">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+                Fill Online
+              </button>
+              <button type="button" class="btn btn--outline-dark" data-action="print-sign" data-form="waiver">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+                Print &amp; Sign
+              </button>
+            </div>
+          </div>
+
+          <!-- NDA Card -->
+          <div class="download-card" id="nda-download-card">
+            <div class="download-card__icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h3 class="download-card__title">Mutual Non-Disclosure Agreement</h3>
+            <p class="download-card__desc">Definition of confidential information, obligations, exclusions, term, and governing law.</p>
+            <div class="download-card__features">
+              <span class="download-card__feature">Confidential Info Definition</span>
+              <span class="download-card__feature">Obligations</span>
+              <span class="download-card__feature">Exclusions</span>
+              <span class="download-card__feature">Term (2 Years)</span>
+              <span class="download-card__feature">Governing Law (DC)</span>
+            </div>
+            <div class="download-card__actions">
+              <button type="button" class="btn btn--primary" data-action="fill-online" data-form="nda">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+                Fill Online
+              </button>
+              <button type="button" class="btn btn--outline-dark" data-action="print-sign" data-form="nda">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+                Print &amp; Sign
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Request Access Form -->
     <section class="section section--cream" aria-labelledby="request-heading">
       <div class="container container--narrow">
@@ -327,7 +389,57 @@
     </div>
   </footer>
 
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" defer></script>
+  <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js" defer></script>
+  <script src="/js/carlington-template.js?v=3" defer></script>
   <script src="/js/main.js?v=2" defer></script>
   <script src="/js/waiver-request.js?v=4" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (!window.CarlingtonTemplate) return;
+
+      var presets = window.CarlingtonPresets;
+
+      function showLoading(btn) {
+        var orig = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:0.5rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Generating…</span>';
+        return function () { btn.disabled = false; btn.innerHTML = orig; };
+      }
+
+      function handleDownload(formType, fillable, filename) {
+        var preset = formType === 'waiver' ? presets.waiver : presets.nda;
+        var btn = document.querySelector('[data-action="' + (fillable ? 'fill-online' : 'print-sign') + '"][data-form="' + formType + '"]');
+        var done = showLoading(btn);
+        window.CarlingtonTemplate.generate(preset, { fillable: fillable }).then(function (pdfBytes) {
+          window.CarlingtonTemplate.download(pdfBytes, filename);
+          done();
+        }).catch(function (err) {
+          console.error('PDF generation failed:', err);
+          done();
+          alert('Could not generate the PDF. Please try again or contact us for assistance.');
+        });
+      }
+
+      document.querySelectorAll('[data-action="fill-online"]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var form = this.getAttribute('data-form');
+          var filename = form === 'waiver' ? 'waiver-release-of-liability-fillable.pdf' : 'mutual-nda-fillable.pdf';
+          handleDownload(form, true, filename);
+        });
+      });
+
+      document.querySelectorAll('[data-action="print-sign"]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var form = this.getAttribute('data-form');
+          var filename = form === 'waiver' ? 'waiver-release-of-liability-print.pdf' : 'mutual-nda-print.pdf';
+          handleDownload(form, false, filename);
+        });
+      });
+    });
+  </script>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </body>
 </html>

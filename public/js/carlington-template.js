@@ -7,7 +7,7 @@
   var PAGE_W = 612;
   var PAGE_H = 792;
   var MARGIN = 72;
-  var HEADER_BAND_H = 108;
+  var HEADER_HEIGHT = 150;
   var HEADER_START_Y = PAGE_H - MARGIN;
   var MIN_Y_BEFORE_BREAK = 120;
 
@@ -20,16 +20,12 @@
   var WHITE      = rgb(1, 1, 1);
   var DARK_RULE  = rgb(0.267, 0.267, 0.267);
   var MUTED      = rgb(0.541, 0.541, 0.557);   // #8A8A9E
+  var SLATE      = rgb(0.353, 0.353, 0.431);   // #5A5A6E
   var SUBTLE     = rgb(0.604, 0.620, 0.698);   // #9AA3B2
   var HEADER_TEXT = rgb(0.627, 0.635, 0.706);  // #A0A0B4
 
-  var CONTACT_LINE = '850 Tenth Street NW  ·  Washington, DC 20001  ·  202-662-6000  ·  carlingtonburling.com';
-  var TAGLINE = 'LLP  ·  Attorneys at Law';
-  var SINCE = '1919';
-
-  var LOGO_PATHS = [
-    { key: 'reversed', url: '/images/brand/logo_reversed.png' },
-  ];
+  var CONTACT_LINE = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  covbur.com';
+  var TAGLINE = 'LLP  ·  ATTORNEYS AT LAW  ·  SINCE 1919';
 
   var FONT_PATHS = [
     { key: 'serif',     url: '/fonts/cormorant-garamond-latin-400-normal.woff' },
@@ -38,7 +34,7 @@
     { key: 'sansMed',   url: '/fonts/montserrat-latin-500-normal.woff' },
   ];
 
-  // ── Font & Logo Caches ─────────────────────────────────────────────────
+  // ── Font Cache ────────────────────────────────────────────────────────
   var _fontBufs = null;
   var _fontPromise = null;
 
@@ -58,41 +54,6 @@
       return _fontBufs;
     }).catch(function (e) { _fontPromise = null; throw e; });
     return _fontPromise;
-  }
-
-  var _pngBufs = null;
-  var _pngPromise = null;
-  function loadPngBufs() {
-    if (_pngBufs) return Promise.resolve(_pngBufs);
-    if (_pngPromise) return _pngPromise;
-    _pngPromise = Promise.all(LOGO_PATHS.map(function (p) {
-      return fetch(p.url).then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.arrayBuffer().then(function (buf) { return { key: p.key, buf: buf }; });
-      }).catch(function () { return null; });
-    })).then(function (results) {
-      _pngBufs = {};
-      for (var i = 0; i < results.length; i++) {
-        if (results[i]) _pngBufs[results[i].key] = results[i].buf;
-      }
-      return _pngBufs;
-    }).catch(function (e) { _pngPromise = null; throw e; });
-    return _pngPromise;
-  }
-  function loadLogos(doc) {
-    return loadPngBufs().then(function (pngs) {
-      var keys = Object.keys(pngs);
-      var jobs = keys.map(function (k) {
-        return doc.embedPng(pngs[k]).then(function (img) { return { key: k, img: img }; }).catch(function () { return null; });
-      });
-      return Promise.all(jobs).then(function (results) {
-        var logos = {};
-        for (var i = 0; i < results.length; i++) {
-          if (results[i]) logos[results[i].key] = results[i].img;
-        }
-        return logos;
-      });
-    });
   }
 
   // ── Utility Functions ──────────────────────────────────────────────────
@@ -157,54 +118,53 @@
     return field;
   }
 
-  // ── Header ─────────────────────────────────────────────────────────────
+  // ── Header (Variant E — centered, text-only, no navy band) ─────────────
 
-  function drawHeader(page, fonts, logos, y) {
-    // Navy band background
-    page.drawRectangle({ x: 0, y: y - HEADER_BAND_H, width: PAGE_W, height: HEADER_BAND_H, color: NAVY });
+  function drawHeader(page, fonts, y) {
+    var centerX = PAGE_W / 2;
 
-    // Wordmark: "Carlington & Burling"
+    // Firm name: "Carlington & Burling" (centered, gold ampersand)
     var wmSize = 26;
     var cText = 'Carlington ';
     var ampText = '&';
     var bText = ' Burling';
-    var cW = fonts.serifBold.widthOfTextAtSize(cText, wmSize);
-    var aW = fonts.serifBold.widthOfTextAtSize(ampText, wmSize);
+    var fullW = fonts.serifBold.widthOfTextAtSize(cText + ampText + bText, wmSize);
 
-    var x = MARGIN;
     var textY = y - 40;
+    var x = centerX - fullW / 2;
 
-    page.drawText(cText, { x: x, y: textY, size: wmSize, font: fonts.serifBold, color: WHITE });
-    page.drawText(ampText, { x: x + cW, y: textY, size: wmSize, font: fonts.serifBold, color: GOLD });
-    page.drawText(bText, { x: x + cW + aW, y: textY, size: wmSize, font: fonts.serifBold, color: WHITE });
+    page.drawText(cText, { x: x, y: textY, size: wmSize, font: fonts.serifBold, color: NAVY });
+    var x2 = x + fonts.serifBold.widthOfTextAtSize(cText, wmSize);
+    page.drawText(ampText, { x: x2, y: textY, size: wmSize, font: fonts.serifBold, color: GOLD });
+    var x3 = x2 + fonts.serifBold.widthOfTextAtSize(ampText, wmSize);
+    page.drawText(bText, { x: x3, y: textY, size: wmSize, font: fonts.serifBold, color: NAVY });
 
-    // LLP · Attorneys at Law
+    // Gold rule (full page width, 1px)
+    var ruleY = textY - 28;
+    page.drawLine({ start: { x: 0, y: ruleY }, end: { x: PAGE_W, y: ruleY }, thickness: 1, color: GOLD });
+
+    // Tagline: LLP · ATTORNEYS AT LAW · SINCE 1919
     var tagSize = 9;
     var tagW = fonts.sans.widthOfTextAtSize(TAGLINE, tagSize);
-    page.drawText(TAGLINE, { x: x, y: textY - wmSize - 8, size: tagSize, font: fonts.sans, color: SUBTLE });
+    var tagY = ruleY - 18;
+    page.drawText(TAGLINE, { x: centerX - tagW / 2, y: tagY, size: tagSize, font: fonts.sans, color: SLATE });
 
-    // Contact block (right-aligned) — matching mockup's 8.5px
-    var contactSize = 8.5;
+    // Contact line (single line, centered)
+    var contactSize = 8;
+    var contactW = fonts.sans.widthOfTextAtSize(CONTACT_LINE, contactSize);
+    var contactY = tagY - 20;
+    // Draw muted portion, then gold domain
+    var contactPre = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
+    var contactDomain = 'covbur.com';
+    var preW = fonts.sans.widthOfTextAtSize(contactPre, contactSize);
+    page.drawText(contactPre, { x: centerX - contactW / 2, y: contactY, size: contactSize, font: fonts.sans, color: SLATE });
+    page.drawText(contactDomain, { x: centerX - contactW / 2 + preW, y: contactY, size: contactSize, font: fonts.sansMed, color: GOLD });
 
-    // Gold accent stripe — with gap after content, matching mockup
-    var goldStripeY = y - HEADER_BAND_H + 30;
-    page.drawRectangle({ x: 0, y: goldStripeY, width: PAGE_W, height: 2, color: GOLD });
-    var contactLines = [
-      { text: '850 Tenth Street NW', color: HEADER_TEXT },
-      { text: 'Washington, DC 20001', color: HEADER_TEXT },
-      { text: '202-662-6000', color: HEADER_TEXT },
-      { text: 'carlingtonburling.com', color: LIGHT_GOLD },
-    ];
-    var contactY = textY + 4;
-    for (var i = contactLines.length - 1; i >= 0; i--) {
-      var cl = contactLines[i];
-      var cw = (i === 3) ? fonts.sansMed.widthOfTextAtSize(cl.text, contactSize) : fonts.sans.widthOfTextAtSize(cl.text, contactSize);
-      var cFont = (i === 3) ? fonts.sansMed : fonts.sans;
-      page.drawText(cl.text, { x: PAGE_W - MARGIN - cw, y: contactY, size: contactSize, font: cFont, color: cl.color });
-      contactY -= contactSize * 1.6;
-    }
+    // Header-body separator (thin light rule)
+    var sepY = contactY - 24;
+    page.drawLine({ start: { x: 0, y: sepY }, end: { x: PAGE_W, y: sepY }, thickness: 1, color: RULE });
 
-    return y - HEADER_BAND_H - 28;
+    return sepY - 24;
   }
 
   // ── Body Rendering ────────────────────────────────────────────────────
@@ -222,12 +182,19 @@
     return y - 24;
   }
 
-  function drawFields(page, fonts, form, fields, y) {
+  function drawFields(page, fonts, form, fields, y, fillable) {
     for (var i = 0; i < fields.length; i++) {
       var f = fields[i];
       page.drawText(f.label, { x: MARGIN, y: y, size: 9, font: fonts.sansMed, color: NAVY });
       var labelW = fonts.sansMed.widthOfTextAtSize(f.label, 9);
-      addUnderlineField(form, page, f.name, MARGIN + labelW + 12, y - 14, f.width || 370, fonts.sans);
+      var fieldX = MARGIN + labelW + 12;
+      var fieldW = f.width || 370;
+      if (fillable && form) {
+        addUnderlineField(form, page, f.name, fieldX, y - 14, fieldW, fonts.sans);
+      } else {
+        // Visual underline only (print mode)
+        page.drawLine({ start: { x: fieldX, y: y - 17 }, end: { x: fieldX + fieldW, y: y - 17 }, thickness: 0.5, color: DARK_RULE });
+      }
       y -= 30;
     }
     return y;
@@ -263,18 +230,18 @@
     return y - 32;
   }
 
-  function drawSignatureBlocks(form, page, fonts, blocks, y) {
+  function drawSignatureBlocks(form, page, fonts, blocks, y, fillable) {
     if (blocks.length >= 2) {
       var origY = y;
-      y = drawOneSigBlock(form, page, fonts, blocks[0], MARGIN, y);
-      drawOneSigBlock(form, page, fonts, blocks[1], MARGIN + 310, origY);
+      y = drawOneSigBlock(form, page, fonts, blocks[0], MARGIN, y, fillable);
+      drawOneSigBlock(form, page, fonts, blocks[1], MARGIN + 310, origY, fillable);
       return y;
     }
-    if (blocks.length === 1) return drawOneSigBlock(form, page, fonts, blocks[0], MARGIN, y);
+    if (blocks.length === 1) return drawOneSigBlock(form, page, fonts, blocks[0], MARGIN, y, fillable);
     return y;
   }
 
-  function drawOneSigBlock(form, page, fonts, block, x, y) {
+  function drawOneSigBlock(form, page, fonts, block, x, y, fillable) {
     var labelSize = 10.5;
     page.drawText(block.label, { x: x, y: y, size: labelSize, font: fonts.serifBold, color: NAVY });
     var sy = y - 24;
@@ -283,10 +250,17 @@
       if (f.label === 'Signature' || f.label === 'Authorized Signature') {
         // Draw signature line
         page.drawLine({ start: { x: x, y: sy }, end: { x: x + 220, y: sy }, thickness: 0.5, color: DARK_RULE });
-        addUnderlineField(form, page, f.name, x, sy - 14, 220, fonts.sans);
+        if (fillable && form) {
+          addUnderlineField(form, page, f.name, x, sy - 14, 220, fonts.sans);
+        }
         page.drawText(f.label, { x: x, y: sy - 14, size: 8, font: fonts.sans, color: MUTED });
       } else {
-        addUnderlineField(form, page, f.name, x, sy, 220, fonts.sans);
+        if (fillable && form) {
+          addUnderlineField(form, page, f.name, x, sy, 220, fonts.sans);
+        } else {
+          // Visual underline only (print mode)
+          page.drawLine({ start: { x: x, y: sy - 1 }, end: { x: x + 220, y: sy - 1 }, thickness: 0.5, color: DARK_RULE });
+        }
         page.drawText(f.label, { x: x, y: sy - 12, size: 8, font: fonts.sans, color: MUTED });
       }
       sy -= 38;
@@ -326,15 +300,18 @@
     };
   }
 
-  async function buildPDF(def) {
+  async function buildPDF(def, opts) {
     if (!global.PDFLib) throw new Error('pdf-lib not loaded.');
     if (!global.fontkit) throw new Error('fontkit not loaded. Include @pdf-lib/fontkit script before this one.');
+
+    opts = opts || {};
+    var fillable = opts.fillable !== false; // default true
 
     var d = normalizeDef(def);
     var doc = await PDFDocument.create();
     doc.registerFontkit(global.fontkit);
 
-    var [fontBufs, logos] = await Promise.all([loadFontBufs(), loadLogos(doc)]);
+    var fontBufs = await loadFontBufs();
 
     var fonts = {
       serif:     await doc.embedFont(fontBufs.serif),
@@ -343,12 +320,12 @@
       sansMed:   await doc.embedFont(fontBufs.sansMed),
     };
 
-    var form = doc.getForm();
+    var form = fillable ? doc.getForm() : null;
     var page = doc.addPage([PAGE_W, PAGE_H]);
     var y = HEADER_START_Y;
 
     // First-page header
-    y = drawHeader(page, fonts, logos, y);
+    y = drawHeader(page, fonts, y);
     y -= 24;
 
     // Title
@@ -358,7 +335,7 @@
 
     // Form fields
     if (d.fields.length > 0) {
-      y = drawFields(page, fonts, form, d.fields, y);
+      y = drawFields(page, fonts, form, d.fields, y, fillable);
       y -= 4;
     }
 
@@ -373,7 +350,7 @@
       pending = result.remaining;
       if (pending.length > 0) {
         page = doc.addPage([PAGE_W, PAGE_H]);
-        y = drawHeader(page, fonts, logos, HEADER_START_Y);
+        y = drawHeader(page, fonts, HEADER_START_Y);
       }
     }
 
@@ -385,11 +362,11 @@
       }
       if (y - (60 + maxFields * 38) < MIN_Y_BEFORE_BREAK) {
         page = doc.addPage([PAGE_W, PAGE_H]);
-        y = drawHeader(page, fonts, logos, HEADER_START_Y);
+        y = drawHeader(page, fonts, HEADER_START_Y);
       }
       y -= 10;
       y = drawWitness(page, fonts, d.witnessText, y);
-      y = drawSignatureBlocks(form, page, fonts, d.signatureBlocks, y);
+      y = drawSignatureBlocks(form, page, fonts, d.signatureBlocks, y, fillable);
     }
 
     // Footer on every page

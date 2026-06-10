@@ -1,11 +1,10 @@
 /**
  * Generate fillable PDF forms with AcroForm fields.
- * Supports 4 design variants: a (Classic Underline), b (Modern Clean),
- * c (Bordered Traditional), d (Premium Corporate).
+ * Uses Variant E header — centered text-only, no logo.
  *
  * Usage:
  *   node scripts/generate-fillable-pdfs.js          # all 4 waiver variants
- *   node scripts/generate-fillable-pdfs.js --final a # finalize variant A for both forms
+ *   node scripts/generate-fillable-pdfs.js --final  # finalize for both forms
  */
 const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
 const fs = require('fs');
@@ -122,7 +121,6 @@ function addUnderlineField(form, page, name, x, y, width, font, size) {
     x, y: y - 3, width, height: size + 4,
     borderWidth: 0, borderColor: WHITE, backgroundColor: WHITE,
   });
-  // Draw the underline
   page.drawLine({
     start: { x, y: y + 2 }, end: { x: x + width, y: y + 2 },
     thickness: 0.5, color: DARK_GRAY,
@@ -158,44 +156,54 @@ function addDigitalField(form, page, name, x, y, width, font, size) {
   return field;
 }
 
-// ── Standard Firm Header ──────────────────────────────────────────────────
+// ── Variant E Header (centered, text-only) ─────────────────────────────────
 
-async function embedStackedLogo(doc) {
-  const logoPath = path.join(__dirname, '..', 'public', 'images', 'brand', 'logo_stacked.png');
-  return doc.embedPng(fs.readFileSync(logoPath));
-}
+function drawHeader(page, fonts, y) {
+  const centerX = PAGE_W / 2;
 
-function drawHeader(page, fonts, logo, y, logoH, includeContact) {
-  if (logo) {
-    const logoW = logo.width * (logoH / logo.height);
-    const logoX = (PAGE_W - logoW) / 2;
-    page.drawImage(logo, {
-      x: logoX, y: y - logoH, width: logoW, height: logoH,
-    });
-    y -= logoH + 6;
-  }
+  // Firm name: "Carlington & Burling" (centered, gold ampersand)
+  const wmSize = 26;
+  const cText = 'Carlington ';
+  const ampText = '&';
+  const bText = ' Burling';
+  const fullW = fonts.bold.widthOfTextAtSize(cText + ampText + bText, wmSize);
 
-  if (includeContact) {
-    const pre = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
-    const domain = 'carlingtonburling.com';
-    const full = pre + domain;
-    const tw = fonts.regular.widthOfTextAtSize(full, 8);
-    const sx = (PAGE_W - tw) / 2;
-    page.drawText(pre, { x: sx, y, size: 8, font: fonts.regular, color: MUTED });
-    page.drawText(domain, {
-      x: sx + fonts.regular.widthOfTextAtSize(pre, 8),
-      y, size: 8, font: fonts.regular, color: BRAND_GOLD,
-    });
-    y -= 16;
-  } else {
-    y -= 6;
-  }
+  const textY = y - 40;
+  const x = centerX - fullW / 2;
 
-  page.drawLine({
-    start: { x: MARGIN, y }, end: { x: PAGE_W - MARGIN, y },
-    thickness: 1, color: LIGHT_RULE,
-  });
-  return y - 8;
+  page.drawText(cText, { x, y: textY, size: wmSize, font: fonts.bold, color: NAVY });
+  const x2 = x + fonts.bold.widthOfTextAtSize(cText, wmSize);
+  page.drawText(ampText, { x: x2, y: textY, size: wmSize, font: fonts.bold, color: BRAND_GOLD });
+  const x3 = x2 + fonts.bold.widthOfTextAtSize(ampText, wmSize);
+  page.drawText(bText, { x: x3, y: textY, size: wmSize, font: fonts.bold, color: NAVY });
+
+  // Gold rule (full page width, 1px)
+  const ruleY = textY - 28;
+  page.drawLine({ start: { x: 0, y: ruleY }, end: { x: PAGE_W, y: ruleY }, thickness: 1, color: BRAND_GOLD });
+
+  // Tagline: LLP · ATTORNEYS AT LAW · SINCE 1919
+  const tagSize = 9;
+  const tagText = 'LLP  ·  ATTORNEYS AT LAW  ·  SINCE 1919';
+  const tagW = fonts.helvetica.widthOfTextAtSize(tagText, tagSize);
+  const tagY = ruleY - 18;
+  page.drawText(tagText, { x: centerX - tagW / 2, y: tagY, size: tagSize, font: fonts.helvetica, color: MUTED });
+
+  // Contact line
+  const contactSize = 8;
+  const contactPre = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
+  const contactDomain = 'covbur.com';
+  const contactFull = contactPre + contactDomain;
+  const contactW = fonts.helvetica.widthOfTextAtSize(contactFull, contactSize);
+  const contactY = tagY - 20;
+  const preW = fonts.helvetica.widthOfTextAtSize(contactPre, contactSize);
+  page.drawText(contactPre, { x: centerX - contactW / 2, y: contactY, size: contactSize, font: fonts.helvetica, color: MUTED });
+  page.drawText(contactDomain, { x: centerX - contactW / 2 + preW, y: contactY, size: contactSize, font: fonts.helveticaBold, color: BRAND_GOLD });
+
+  // Header-body separator (thin light rule)
+  const sepY = contactY - 24;
+  page.drawLine({ start: { x: 0, y: sepY }, end: { x: PAGE_W, y: sepY }, thickness: 1, color: LIGHT_RULE });
+
+  return sepY - 24;
 }
 
 function drawFooter(page, fonts, docName, currentPage, totalPages) {
@@ -231,11 +239,9 @@ function drawFooter(page, fonts, docName, currentPage, totalPages) {
 function sigBlockA(form, page, x, y, fonts, label, fields) {
   page.drawText(label, { x, y, size: 10, font: fonts.bold, color: BLACK });
   let sy = y - 20;
-  const fOpts = [];
   for (const f of fields) {
     page.drawText(f.label, { x, y: sy, size: 9, font: fonts.regular, color: MUTED });
     addUnderlineField(form, page, f.name, x, sy - 14, 220, fonts.regular, 10);
-    fOpts.push({ label: f.label, name: f.name });
     sy -= 32;
   }
   return sy - 8;
@@ -244,7 +250,6 @@ function sigBlockA(form, page, x, y, fonts, label, fields) {
 /** Variant B signature block — framed area. */
 function sigBlockB(form, page, x, y, fonts, label, fields) {
   const blockH = fields.length * 36 + 30;
-  // Frame
   page.drawRectangle({
     x: x - 10, y: y - blockH, width: 240, height: blockH,
     borderWidth: 0.5, borderColor: GOLD, color: CREAM,
@@ -265,13 +270,11 @@ function sigBlockC(form, page, x, y, fonts, label, fields) {
   let sy = y - 22;
   for (const f of fields) {
     if (f.label === 'Signature') {
-      // Draw the signature underline
       page.drawLine({
         start: { x, y: sy }, end: { x: x + 200, y: sy },
         thickness: 0.5, color: DARK_GRAY,
       });
       page.drawText('[SEAL]', { x: x + 185, y: sy, size: 6, font: fonts.regular, color: MUTED });
-      // Create fillable signature field
       addUnderlineField(form, page, f.name, x, sy - 14, 200, fonts.regular, 10);
     } else {
       addUnderlineField(form, page, f.name, x, sy, 200, fonts.regular, 10);
@@ -313,7 +316,6 @@ function sigBlockD(form, page, x, y, fonts, label, fields) {
 function drawClauses(page, fonts, clauses, startY, textWidth, indent) {
   let y = startY;
   for (const clause of clauses) {
-    // Page break if needed
     if (y < 200) return { needsPage: true, lastY: y };
 
     const labelText = `${clause.num} ${clause.title}`;
@@ -333,12 +335,11 @@ async function buildWaiverA() {
   const doc = await PDFDocument.create();
   const fonts = await embedFonts(doc);
   const form = doc.getForm();
-  const logo = await embedStackedLogo(doc);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let y = PAGE_H - 50;
 
-  y = drawHeader(page, fonts, logo, y, 118, true);
+  y = drawHeader(page, fonts, y);
   y -= 22;
 
   // Title
@@ -364,7 +365,7 @@ async function buildWaiverA() {
   const result = drawClauses(page, fonts, waiverClauses, y, PAGE_W - MARGIN * 2, 0);
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
-    const contY = drawHeader(page, fonts, logo, PAGE_H - 50, 78, false);
+    const contY = drawHeader(page, fonts, PAGE_H - 50);
     const r2 = drawClauses(page, fonts, waiverClauses.slice(2), contY, PAGE_W - MARGIN * 2, 0);
     y = r2.lastY;
   } else {
@@ -372,7 +373,7 @@ async function buildWaiverA() {
   }
 
   y -= 16;
-  if (y < 220) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, logo, PAGE_H - 50, 78, false); }
+  if (y < 220) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, PAGE_H - 50); }
 
   // Signature blocks — side by side
   page.drawLine({ start: { x: MARGIN, y }, end: { x: MARGIN + 230, y }, thickness: 0.5, color: DARK_GRAY });
@@ -415,12 +416,11 @@ async function buildWaiverB() {
   const doc = await PDFDocument.create();
   const fonts = await embedFonts(doc);
   const form = doc.getForm();
-  const logo = await embedStackedLogo(doc);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let y = PAGE_H - 50;
 
-  y = drawHeader(page, fonts, logo, y, 118, true);
+  y = drawHeader(page, fonts, y);
   y -= 24;
 
   // Title
@@ -457,7 +457,7 @@ async function buildWaiverB() {
 
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
-    y = drawHeader(page, fonts, logo, PAGE_H - 50, 78, false);
+    y = drawHeader(page, fonts, PAGE_H - 50);
     const r2 = drawClauses(page, fonts, waiverClauses.slice(2), y, PAGE_W - MARGIN * 2 - 16, 16);
     y = r2.lastY;
   } else {
@@ -465,7 +465,7 @@ async function buildWaiverB() {
   }
 
   y -= 14;
-  if (y < 260) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, logo, PAGE_H - 50, 78, false); }
+  if (y < 260) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, PAGE_H - 50); }
 
   // Signature blocks
   y = sigBlockB(form, page, MARGIN, y, fonts, 'Client', [
@@ -498,13 +498,11 @@ async function buildWaiverC(outputName) {
   const doc = await PDFDocument.create();
   const fonts = await embedFonts(doc);
   const form = doc.getForm();
-  const logo = await embedStackedLogo(doc);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
+  let y = PAGE_H - 62;
 
-  let y = PAGE_H - 62; // inside the frame
-
-  y = drawHeader(page, fonts, logo, y, 118, true);
+  y = drawHeader(page, fonts, y);
   y -= 24;
 
   // Title — centered
@@ -535,7 +533,7 @@ async function buildWaiverC(outputName) {
   const result = drawClauses(page, fonts, waiverClauses, y, PAGE_W - MARGIN * 2, 24);
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
-      y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false);
+    y = drawHeader(page, fonts, PAGE_H - 62);
     const r2 = drawClauses(page, fonts, waiverClauses.slice(2), y, PAGE_W - MARGIN * 2, 24);
     y = r2.lastY;
   } else {
@@ -543,7 +541,7 @@ async function buildWaiverC(outputName) {
   }
 
   y -= 14;
-  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false); }
+  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, PAGE_H - 62); }
 
   // IN WITNESS WHEREOF
   page.drawText('IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above.', {
@@ -583,12 +581,11 @@ async function buildWaiverD() {
   const doc = await PDFDocument.create();
   const fonts = await embedFonts(doc);
   const form = doc.getForm();
-  const logo = await embedStackedLogo(doc);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let y = PAGE_H;
 
-  y = drawHeader(page, fonts, logo, y, 118, true);
+  y = drawHeader(page, fonts, y);
   y -= 14;
 
   // Title
@@ -610,8 +607,6 @@ async function buildWaiverD() {
     size: wmSize,
     font: fonts.bold,
     color: WATERMARK_GRAY,
-    // pdf-lib doesn't support rotation on drawText directly,
-    // so we draw it horizontal but very faint as a background element
   });
 
   // Form fields — underline with light blue tint
@@ -658,7 +653,7 @@ async function buildWaiverD() {
   const result = drawClauses(page, fonts, waiverClauses, y, PAGE_W - MARGIN * 2 - 24, 24);
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
-    y = drawHeader(page, fonts, logo, PAGE_H, 78, false);
+    y = drawHeader(page, fonts, PAGE_H);
     const r2 = drawClauses(page, fonts, waiverClauses.slice(2), y, PAGE_W - MARGIN * 2 - 24, 24);
     y = r2.lastY;
   } else {
@@ -666,7 +661,7 @@ async function buildWaiverD() {
   }
 
   y -= 10;
-  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, logo, PAGE_H, 78, false); }
+  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, PAGE_H); }
 
   // Premium signature blocks
   y = sigBlockD(form, page, MARGIN, y, fonts, 'Client', [
@@ -692,10 +687,6 @@ async function buildWaiverD() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// NDA BUILDS (for final selection — same patterns as waiver)
-// ═══════════════════════════════════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════════════════════════════════
 // VARIANT C NDA: Bordered Traditional
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -703,13 +694,12 @@ async function buildNdaC(outputName) {
   const doc = await PDFDocument.create();
   const fonts = await embedFonts(doc);
   const form = doc.getForm();
-  const logo = await embedStackedLogo(doc);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let totalPages = 1;
 
   let y = PAGE_H - 62;
-  y = drawHeader(page, fonts, logo, y, 118, true);
+  y = drawHeader(page, fonts, y);
   y -= 24;
 
   // Title — centered
@@ -746,7 +736,7 @@ async function buildNdaC(outputName) {
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
     totalPages++;
-      y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false);
+    y = drawHeader(page, fonts, PAGE_H - 62);
     const r2 = drawClauses(page, fonts, ndaClauses.slice(2), y, PAGE_W - MARGIN * 2, 24);
     y = r2.lastY;
   } else {
@@ -757,7 +747,7 @@ async function buildNdaC(outputName) {
   if (y < 300) {
     page = doc.addPage([PAGE_W, PAGE_H]);
     totalPages++;
-      y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false);
+    y = drawHeader(page, fonts, PAGE_H - 62);
   }
 
   // IN WITNESS WHEREOF
@@ -794,7 +784,6 @@ async function buildNdaC(outputName) {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // VARIANT C DIGITAL: Bordered Traditional — Digital Fill Optimized
-// Same layout as Variant C but with light-blue field tints for screen visibility.
 // ═══════════════════════════════════════════════════════════════════════════
 
 function sigBlockCDigital(form, page, x, y, fonts, label, fields) {
@@ -821,12 +810,11 @@ async function buildWaiverDigitalC(outputName) {
   const doc = await PDFDocument.create();
   const fonts = await embedFonts(doc);
   const form = doc.getForm();
-  const logo = await embedStackedLogo(doc);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
 
   let y = PAGE_H - 62;
-  y = drawHeader(page, fonts, logo, y, 118, true);
+  y = drawHeader(page, fonts, y);
   y -= 16;
 
   // Digital instruction badge
@@ -865,7 +853,7 @@ async function buildWaiverDigitalC(outputName) {
   const result = drawClauses(page, fonts, waiverClauses, y, PAGE_W - MARGIN * 2, 24);
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
-      y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false);
+    y = drawHeader(page, fonts, PAGE_H - 62);
     const r2 = drawClauses(page, fonts, waiverClauses.slice(2), y, PAGE_W - MARGIN * 2, 24);
     y = r2.lastY;
   } else {
@@ -873,7 +861,7 @@ async function buildWaiverDigitalC(outputName) {
   }
 
   y -= 14;
-  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false); }
+  if (y < 280) { page = doc.addPage([PAGE_W, PAGE_H]); y = drawHeader(page, fonts, PAGE_H - 62); }
 
   page.drawText('IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above.', {
     x: MARGIN + 8, y, size: 10, font: fonts.bold, color: BLACK,
@@ -907,13 +895,12 @@ async function buildNdaDigitalC(outputName) {
   const doc = await PDFDocument.create();
   const fonts = await embedFonts(doc);
   const form = doc.getForm();
-  const logo = await embedStackedLogo(doc);
 
   let page = doc.addPage([PAGE_W, PAGE_H]);
   let totalPages = 1;
 
   let y = PAGE_H - 62;
-  y = drawHeader(page, fonts, logo, y, 118, true);
+  y = drawHeader(page, fonts, y);
   y -= 16;
 
   // Digital instruction badge
@@ -958,7 +945,7 @@ async function buildNdaDigitalC(outputName) {
   if (result.needsPage) {
     page = doc.addPage([PAGE_W, PAGE_H]);
     totalPages++;
-      y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false);
+    y = drawHeader(page, fonts, PAGE_H - 62);
     const r2 = drawClauses(page, fonts, ndaClauses.slice(2), y, PAGE_W - MARGIN * 2, 24);
     y = r2.lastY;
   } else {
@@ -969,7 +956,7 @@ async function buildNdaDigitalC(outputName) {
   if (y < 300) {
     page = doc.addPage([PAGE_W, PAGE_H]);
     totalPages++;
-      y = drawHeader(page, fonts, logo, PAGE_H - 62, 78, false);
+    y = drawHeader(page, fonts, PAGE_H - 62);
   }
 
   page.drawText('IN WITNESS WHEREOF, the parties have executed this Agreement as of the Effective Date.', {
@@ -1017,9 +1004,7 @@ async function main() {
     : (isFinal && args[finalIdx + 1] ? args[finalIdx + 1] : null);
 
   if (isFinal && variant) {
-    // Finalize a specific variant for both forms
     console.log(`Finalizing variant ${variant} for both forms...`);
-    // Regenerate the selected variant as the main fillable PDFs
     switch (variant) {
       case 'c':
         await buildWaiverDigitalC('waiver-digital.pdf');

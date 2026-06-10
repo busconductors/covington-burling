@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Preview — Variant E Header — Carlington & Burling LLP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Montserrat', Arial, sans-serif;
+      background: #E8E5DF;
+      color: #1A1A1A;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      gap: 56px;
+    }
+
+    .doc-label {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #5A5A6E;
+      text-align: center;
+    }
+    .doc-label span {
+      background: #0A1628;
+      color: #FFFFFF;
+      padding: 4px 14px;
+      border-radius: 3px;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+
+    .page {
+      width: 816px;
+      background: #FFFFFF;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+      position: relative;
+      padding: 0 72px 90px 72px;
+    }
+
+    /* ── VARIANT E HEADER ── */
+    .doc-header {
+      text-align: center;
+      padding-top: 56px;
+      padding-bottom: 0;
+    }
+    .doc-header .firm-name {
+      font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
+      font-size: 34px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: #0A1628;
+      line-height: 1.15;
+    }
+    .doc-header .firm-name .amp { color: #B08D57; }
+    .doc-header .gold-rule {
+      height: 1px;
+      background: #B08D57;
+      border: none;
+      margin: 22px 0 18px 0;
+      width: 100%;
+    }
+    .doc-header .tagline {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 9.5px;
+      font-weight: 400;
+      letter-spacing: 0.45em;
+      text-transform: uppercase;
+      color: #5A5A6E;
+    }
+    .doc-header .contact {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 8pt;
+      color: #5A5A6E;
+      margin-top: 20px;
+      letter-spacing: 0.02em;
+    }
+    .doc-header .contact .domain { color: #B08D57; font-weight: 500; }
+
+    /* Header-body separator */
+    .header-rule {
+      height: 1px;
+      background: #D9D5CC;
+      border: none;
+      margin-top: 28px;
+      width: 100%;
+    }
+
+    /* ── Document Title ── */
+    .doc-title {
+      font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
+      font-size: 15pt;
+      font-weight: 600;
+      text-align: center;
+      letter-spacing: 0.04em;
+      color: #0A1628;
+      margin-top: 36px;
+      margin-bottom: 0;
+      text-transform: uppercase;
+    }
+    .doc-title-rule {
+      height: 0.5px;
+      background: #B08D57;
+      border: none;
+      width: 280px;
+      margin: 6px auto 28px auto;
+    }
+
+    /* ── Fields ── */
+    .fields { margin-bottom: 28px; }
+    .field-row {
+      display: flex;
+      align-items: baseline;
+      margin-top: 16px;
+      font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
+      font-size: 11.5pt;
+      color: #1A1A1A;
+    }
+    .field-label {
+      width: 120px;
+      flex-shrink: 0;
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 9pt;
+      font-weight: 600;
+      color: #0A1628;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .field-value {
+      flex: 1;
+      border-bottom: 1px solid #1A1A1A;
+      min-width: 100px;
+      padding-bottom: 1px;
+    }
+
+    /* ── Body Text ── */
+    .body-text {
+      font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
+      font-size: 11.5pt;
+      line-height: 1.7;
+      color: #1A1A1A;
+      margin-top: 24px;
+    }
+
+    /* ── Clauses ── */
+    .clause {
+      margin-top: 20px;
+      font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
+      font-size: 11.5pt;
+      line-height: 1.7;
+      color: #1A1A1A;
+    }
+    .clause-header { font-weight: 600; color: #0A1628; }
+
+    /* ── Witness ── */
+    .witness {
+      font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
+      font-size: 11pt;
+      font-weight: 600;
+      font-style: italic;
+      color: #0A1628;
+      margin-top: 36px;
+      margin-bottom: 28px;
+    }
+
+    /* ── Signature Blocks ── */
+    .sig-columns { display: flex; gap: 10%; }
+    .sig-col { width: 45%; }
+    .sig-col-title {
+      font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
+      font-size: 11pt;
+      font-weight: 600;
+      color: #0A1628;
+      margin-bottom: 20px;
+    }
+    .sig-line {
+      border-bottom: 1px solid #1A1A1A;
+      margin-top: 24px;
+    }
+    .sig-line:first-child { margin-top: 0; }
+    .sig-label {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 8pt;
+      color: #5A5A6E;
+      margin-top: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Footer ── */
+    .doc-footer {
+      margin-top: 48px;
+      padding-top: 0;
+    }
+    .footer-rule {
+      height: 0.75px;
+      background: #D9D5CC;
+      border: none;
+      width: 100%;
+      margin-bottom: 8px;
+    }
+    .footer-content {
+      display: flex;
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 7.5pt;
+      color: #8A8A9E;
+    }
+    .footer-content > * { flex: 1; }
+    .footer-content > *:nth-child(2) { text-align: center; }
+    .footer-content > *:nth-child(3) { text-align: right; }
+
+    /* ── Specs banner ── */
+    .specs-banner {
+      margin-top: 16px;
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 10px;
+      color: #8A8A9E;
+      display: flex;
+      gap: 28px;
+      justify-content: center;
+    }
+    .specs-banner span { white-space: nowrap; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- WAIVER AND RELEASE OF LIABILITY            -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="doc-label">Waiver and Release of Liability <span>Variant E</span></div>
+<div class="page" id="waiver-page">
+  <!-- HEADER -->
+  <div class="doc-header">
+    <div class="firm-name">Carlington <span class="amp">&amp;</span> Burling</div>
+    <hr class="gold-rule">
+    <div class="tagline">LLP&ensp;&middot;&ensp;Attorneys at Law&ensp;&middot;&ensp;Since 1919</div>
+    <div class="contact">850 Tenth Street NW, Washington, DC 20001&ensp;&middot;&ensp;202-662-6000&ensp;&middot;&ensp;<span class="domain">covbur.com</span></div>
+  </div>
+  <hr class="header-rule">
+
+  <!-- TITLE -->
+  <div class="doc-title">Waiver and Release of Liability</div>
+  <hr class="doc-title-rule">
+
+  <!-- FIELDS -->
+  <div class="fields">
+    <div class="field-row">
+      <span class="field-label">Client Name</span>
+      <span class="field-value">&nbsp;</span>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Date</span>
+      <span class="field-value">&nbsp;</span>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Matter</span>
+      <span class="field-value">&nbsp;</span>
+    </div>
+  </div>
+
+  <!-- INTRO -->
+  <div class="body-text">
+    This Waiver and Release of Liability ("Agreement") is entered into by and between the undersigned client ("Client") and Carlington &amp; Burling LLP, a District of Columbia limited liability partnership ("Firm").
+  </div>
+
+  <!-- CLAUSES -->
+  <div class="clause">
+    <span class="clause-header">1. Acknowledgment of Risk.</span>
+    The Client acknowledges that all legal matters involve inherent risks and uncertainties. The Client understands that Carlington &amp; Burling LLP makes no guarantees regarding specific outcomes and that past results do not guarantee future results. The Client has been advised of the potential risks associated with the matter described above and voluntarily assumes all such risks.
+  </div>
+  <div class="clause">
+    <span class="clause-header">2. Release.</span>
+    To the fullest extent permitted by law, the Client hereby releases, waives, and discharges Carlington &amp; Burling LLP, its partners, associates, employees, and agents from any and all liability, claims, demands, actions, and causes of action arising out of or related to the matter described above, except for claims arising from gross negligence or willful misconduct on the part of the Firm.
+  </div>
+  <div class="clause">
+    <span class="clause-header">3. Indemnification.</span>
+    The Client agrees to indemnify, defend, and hold harmless Carlington &amp; Burling LLP, its partners, associates, employees, and agents from and against any and all third-party claims, liabilities, damages, losses, and expenses (including reasonable attorneys' fees) arising out of or in connection with the Client's actions or omissions in connection with the matter described above.
+  </div>
+  <div class="clause">
+    <span class="clause-header">4. Governing Law.</span>
+    This Agreement shall be governed by and construed in accordance with the laws of the District of Columbia, without regard to its conflict of laws principles. Any dispute arising under this Agreement shall be resolved exclusively in the courts of the District of Columbia.
+  </div>
+  <div class="clause">
+    <span class="clause-header">5. Entire Agreement.</span>
+    This document constitutes the entire agreement between the parties with respect to the subject matter hereof and supersedes all prior and contemporaneous agreements, understandings, and representations, whether oral or written. No modification or amendment to this Agreement shall be effective unless in writing and signed by both parties.
+  </div>
+
+  <!-- WITNESS -->
+  <div class="witness">IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above.</div>
+
+  <!-- SIGNATURES -->
+  <div class="sig-columns">
+    <div class="sig-col">
+      <div class="sig-col-title">Client</div>
+      <div class="sig-line"></div>
+      <div class="sig-label">Signature</div>
+      <div class="sig-line"></div>
+      <div class="sig-label">Print Name</div>
+      <div class="sig-line"></div>
+      <div class="sig-label">Date</div>
+    </div>
+    <div class="sig-col">
+      <div class="sig-col-title">For Carlington &amp; Burling LLP</div>
+      <div class="sig-line"></div>
+      <div class="sig-label">Authorized Signature</div>
+      <div class="sig-line"></div>
+      <div class="sig-label">Print Name</div>
+      <div class="sig-line"></div>
+      <div class="sig-label">Date</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <hr class="footer-rule">
+    <div class="footer-content">
+      <div>WAIVER AND RELEASE OF LIABILITY</div>
+      <div>Confidential &middot; Attorney-Client Privileged</div>
+      <div>Page 1 of 1</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- MUTUAL NON-DISCLOSURE AGREEMENT            -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="doc-label">Mutual Non-Disclosure Agreement <span>Variant E</span></div>
+<div class="page" id="nda-page">
+  <!-- HEADER -->
+  <div class="doc-header">
+    <div class="firm-name">Carlington <span class="amp">&amp;</span> Burling</div>
+    <hr class="gold-rule">
+    <div class="tagline">LLP&ensp;&middot;&ensp;Attorneys at Law&ensp;&middot;&ensp;Since 1919</div>
+    <div class="contact">850 Tenth Street NW, Washington, DC 20001&ensp;&middot;&ensp;202-662-6000&ensp;&middot;&ensp;<span class="domain">covbur.com</span></div>
+  </div>
+  <hr class="header-rule">
+
+  <!-- TITLE -->
+  <div class="doc-title">Mutual Non-Disclosure Agreement</div>
+  <hr class="doc-title-rule">
+
+  <!-- FIELDS -->
+  <div class="fields">
+    <div class="field-row">
+      <span class="field-label">Effective Date</span>
+      <span class="field-value">&nbsp;</span>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Client Name</span>
+      <span class="field-value">&nbsp;</span>
+    </div>
+    <div class="field-row">
+      <span class="field-label">Client Address</span>
+      <span class="field-value">&nbsp;</span>
+    </div>
+  </div>
+
+  <!-- RECITALS -->
+  <div class="body-text">
+    This Mutual Non-Disclosure Agreement (the "Agreement") is entered into by and between <strong>Carlington &amp; Burling LLP</strong>, with offices at 850 Tenth Street NW, Washington, DC 20001 (the "Firm"), and the Client identified above (collectively, the "Parties").
+  </div>
+
+  <!-- CLAUSES -->
+  <div class="clause">
+    <span class="clause-header">1. Definition of Confidential Information.</span>
+    "Confidential Information" means any and all information, data, documents, and materials, whether oral, written, or in electronic form, disclosed by one Party (the "Disclosing Party") to the other Party (the "Receiving Party"), that is identified as confidential or that a reasonable person would understand to be confidential given the nature of the information and the circumstances of disclosure. Confidential Information includes, but is not limited to, trade secrets, business plans, financial information, client lists, legal strategies, and proprietary methodologies.
+  </div>
+  <div class="clause">
+    <span class="clause-header">2. Obligations.</span>
+    The Receiving Party shall: (a) protect the Disclosing Party's Confidential Information using the same degree of care used to protect its own confidential information, but in no event less than reasonable care; (b) use the Confidential Information solely for the purpose of evaluating or engaging in a business relationship between the Parties; (c) limit access to the Confidential Information to those employees and agents who have a need to know and who are bound by confidentiality obligations at least as restrictive as those set forth herein; and (d) not disclose, copy, or distribute the Confidential Information to any third party without the prior written consent of the Disclosing Party.
+  </div>
+  <div class="clause">
+    <span class="clause-header">3. Exclusions.</span>
+    Confidential Information does not include information that the Receiving Party can demonstrate: (a) is or becomes publicly available through no breach of this Agreement; (b) was rightfully received from a third party without restriction and without breach of any obligation of confidentiality; (c) was independently developed by the Receiving Party without use of or reference to the Disclosing Party's Confidential Information; or (d) is required to be disclosed by law, regulation, or court order, provided the Receiving Party gives the Disclosing Party prompt written notice and reasonable assistance to seek a protective order.
+  </div>
+  <div class="clause">
+    <span class="clause-header">4. Term.</span>
+    This Agreement shall remain in effect for a period of two (2) years from the Effective Date. The obligations of confidentiality and non-use set forth herein shall survive the expiration or termination of this Agreement for a period of three (3) years thereafter. Upon the written request of the Disclosing Party, the Receiving Party shall promptly return or destroy all copies of the Confidential Information and certify such return or destruction in writing.
+  </div>
+  <div class="clause">
+    <span class="clause-header">5. Governing Law.</span>
+    This Agreement shall be governed by and construed in accordance with the laws of the District of Columbia, without regard to its conflict of laws principles. Any dispute arising out of or relating to this Agreement shall be brought exclusively in the federal or state courts located in the District of Columbia, and each Party consents to the personal jurisdiction and venue of such courts.
+  </div>
+
+  <!-- WITNESS -->
+  <div class="witness">IN WITNESS WHEREOF, the parties have executed this Agreement as of the Effective Date set forth above.</div>
+
+  <!-- SIGNATURES (NDA: Firm left, Client right) -->
+  <div class="sig-columns">
+    <div class="sig-col">
+      <div class="sig-col-title">For Carlington &amp; Burling LLP</div>
+      <div class="sig-line"></div>
+      <div class="sig-label">Authorized Signature</div>
+      <div class="sig-line"></div>
+      <div class="sig-label">Print Name</div>
+      <div class="sig-line"></div>
+      <div class="sig-label">Title</div>
+      <div class="sig-line"></div>
+      <div class="sig-label">Date</div>
+    </div>
+    <div class="sig-col">
+      <div class="sig-col-title">Client</div>
+      <div class="sig-line"></div>
+      <div class="sig-label">Signature</div>
+      <div class="sig-line"></div>
+      <div class="sig-label">Print Name</div>
+      <div class="sig-line"></div>
+      <div class="sig-label">Title</div>
+      <div class="sig-line"></div>
+      <div class="sig-label">Date</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <hr class="footer-rule">
+    <div class="footer-content">
+      <div>MUTUAL NON-DISCLOSURE AGREEMENT</div>
+      <div>Confidential &middot; Attorney-Client Privileged</div>
+      <div>Page 1 of 1</div>
+    </div>
+  </div>
+</div>
+
+<div class="specs-banner">
+  <span>Firm name: 34pt Cormorant Garamond 600</span>
+  <span>Rule: 100% width, 1px gold</span>
+  <span>Tagline: 9.5pt Montserrat, 0.45em tracking</span>
+  <span>Contact: 8pt Montserrat, gold domain</span>
+  <span>Header rule: 1px #D9D5CC</span>
+  <span>No navy band &middot; No crest</span>
+</div>
+
+</body>
+</html>

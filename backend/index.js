@@ -83,8 +83,11 @@ function sendResendEmail(toEmail, toName, formType, downloadToken, adminMessage)
 <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FAF8F5;padding:40px 0;">
 <tr><td align="center">
 <table width="600" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF;border:1px solid #D5D5DE;border-radius:4px;">
-  <tr><td style="background-color:#0A1628;padding:32px 40px;text-align:center;">
-    <p style="font-family:Georgia,'Times New Roman',serif;font-size:28px;font-weight:600;color:#FFFFFF;margin:0;letter-spacing:-0.5px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling LLP</p>
+  <tr><td style="padding:36px 40px 0;text-align:center;">
+    <p style="font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:600;color:#0A1628;margin:0;letter-spacing:0.5px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</p>
+    <hr style="border:none;border-top:1px solid #B08D57;margin:14px 80px 10px;">
+    <p style="font-family:Arial,Helvetica,sans-serif;font-size:8.5px;letter-spacing:4px;color:#5A5A6E;margin:0;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; ATTORNEYS AT LAW &nbsp;&#183;&nbsp; SINCE 1919</p>
+    <hr style="border:none;border-top:1px solid #D9D5CC;margin:18px 0 0;">
   </td></tr>
   <tr><td style="padding:40px;">
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:22px;color:#0A1628;margin:0 0 20px;font-weight:600;">Your Legal Forms Are Ready</p>
@@ -93,8 +96,8 @@ function sendResendEmail(toEmail, toName, formType, downloadToken, adminMessage)
     <p style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#1F1F2E;line-height:1.6;margin:0 0 12px;">Your request for the following legal form(s) has been approved:</p>
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:17px;color:#0A1628;font-weight:600;margin:0 0 20px;">${formLabel}</p>
     ${linksHtml}
-    <p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">These links will expire in 7 days. If you have any questions, please contact our office at <a href="tel:+12026626000" style="color:#6B1C2E;">202-662-6000</a>.</p>
-    <p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:12px 0 0;">After completing your form(s), email them to <a href="mailto:info@carlingtonburling.com" style="color:#6B1C2E;">info@carlingtonburling.com</a> or deliver to 850 Tenth Street NW, Washington, DC 20001.</p>
+    <p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">These links will expire in 7 days. If you have any questions, please contact our office at <a href="tel:+12026626000" style="color:#B08D57;">202-662-6000</a>.</p>
+    <p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:12px 0 0;">After completing your form(s), email them to <a href="mailto:info@carlingtonburling.com" style="color:#B08D57;">info@carlingtonburling.com</a> or deliver to 850 Tenth Street NW, Washington, DC 20001.</p>
   </td></tr>
   <tr><td style="background-color:#FAF8F5;padding:24px 40px;border-top:1px solid #D5D5DE;">
     <p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Carlington &amp; Burling LLP, 850 Tenth Street NW, Washington, DC 20001. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>
@@ -127,8 +130,11 @@ function sendResendRejectionEmail(toEmail, toName, reason) {
     '<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FAF8F5;padding:40px 0;">' +
     '<tr><td align="center">' +
     '<table width="600" cellpadding="0" cellspacing="0" style="background-color:#FFFFFF;border:1px solid #D5D5DE;border-radius:4px;">' +
-    '<tr><td style="background-color:#0A1628;padding:32px 40px;text-align:center;">' +
-    '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:28px;font-weight:600;color:#FFFFFF;margin:0;letter-spacing:-0.5px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling LLP</p>' +
+    '<tr><td style="padding:36px 40px 0;text-align:center;">' +
+    '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:24px;font-weight:600;color:#0A1628;margin:0;letter-spacing:0.5px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</p>' +
+    '<hr style="border:none;border-top:1px solid #B08D57;margin:14px 80px 10px;">' +
+    '<p style="font-family:Arial,Helvetica,sans-serif;font-size:8.5px;letter-spacing:4px;color:#5A5A6E;margin:0;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; ATTORNEYS AT LAW &nbsp;&#183;&nbsp; SINCE 1919</p>' +
+    '<hr style="border:none;border-top:1px solid #D9D5CC;margin:18px 0 0;">' +
     '</td></tr>' +
     '<tr><td style="padding:40px;">' +
     '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:22px;color:#0A1628;margin:0 0 20px;font-weight:600;">Your Form Request Has Been Declined</p>' +
@@ -138,7 +144,7 @@ function sendResendRejectionEmail(toEmail, toName, reason) {
     '<p style="font-family:Montserrat,Arial,sans-serif;font-size:13px;color:#991B1B;margin:0;font-weight:600;">Reason:</p>' +
     '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#1F1F2E;line-height:1.6;margin:4px 0 0;">' + reason.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</p>' +
     '</div>' +
-    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">If you have any questions, please contact our office at <a href="tel:+12026626000" style="color:#6B1C2E;">202-662-6000</a> or email us at <a href="mailto:info@carlingtonburling.com" style="color:#6B1C2E;">info@carlingtonburling.com</a>.</p>' +
+    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">If you have any questions, please contact our office at <a href="tel:+12026626000" style="color:#B08D57;">202-662-6000</a> or email us at <a href="mailto:info@carlingtonburling.com" style="color:#B08D57;">info@carlingtonburling.com</a>.</p>' +
     '</td></tr>' +
     '<tr><td style="background-color:#FAF8F5;padding:24px 40px;border-top:1px solid #D5D5DE;">' +
     '<p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Carlington &amp; Burling LLP, 850 Tenth Street NW, Washington, DC 20001. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>' +
@@ -566,18 +572,12 @@ app.get('/api/admin/analytics', requireAuth, function (req, res) {
 // ── Email Header ───────────────────────────────────────────────────
 
 function emailHeader() {
-  return '<td style="background-color:#0A1628;padding:32px 36px 28px;">'
-    + '<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;"><tr>'
-    + '<td style="vertical-align:top;">'
-    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:22px;font-weight:bold;color:#FFFFFF;letter-spacing:0.3px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
-    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:3px;color:#9AA3B2;margin-top:4px;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; Attorneys at Law</div>'
-    + '</td>'
-    + '<td style="vertical-align:top;text-align:right;">'
-    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;color:#A0A0B4;line-height:1.7;">850 Tenth Street NW<br>Washington, DC 20001<br>202-662-6000</div>'
-    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;font-weight:bold;color:#C9A66B;margin-top:2px;">carlingtonburling.com</div>'
-    + '</td></tr></table>'
-    + '</td></tr>'
-    + '<tr><td style="background-color:#B08D57;height:2px;line-height:2px;font-size:0;">&nbsp;</td>';
+  return '<td style="padding:36px 40px 0;text-align:center;">'
+    + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:24px;font-weight:bold;color:#0A1628;letter-spacing:0.5px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
+    + '<hr style="border:none;border-top:1px solid #B08D57;margin:14px 80px 10px;">'
+    + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:8.5px;letter-spacing:4px;color:#5A5A6E;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; ATTORNEYS AT LAW &nbsp;&#183;&nbsp; SINCE 1919</div>'
+    + '<hr style="border:none;border-top:1px solid #D9D5CC;margin:18px 0 0;">'
+    + '</td></tr>';
 }
 
 // ── Shared Email Footer ──────────────────────────────────────────────
@@ -588,7 +588,7 @@ function emailFooter() {
     + '<div style="font-size:12px;color:#5A6577;margin-top:8px;line-height:1.6;">850 Tenth Street NW, Washington, DC 20001<br>'
     + '202&#8209;662&#8209;6000 &nbsp;|&nbsp; <a href="https://carlingtonburling.com" style="color:#B08D57;text-decoration:none;">carlingtonburling.com</a></div>'
     + '<div style="font-size:10px;color:#9AA3B2;margin-top:12px;letter-spacing:0.5px;text-transform:uppercase;">'
-    + 'Founded 1919 &nbsp;&#183;&nbsp; This message is confidential &amp; attorney&#8209;client privileged</div>'
+    + 'SINCE 1919 &nbsp;&#183;&nbsp; This message is confidential &amp; attorney&#8209;client privileged</div>'
     + '</td>';
 }
 
