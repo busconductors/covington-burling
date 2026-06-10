@@ -24,7 +24,7 @@
   var SUBTLE     = rgb(0.604, 0.620, 0.698);   // #9AA3B2
   var HEADER_TEXT = rgb(0.627, 0.635, 0.706);  // #A0A0B4
 
-  var CONTACT_LINE = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  covbur.com';
+  var CONTACT_LINE = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  carlingtonburling.com';
   var TAGLINE = 'LLP  ·  ATTORNEYS AT LAW  ·  SINCE 1919';
 
   var FONT_PATHS = [
@@ -155,7 +155,7 @@
     var contactY = tagY - 20;
     // Draw muted portion, then gold domain
     var contactPre = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
-    var contactDomain = 'covbur.com';
+    var contactDomain = 'carlingtonburling.com';
     var preW = fonts.sans.widthOfTextAtSize(contactPre, contactSize);
     page.drawText(contactPre, { x: centerX - contactW / 2, y: contactY, size: contactSize, font: fonts.sans, color: SLATE });
     page.drawText(contactDomain, { x: centerX - contactW / 2 + preW, y: contactY, size: contactSize, font: fonts.sansMed, color: GOLD });
