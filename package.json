@@ -3,8 +3,7 @@
   "version": "1.0.1",
   "description": "Carlington & Burling LLP — Professional law firm website",
   "private": true,
-  "main": "api/server.js",
-  "scripts": {
+    "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
     "test": "vitest run",

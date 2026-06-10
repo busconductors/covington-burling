@@ -793,6 +793,11 @@ app.get('/api/admin/activity', requireAuth, function (req, res) {
   }
 });
 
+// Serve index.html for root (Vercel may route / to Express)
+app.get('/', function (req, res) {
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+});
+
 // ── Export for Vercel / listen when run directly ─────────────────────
 module.exports = app;
 
