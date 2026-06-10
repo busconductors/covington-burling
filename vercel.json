@@ -2,7 +2,15 @@
   "outputDirectory": "public",
   "cleanUrls": true,
   "trailingSlash": false,
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index" }
-  ]
+  "experimentalServices": {
+    "frontend": {
+      "routePrefix": "/",
+      "framework": "static"
+    },
+    "backend": {
+      "root": "backend",
+      "entrypoint": "index.js",
+      "routePrefix": "/api"
+    }
+  }
 }
