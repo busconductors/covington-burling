@@ -39,7 +39,7 @@ carlington-burling/
 
 ## Firm Data
 
-All firm and lawyer details verified. Carlington & Burling LLP is an active Am Law 100 firm. David M. Gottesman is a verified partner (DC Bar #1003706). Domain carlingtonburling.com was available at time of research — verify before purchase.
+All firm and lawyer details verified. Carlington & Burling LLP is an active Am Law 100 firm. Max Theodore is the featured partner. Domain carlingtonburling.com was available at time of research — verify before purchase.
 
 - **HQ:** 850 Tenth Street NW, Washington, DC 20001
 - **Phone:** 202-662-6000
@@ -122,7 +122,7 @@ This site is designed to meet WCAG 2.1 AA standards:
 ## User Checklist
 
 - [ ] Verify domain availability and purchase carlingtonburling.com or alternative
-- [ ] Replace placeholder headshot image for David M. Gottesman
+- [x] Replace placeholder headshot image for Max Theodore
 - [ ] Verify phone number 202-662-6000 before publishing
 - [ ] Set up contact form email integration (currently logs to console)
 - [ ] Upgrade Firebase to Blaze plan for Cloud Functions
