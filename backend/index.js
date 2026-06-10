@@ -274,6 +274,9 @@ app.post('/api/request-forms', function (req, res) {
     if (!data.name || !data.email || !data.formType || !data.matterDescription) {
       return res.status(400).json({ error: 'Missing required fields.' });
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      return res.status(400).json({ error: 'Invalid email address.' });
+    }
 
     var firestore = getDb();
     var doc = {
@@ -764,9 +767,12 @@ app.post('/api/admin/send-email-attachment', requireAuth, function (req, res) {
 app.get('/api/admin/activity', requireAuth, function (req, res) {
   try {
     var firestore = getDb();
+    var limit = parseInt((req.query.limit || '50'), 10);
+    if (isNaN(limit) || limit < 1) limit = 50;
+    if (limit > 200) limit = 200;
     firestore.collection('admin-activity')
       .orderBy('timestamp', 'desc')
-      .limit(50)
+      .limit(limit)
       .get()
       .then(function (snapshot) {
         var entries = [];
