@@ -8,3 +8,4 @@ dist/
 .superpowers/
 .vercel/
 backend/service-account.json
+.vercel
