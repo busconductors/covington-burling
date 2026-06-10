@@ -3,9 +3,8 @@ node_modules/
 *.log
 .env
 dist/
-.firebase/
 .gstack/
 .superpowers/
 .vercel/
-backend/service-account.json
 .vercel
+.env*
