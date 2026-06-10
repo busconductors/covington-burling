@@ -3,10 +3,6 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "experimentalServices": {
-    "frontend": {
-      "routePrefix": "/",
-      "framework": "static"
-    },
     "backend": {
       "root": "backend",
       "entrypoint": "index.js",
