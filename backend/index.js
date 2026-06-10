@@ -211,6 +211,12 @@ function requireAuth(req, res, next) {
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
+app.use(function (err, req, res, next) {
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'Invalid request body.' });
+  }
+  next(err);
+});
 
 // Health check
 app.get('/api/health', function (req, res) {

@@ -63,8 +63,15 @@
         body: JSON.stringify({ password: pw })
       })
         .then(function (r) {
-          if (!r.ok) return r.json().then(function (err) { throw err; });
-          return r.json();
+          var status = r.status;
+          return r.text().then(function (body) {
+            var data;
+            try { data = JSON.parse(body); } catch (e) {
+              throw { error: status === 401 ? 'Invalid password.' : 'Server error (' + status + '). Use production URL only.' };
+            }
+            if (!r.ok) throw data;
+            return data;
+          });
         })
         .then(function (data) {
           token = data.token;
