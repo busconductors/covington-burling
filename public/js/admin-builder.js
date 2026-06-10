@@ -222,7 +222,7 @@
     if (sf) sf.textContent = docState.fields.length;
     if (sc) sc.textContent = docState.clauses.length;
     if (ss) ss.textContent = docState.signatureBlocks.length;
-    if (sm) sm.textContent = 'Navy Band Letterhead';
+    if (sm) sm.textContent = 'Carlington & Burling Letterhead';
     scheduleAutoSave();
     schedulePreviewRefresh();
   }
