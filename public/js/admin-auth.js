@@ -77,7 +77,9 @@
           token = data.token;
           sessionStorage.setItem('admin_token', token);
           if (loginError) loginError.textContent = '';
-          showDashboard();
+          btn.textContent = origText;
+          btn.disabled = false;
+          setTimeout(showDashboard, 0);
         })
         .catch(function (err) {
           btn.textContent = origText;
