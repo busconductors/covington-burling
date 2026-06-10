@@ -16,48 +16,40 @@ module.exports = function ndaDefinition({ clientName, clientAddress, effectiveDa
 
   return {
     pageSize: 'LETTER',
-    pageMargins: [72, 0, 72, 72],
+    pageMargins: [72, 72, 72, 72],
 
     content: [
-      // ── Navy band header ──
+      // ── Variant E header (centered, text-only, no navy band) ──
       {
-        table: {
-          widths: ['*'],
-          body: [[{
-            fillColor: '#0A1628',
-            margin: [0, 0, 0, 0],
-            stack: [
-              {
-                columns: [
-                  {
-                    width: 'auto',
-                    stack: [
-                      { text: [{ text: 'Carlington ', font: 'Times', bold: true, color: '#FFFFFF' }, { text: '&', font: 'Times', bold: true, color: '#B08D57' }, { text: ' Burling', font: 'Times', bold: true, color: '#FFFFFF' }], fontSize: 24, characterSpacing: 0.5 },
-                      { text: 'LLP  ·  Attorneys at Law', fontSize: 8, font: 'Helvetica', color: '#9AA3B2', characterSpacing: 4, margin: [0, 4, 0, 0] }
-                    ]
-                  },
-                  {
-                    width: '*',
-                    alignment: 'right',
-                    stack: [
-                      { text: '850 Tenth Street NW', fontSize: 8, font: 'Helvetica', color: '#A0A0B4' },
-                      { text: 'Washington, DC 20001', fontSize: 8, font: 'Helvetica', color: '#A0A0B4', margin: [0, 2, 0, 0] },
-                      { text: '202-662-6000', fontSize: 8, font: 'Helvetica', color: '#A0A0B4', margin: [0, 2, 0, 0] },
-                      { text: 'carlingtonburling.com', fontSize: 8, font: 'Helvetica', bold: true, color: '#C9A66B', margin: [0, 2, 0, 0] }
-                    ]
-                  }
-                ],
-                margin: [72, 32, 72, 28]
-              }
-            ]
-          }]]
-        },
-        layout: 'noBorders',
-        margin: [-72, -72, -72, 0]
+        text: [
+          { text: 'Carlington ', font: 'Times', bold: true, color: '#0A1628' },
+          { text: '&', font: 'Times', bold: true, color: '#B08D57' },
+          { text: ' Burling', font: 'Times', bold: true, color: '#0A1628' }
+        ],
+        fontSize: 24,
+        characterSpacing: 2,
+        alignment: 'center',
+        margin: [0, 0, 0, 0]
       },
 
-      // ── Gold accent stripe ──
-      { canvas: [{ type: 'line', x1: -72, y1: 0, x2: 540, y2: 0, lineWidth: 2, lineColor: '#B08D57' }], margin: [0, 0, 0, 0] },
+      // ── Gold rule ──
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 468, y2: 0, lineWidth: 1, lineColor: '#B08D57' }], margin: [0, 18, 0, 14] },
+
+      // ── Tagline ──
+      { text: 'LLP  ·  ATTORNEYS AT LAW  ·  SINCE 1919', fontSize: 8, font: 'Helvetica', color: '#5A5A6E', characterSpacing: 6, alignment: 'center', margin: [0, 0, 0, 0] },
+
+      // ── Contact ──
+      {
+        text: [
+          { text: '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ', fontSize: 7.5, font: 'Helvetica', color: '#5A5A6E' },
+          { text: 'covbur.com', fontSize: 7.5, font: 'Helvetica', bold: true, color: '#B08D57' }
+        ],
+        alignment: 'center',
+        margin: [0, 16, 0, 0]
+      },
+
+      // ── Header-body separator ──
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 468, y2: 0, lineWidth: 1, lineColor: '#D9D5CC' }], margin: [0, 22, 0, 0] },
 
       // ── Spacer before title ──
       { text: '', margin: [0, 28, 0, 0] },

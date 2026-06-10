@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document Header Preview — Carlington & Burling LLP</title>
+  <title>Document Header — Variant E — Carlington & Burling LLP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -21,9 +21,8 @@
       gap: 48px;
     }
 
-    /* ── Page Wrapper ── */
     .page {
-      width: 816px; /* Letter @ 96dpi */
+      width: 816px;
       min-height: 1056px;
       background: #FFFFFF;
       box-shadow: 0 4px 24px rgba(0,0,0,0.15);
@@ -31,103 +30,48 @@
       padding: 72px 72px 90px 72px;
     }
 
-    /* ── HEADER: Navy Band ── */
-    .doc-header--navy-band {
-      margin: -72px -72px 0 -72px;
-      background: #0A1628;
-      padding: 36px 72px 32px 72px;
-      color: #FFFFFF;
-    }
-    .doc-header--navy-band .header-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-    .doc-header--navy-band .firm-name {
-      font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
-      font-size: 28px;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      color: #FFFFFF;
-      line-height: 1.1;
-    }
-    .doc-header--navy-band .firm-name .ampersand { color: #B08D57; }
-    .doc-header--navy-band .firm-meta {
-      font-family: 'Montserrat', Arial, sans-serif;
-      font-size: 9px;
-      font-weight: 400;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: #9AA3B2;
-      margin-top: 6px;
-    }
-    .doc-header--navy-band .contact-block {
-      text-align: right;
-      font-family: 'Montserrat', Arial, sans-serif;
-      font-size: 8.5px;
-      line-height: 1.7;
-      color: #A0A0B4;
-    }
-    .doc-header--navy-band .contact-block .domain {
-      color: #C9A66B;
-      font-weight: 500;
-    }
-    .doc-header--navy-band .gold-stripe {
-      height: 2px;
-      background: #B08D57;
-      margin-top: 24px;
-    }
-
-    /* ── HEADER: Classic Clean (no band) ── */
-    .doc-header--clean {
+    /* ── Variant E Header: centered, text-only ── */
+    .doc-header {
+      text-align: center;
       padding-bottom: 0;
     }
-    .doc-header--clean .header-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      padding-bottom: 16px;
-    }
-    .doc-header--clean .firm-name {
+    .doc-header .firm-name {
       font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
       font-size: 26px;
       font-weight: 600;
       letter-spacing: 0.02em;
       color: #0A1628;
-      line-height: 1.1;
+      line-height: 1.2;
     }
-    .doc-header--clean .firm-name .ampersand { color: #B08D57; }
-    .doc-header--clean .firm-meta {
+    .doc-header .firm-name .ampersand { color: #B08D57; }
+    .doc-header .gold-rule {
+      border: none;
+      border-top: 1px solid #B08D57;
+      width: 100%;
+      margin: 14px 0 10px 0;
+    }
+    .doc-header .tagline {
       font-family: 'Montserrat', Arial, sans-serif;
-      font-size: 8.5px;
+      font-size: 9px;
       font-weight: 400;
-      letter-spacing: 0.2em;
+      letter-spacing: 0.45em;
       text-transform: uppercase;
       color: #5A5A6E;
-      margin-top: 4px;
     }
-    .doc-header--clean .contact-block {
-      text-align: right;
+    .doc-header .contact-line {
       font-family: 'Montserrat', Arial, sans-serif;
-      font-size: 8.5px;
-      line-height: 1.7;
+      font-size: 8px;
       color: #5A5A6E;
-      padding-bottom: 2px;
+      margin-top: 10px;
     }
-    .doc-header--clean .contact-block .domain {
+    .doc-header .contact-line .domain {
       color: #B08D57;
       font-weight: 500;
     }
-    .doc-header--clean .rule {
+    .doc-header .light-rule {
       border: none;
       border-top: 1px solid #D9D5CC;
-      margin: 0;
-    }
-    .doc-header--clean .gold-rule {
-      border: none;
-      border-top: 1.5px solid #B08D57;
-      width: 100%;
-      margin: 10px 0 0 0;
+      margin: 18px 0 0 0;
     }
 
     /* ── Title ── */
@@ -183,7 +127,6 @@
     /* ── Clauses ── */
     .clause {
       margin-bottom: 18px;
-      padding-left: 0;
     }
     .clause-header {
       font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
@@ -200,10 +143,8 @@
       padding-left: 28px;
     }
 
-    /* ── Signature Block ── */
-    .sig-section {
-      margin-top: 40px;
-    }
+    /* ── Signatures ── */
+    .sig-section { margin-top: 40px; }
     .sig-witness {
       font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
       font-size: 10.5pt;
@@ -212,13 +153,8 @@
       margin-bottom: 28px;
       font-style: italic;
     }
-    .sig-columns {
-      display: flex;
-      gap: 48px;
-    }
-    .sig-col {
-      flex: 1;
-    }
+    .sig-columns { display: flex; gap: 48px; }
+    .sig-col { flex: 1; }
     .sig-col-title {
       font-family: 'Cormorant Garamond', Garamond, 'Times New Roman', serif;
       font-size: 11pt;
@@ -238,13 +174,6 @@
       margin-bottom: 16px;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-    }
-    .sig-seal {
-      font-family: 'Montserrat', Arial, sans-serif;
-      font-size: 7px;
-      color: #8A8A9E;
-      float: right;
-      margin-top: -20px;
     }
 
     /* ── Footer ── */
@@ -270,7 +199,6 @@
       letter-spacing: 0.04em;
     }
 
-    /* ── Labels for preview ── */
     .preview-label {
       font-family: 'Montserrat', Arial, sans-serif;
       font-size: 11px;
@@ -280,28 +208,7 @@
       letter-spacing: 0.1em;
       margin-bottom: 8px;
     }
-    .preview-label span {
-      font-weight: 400;
-      color: #5A5A6E;
-      font-size: 10px;
-      margin-left: 8px;
-    }
 
-    /* ── Comparison grid ── */
-    .comparison {
-      display: flex;
-      gap: 32px;
-      max-width: 1700px;
-      width: 100%;
-    }
-    .comparison .col {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    /* ── Badge ── */
     .badge {
       display: inline-block;
       padding: 3px 10px;
@@ -311,133 +218,32 @@
       text-transform: uppercase;
       letter-spacing: 0.06em;
       margin-bottom: 16px;
+      background: #DCEFE5; color: #2D6A4F;
     }
-    .badge--recommended { background: #DCEFE5; color: #2D6A4F; }
-    .badge--alternative { background: #EFECE7; color: #5A5A6E; }
+
+    .comparison { display: flex; gap: 32px; max-width: 1700px; width: 100%; }
+    .comparison .col { flex: 1; display: flex; flex-direction: column; align-items: center; }
   </style>
 </head>
 <body>
 
-<h1 style="font-family:'Cormorant Garamond',serif;font-size:32px;color:#0A1628;margin-bottom:8px;">Document Header Redesign</h1>
-<p style="color:#5A5A6E;margin-bottom:32px;max-width:600px;text-align:center;line-height:1.6;">Two options for the new Carlington &amp; Burling document header. Both use proper brand fonts, consistent spacing, and professional legal-document typography.</p>
+<h1 style="font-family:'Cormorant Garamond',serif;font-size:32px;color:#0A1628;margin-bottom:8px;">Variant E — Document Header Standard</h1>
+<p style="color:#5A5A6E;margin-bottom:32px;max-width:700px;text-align:center;line-height:1.6;">Centered text-only header. Cormorant Garamond 600 firm name, 1px gold rule, Montserrat tagline &amp; contact line, light separator rule. Applied uniformly to all firm documents.</p>
 
 <div class="comparison">
 
-  <!-- ═══════════ OPTION 1: NAVY BAND ═══════════ -->
+  <!-- ═══════════ WAIVER ═══════════ -->
   <div class="col">
-    <div class="badge badge--recommended">Recommended</div>
+    <div class="preview-label">Waiver and Release of Liability</div>
 
     <div class="page">
       <!-- HEADER -->
-      <div class="doc-header--navy-band">
-        <div class="header-top">
-          <div>
-            <div class="firm-name">Carlington <span class="ampersand">&amp;</span> Burling</div>
-            <div class="firm-meta">LLP &nbsp;·&nbsp; Attorneys at Law</div>
-          </div>
-          <div class="contact-block">
-            <div>850 Tenth Street NW</div>
-            <div>Washington, DC 20001</div>
-            <div>202-662-6000</div>
-            <div class="domain">carlingtonburling.com</div>
-          </div>
-        </div>
-        <div class="gold-stripe"></div>
-      </div>
-
-      <!-- TITLE -->
-      <div class="doc-title">Waiver and Release of Liability</div>
-      <hr class="doc-title-rule">
-
-      <!-- BODY -->
-      <div class="doc-body">
-        <div class="field-row">
-          <span class="field-label">Client Name</span>
-          <span class="field-value">&nbsp;</span>
-        </div>
-        <div class="field-row">
-          <span class="field-label">Date</span>
-          <span class="field-value">&nbsp;</span>
-        </div>
-        <div class="field-row">
-          <span class="field-label">Matter</span>
-          <span class="field-value">&nbsp;</span>
-        </div>
-
-        <p style="margin-top:20px;">This Waiver and Release of Liability ("Agreement") is entered into by and between the undersigned client ("Client") and <strong>Carlington &amp; Burling LLP</strong>, a District of Columbia limited liability partnership ("Firm").</p>
-
-        <div class="clause">
-          <div class="clause-header">1. Acknowledgment of Risk.</div>
-          <div class="clause-body">The Client acknowledges that all legal matters involve inherent risks and uncertainties. The Client understands that Carlington &amp; Burling LLP makes no guarantees regarding specific outcomes and that past results do not guarantee future results.</div>
-        </div>
-
-        <div class="clause">
-          <div class="clause-header">2. Release.</div>
-          <div class="clause-body">To the fullest extent permitted by law, the Client hereby releases, waives, and discharges Carlington &amp; Burling LLP, its partners, associates, employees, and agents from any and all liability, claims, demands, actions, and causes of action arising out of or related to the matter described above, except for claims arising from gross negligence or willful misconduct on the part of the Firm.</div>
-        </div>
-
-        <div class="clause">
-          <div class="clause-header">3. Indemnification.</div>
-          <div class="clause-body">The Client agrees to indemnify, defend, and hold harmless Carlington &amp; Burling LLP, its partners, associates, employees, and agents from and against any and all third-party claims, liabilities, damages, losses, and expenses (including reasonable attorneys' fees) arising out of or in connection with the Client's actions or omissions.</div>
-        </div>
-
-        <!-- SIGNATURES -->
-        <div class="sig-section">
-          <div class="sig-witness">IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above.</div>
-          <div class="sig-columns">
-            <div class="sig-col">
-              <div class="sig-col-title">Client</div>
-              <div class="sig-line"></div>
-              <div class="sig-label">Signature</div>
-              <div class="sig-line"></div>
-              <div class="sig-label">Print Name</div>
-              <div class="sig-line"></div>
-              <div class="sig-label">Date</div>
-            </div>
-            <div class="sig-col">
-              <div class="sig-col-title">For Carlington &amp; Burling LLP</div>
-              <div class="sig-line"></div>
-              <div class="sig-label">Authorized Signature</div>
-              <div class="sig-line"></div>
-              <div class="sig-label">Print Name</div>
-              <div class="sig-line"></div>
-              <div class="sig-label">Date</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- FOOTER -->
-      <div class="doc-footer">
-        <hr class="footer-rule">
-        <div class="footer-content">
-          <span>Waiver and Release of Liability</span>
-          <span>Confidential · Attorney-Client Privileged</span>
-          <span>Page 1 of 1</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════ OPTION 2: CLEAN WHITE ═══════════ -->
-  <div class="col">
-    <div class="badge badge--alternative">Alternative</div>
-
-    <div class="page">
-      <!-- HEADER -->
-      <div class="doc-header--clean">
-        <div class="header-top">
-          <div>
-            <div class="firm-name">Carlington <span class="ampersand">&amp;</span> Burling</div>
-            <div class="firm-meta">LLP &nbsp;·&nbsp; Attorneys at Law &nbsp;·&nbsp; Since 1919</div>
-          </div>
-          <div class="contact-block">
-            <div>850 Tenth Street NW, Washington, DC 20001</div>
-            <div>202-662-6000 &nbsp;·&nbsp; <span class="domain">carlingtonburling.com</span></div>
-          </div>
-        </div>
-        <hr class="rule">
+      <div class="doc-header">
+        <div class="firm-name">Carlington <span class="ampersand">&amp;</span> Burling</div>
         <hr class="gold-rule">
+        <div class="tagline">LLP &nbsp;·&nbsp; ATTORNEYS AT LAW &nbsp;·&nbsp; SINCE 1919</div>
+        <div class="contact-line">850 Tenth Street NW, Washington, DC 20001 &nbsp;·&nbsp; 202-662-6000 &nbsp;·&nbsp; <span class="domain">covbur.com</span></div>
+        <hr class="light-rule">
       </div>
 
       <!-- TITLE -->
@@ -446,24 +252,15 @@
 
       <!-- BODY -->
       <div class="doc-body">
-        <div class="field-row">
-          <span class="field-label">Client Name</span>
-          <span class="field-value">&nbsp;</span>
-        </div>
-        <div class="field-row">
-          <span class="field-label">Date</span>
-          <span class="field-value">&nbsp;</span>
-        </div>
-        <div class="field-row">
-          <span class="field-label">Matter</span>
-          <span class="field-value">&nbsp;</span>
-        </div>
+        <div class="field-row"><span class="field-label">Client Name</span><span class="field-value">&nbsp;</span></div>
+        <div class="field-row"><span class="field-label">Date</span><span class="field-value">&nbsp;</span></div>
+        <div class="field-row"><span class="field-label">Matter</span><span class="field-value">&nbsp;</span></div>
 
         <p style="margin-top:20px;">This Waiver and Release of Liability ("Agreement") is entered into by and between the undersigned client ("Client") and <strong>Carlington &amp; Burling LLP</strong>, a District of Columbia limited liability partnership ("Firm").</p>
 
         <div class="clause">
           <div class="clause-header">1. Acknowledgment of Risk.</div>
-          <div class="clause-body">The Client acknowledges that all legal matters involve inherent risks and uncertainties. The Client understands that Carlington &amp; Burling LLP makes no guarantees regarding specific outcomes and that past results do not guarantee future results.</div>
+          <div class="clause-body">The Client acknowledges that all legal matters involve inherent risks and uncertainties. The Client understands that Carlington &amp; Burling LLP makes no guarantees regarding specific outcomes and that past results do not guarantee future results. The Client has been advised of the potential risks associated with the matter described above and voluntarily assumes all such risks.</div>
         </div>
 
         <div class="clause">
@@ -482,21 +279,15 @@
           <div class="sig-columns">
             <div class="sig-col">
               <div class="sig-col-title">Client</div>
-              <div class="sig-line"></div>
-              <div class="sig-label">Signature</div>
-              <div class="sig-line"></div>
-              <div class="sig-label">Print Name</div>
-              <div class="sig-line"></div>
-              <div class="sig-label">Date</div>
+              <div class="sig-line"></div><div class="sig-label">Signature</div>
+              <div class="sig-line"></div><div class="sig-label">Print Name</div>
+              <div class="sig-line"></div><div class="sig-label">Date</div>
             </div>
             <div class="sig-col">
               <div class="sig-col-title">For Carlington &amp; Burling LLP</div>
-              <div class="sig-line"></div>
-              <div class="sig-label">Authorized Signature</div>
-              <div class="sig-line"></div>
-              <div class="sig-label">Print Name</div>
-              <div class="sig-line"></div>
-              <div class="sig-label">Date</div>
+              <div class="sig-line"></div><div class="sig-label">Authorized Signature</div>
+              <div class="sig-line"></div><div class="sig-label">Print Name</div>
+              <div class="sig-line"></div><div class="sig-label">Date</div>
             </div>
           </div>
         </div>
@@ -514,92 +305,121 @@
     </div>
   </div>
 
-</div><!-- /.comparison -->
+  <!-- ═══════════ NDA ═══════════ -->
+  <div class="col">
+    <div class="preview-label">Mutual Non-Disclosure Agreement</div>
+
+    <div class="page">
+      <!-- HEADER -->
+      <div class="doc-header">
+        <div class="firm-name">Carlington <span class="ampersand">&amp;</span> Burling</div>
+        <hr class="gold-rule">
+        <div class="tagline">LLP &nbsp;·&nbsp; ATTORNEYS AT LAW &nbsp;·&nbsp; SINCE 1919</div>
+        <div class="contact-line">850 Tenth Street NW, Washington, DC 20001 &nbsp;·&nbsp; 202-662-6000 &nbsp;·&nbsp; <span class="domain">covbur.com</span></div>
+        <hr class="light-rule">
+      </div>
+
+      <!-- TITLE -->
+      <div class="doc-title">Mutual Non-Disclosure Agreement</div>
+      <hr class="doc-title-rule">
+
+      <!-- BODY -->
+      <div class="doc-body">
+        <div class="field-row"><span class="field-label">Effective Date</span><span class="field-value">&nbsp;</span></div>
+        <div class="field-row"><span class="field-label">Client Name</span><span class="field-value">&nbsp;</span></div>
+        <div class="field-row"><span class="field-label">Client Address</span><span class="field-value">&nbsp;</span></div>
+
+        <p style="margin-top:20px;">This Mutual Non-Disclosure Agreement (the "Agreement") is entered into by and between <strong>Carlington &amp; Burling LLP</strong>, with offices at 850 Tenth Street NW, Washington, DC 20001 (the "Firm"), and the Client identified above (collectively, the "Parties").</p>
+
+        <div class="clause">
+          <div class="clause-header">1. Definition of Confidential Information.</div>
+          <div class="clause-body">"Confidential Information" means any and all information, data, documents, and materials, whether oral, written, or in electronic form, disclosed by one Party to the other Party, that is identified as confidential or that a reasonable person would understand to be confidential given the nature of the information and the circumstances of disclosure.</div>
+        </div>
+
+        <div class="clause">
+          <div class="clause-header">2. Obligations.</div>
+          <div class="clause-body">The Receiving Party shall: (a) protect the Disclosing Party's Confidential Information using the same degree of care used to protect its own confidential information, but in no event less than reasonable care; (b) use the Confidential Information solely for the purpose of evaluating or engaging in a business relationship between the Parties; (c) limit access to the Confidential Information to those employees and agents who have a need to know; and (d) not disclose, copy, or distribute the Confidential Information to any third party without the prior written consent of the Disclosing Party.</div>
+        </div>
+
+        <div class="clause">
+          <div class="clause-header">3. Exclusions.</div>
+          <div class="clause-body">Confidential Information does not include information that the Receiving Party can demonstrate: (a) is or becomes publicly available through no breach of this Agreement; (b) was rightfully received from a third party without restriction; (c) was independently developed by the Receiving Party without use of or reference to the Disclosing Party's Confidential Information; or (d) is required to be disclosed by law, regulation, or court order.</div>
+        </div>
+
+        <div class="clause">
+          <div class="clause-header">4. Term.</div>
+          <div class="clause-body">This Agreement shall remain in effect for a period of two (2) years from the Effective Date. The obligations of confidentiality and non-use set forth herein shall survive the expiration or termination of this Agreement for a period of three (3) years thereafter.</div>
+        </div>
+
+        <div class="clause">
+          <div class="clause-header">5. Governing Law.</div>
+          <div class="clause-body">This Agreement shall be governed by and construed in accordance with the laws of the District of Columbia, without regard to its conflict of laws principles. Any dispute arising out of or relating to this Agreement shall be brought exclusively in the federal or state courts located in the District of Columbia.</div>
+        </div>
+
+        <!-- SIGNATURES -->
+        <div class="sig-section">
+          <div class="sig-witness">IN WITNESS WHEREOF, the parties have executed this Agreement as of the Effective Date set forth above.</div>
+          <div class="sig-columns">
+            <div class="sig-col">
+              <div class="sig-col-title">For Carlington &amp; Burling LLP</div>
+              <div class="sig-line"></div><div class="sig-label">Authorized Signature</div>
+              <div class="sig-line"></div><div class="sig-label">Print Name</div>
+              <div class="sig-line"></div><div class="sig-label">Title</div>
+              <div class="sig-line"></div><div class="sig-label">Date</div>
+            </div>
+            <div class="sig-col">
+              <div class="sig-col-title">Client</div>
+              <div class="sig-line"></div><div class="sig-label">Signature</div>
+              <div class="sig-line"></div><div class="sig-label">Print Name</div>
+              <div class="sig-line"></div><div class="sig-label">Title</div>
+              <div class="sig-line"></div><div class="sig-label">Date</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="doc-footer">
+        <hr class="footer-rule">
+        <div class="footer-content">
+          <span>Mutual Non-Disclosure Agreement</span>
+          <span>Confidential · Attorney-Client Privileged</span>
+          <span>Page 1 of 1</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
 
 <div style="background:#FFFFFF;padding:28px 36px;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.08);max-width:1700px;width:100%;margin-top:8px;">
-  <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#0A1628;margin-bottom:16px;">Design Decisions</h3>
+  <h3 style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#0A1628;margin-bottom:16px;">Variant E Design Specs</h3>
   <table style="width:100%;font-size:13px;border-collapse:collapse;font-family:'Montserrat',sans-serif;line-height:1.6;">
     <thead>
       <tr style="text-align:left;border-bottom:2px solid #D9D5CC;">
         <th style="padding:8px 12px;color:#5A5A6E;font-weight:500;">Element</th>
-        <th style="padding:8px 12px;color:#5A5A6E;font-weight:500;">Before</th>
-        <th style="padding:8px 12px;color:#5A5A6E;font-weight:500;">After</th>
-        <th style="padding:8px 12px;color:#5A5A6E;font-weight:500;">Why</th>
+        <th style="padding:8px 12px;color:#5A5A6E;font-weight:500;">Spec</th>
       </tr>
     </thead>
     <tbody style="color:#1A1A1A;">
-      <tr style="border-bottom:1px solid #EFECE7;">
-        <td style="padding:8px 12px;font-weight:500;">Header variants</td>
-        <td style="padding:8px 12px;">4 confusing letter-named variants (A/B/C/D)</td>
-        <td style="padding:8px 12px;color:#2D6A4F;">1 professional header</td>
-        <td style="padding:8px 12px;color:#5A5A6E;">Users shouldn't need to pick from cryptic variants</td>
-      </tr>
-      <tr style="border-bottom:1px solid #EFECE7;">
-        <td style="padding:8px 12px;font-weight:500;">Margins</td>
-        <td style="padding:8px 12px;">50pt (pdf-lib) vs 72pt (pdfmake) — inconsistent</td>
-        <td style="padding:8px 12px;color:#2D6A4F;">72pt all around (1 inch) — legal standard</td>
-        <td style="padding:8px 12px;color:#5A5A6E;">Consistent across all documents; 1" is the legal-document standard</td>
-      </tr>
-      <tr style="border-bottom:1px solid #EFECE7;">
-        <td style="padding:8px 12px;font-weight:500;">Body font</td>
-        <td style="padding:8px 12px;">Times (pdfmake) vs Cormorant Garamond (pdf-lib) — mismatch</td>
-        <td style="padding:8px 12px;color:#2D6A4F;">Cormorant Garamond everywhere</td>
-        <td style="padding:8px 12px;color:#5A5A6E;">Brand font, embedded in all documents</td>
-      </tr>
-      <tr style="border-bottom:1px solid #EFECE7;">
-        <td style="padding:8px 12px;font-weight:500;">Body size</td>
-        <td style="padding:8px 12px;">10pt / 11pt inconsistent</td>
-        <td style="padding:8px 12px;color:#2D6A4F;">11.5pt body, 11pt clauses</td>
-        <td style="padding:8px 12px;color:#5A5A6E;">Readable but not oversized; professional legal density</td>
-      </tr>
-      <tr style="border-bottom:1px solid #EFECE7;">
-        <td style="padding:8px 12px;font-weight:500;">Line height</td>
-        <td style="padding:8px 12px;">1.55 (tight)</td>
-        <td style="padding:8px 12px;color:#2D6A4F;">1.7–1.75</td>
-        <td style="padding:8px 12px;color:#5A5A6E;">More breathing room; easier to read dense legal text</td>
-      </tr>
-      <tr style="border-bottom:1px solid #EFECE7;">
-        <td style="padding:8px 12px;font-weight:500;">Clause gap</td>
-        <td style="padding:8px 12px;">8pt (way too tight)</td>
-        <td style="padding:8px 12px;color:#2D6A4F;">18pt between clauses</td>
-        <td style="padding:8px 12px;color:#5A5A6E;">Clear visual separation between clauses</td>
-      </tr>
-      <tr style="border-bottom:1px solid #EFECE7;">
-        <td style="padding:8px 12px;font-weight:500;">Clause indent</td>
-        <td style="padding:8px 12px;">0pt (pdfmake) vs 24pt (pdf-lib)</td>
-        <td style="padding:8px 12px;color:#2D6A4F;">28pt body indent</td>
-        <td style="padding:8px 12px;color:#5A5A6E;">Legal convention; clarifies clause boundaries</td>
-      </tr>
-      <tr style="border-bottom:1px solid #EFECE7;">
-        <td style="padding:8px 12px;font-weight:500;">Contact line</td>
-        <td style="padding:8px 12px;">Serif font (pdfmake Times)</td>
-        <td style="padding:8px 12px;color:#2D6A4F;">Montserrat sans-serif</td>
-        <td style="padding:8px 12px;color:#5A5A6E;">Matches brand identity; small text is more legible in sans</td>
-      </tr>
-      <tr style="border-bottom:1px solid #EFECE7;">
-        <td style="padding:8px 12px;font-weight:500;">Title style</td>
-        <td style="padding:8px 12px;">14pt bold, no underline (pdfmake) / 13pt with gold rule (pdf-lib)</td>
-        <td style="padding:8px 12px;color:#2D6A4F;">15pt uppercase, gold rule underline</td>
-        <td style="padding:8px 12px;color:#5A5A6E;">Polished, distinguished, on-brand</td>
-      </tr>
-      <tr style="border-bottom:1px solid #EFECE7;">
-        <td style="padding:8px 12px;font-weight:500;">Signature area</td>
-        <td style="padding:8px 12px;">Tight, cramped labels</td>
-        <td style="padding:8px 12px;color:#2D6A4F;">38pt per field row, clear hierarchy</td>
-        <td style="padding:8px 12px;color:#5A5A6E;">Professional execution-block conventions</td>
-      </tr>
-      <tr>
-        <td style="padding:8px 12px;font-weight:500;">Footer</td>
-        <td style="padding:8px 12px;">Inconsistent margins; 6.5pt text</td>
-        <td style="padding:8px 12px;color:#2D6A4F;">7.5pt uppercase, anchored to bottom margin</td>
-        <td style="padding:8px 12px;color:#5A5A6E;">Clean, professional, legible at small sizes</td>
-      </tr>
+      <tr style="border-bottom:1px solid #EFECE7;"><td style="padding:8px 12px;font-weight:500;">Firm name</td><td style="padding:8px 12px;">26pt Cormorant Garamond 600, #0A1628, gold &amp; in #B08D57</td></tr>
+      <tr style="border-bottom:1px solid #EFECE7;"><td style="padding:8px 12px;font-weight:500;">Gold rule</td><td style="padding:8px 12px;">1px solid #B08D57, full page width</td></tr>
+      <tr style="border-bottom:1px solid #EFECE7;"><td style="padding:8px 12px;font-weight:500;">Tagline</td><td style="padding:8px 12px;">9pt Montserrat 400, #5A5A6E, 0.45em tracking, uppercase</td></tr>
+      <tr style="border-bottom:1px solid #EFECE7;"><td style="padding:8px 12px;font-weight:500;">Contact line</td><td style="padding:8px 12px;">8pt Montserrat 400, #5A5A6E, domain "covbur.com" in Montserrat 500 #B08D57</td></tr>
+      <tr style="border-bottom:1px solid #EFECE7;"><td style="padding:8px 12px;font-weight:500;">Separator</td><td style="padding:8px 12px;">1px solid #D9D5CC, full page width</td></tr>
+      <tr style="border-bottom:1px solid #EFECE7;"><td style="padding:8px 12px;font-weight:500;">Layout</td><td style="padding:8px 12px;">Centered, white background, no navy band, no logo/crest</td></tr>
+      <tr style="border-bottom:1px solid #EFECE7;"><td style="padding:8px 12px;font-weight:500;">Title</td><td style="padding:8px 12px;">15pt Cormorant Garamond 600, uppercase, gold 0.5px underline (280px wide)</td></tr>
+      <tr style="border-bottom:1px solid #EFECE7;"><td style="padding:8px 12px;font-weight:500;">Body font</td><td style="padding:8px 12px;">11-11.5pt Cormorant Garamond 400, 1.7 line height</td></tr>
+      <tr style="border-bottom:1px solid #EFECE7;"><td style="padding:8px 12px;font-weight:500;">Clause indent</td><td style="padding:8px 12px;">28pt body indent, 18pt gap between clauses</td></tr>
+      <tr style="border-bottom:1px solid #EFECE7;"><td style="padding:8px 12px;font-weight:500;">Form labels</td><td style="padding:8px 12px;">9pt Montserrat 500, #0A1628</td></tr>
+      <tr style="border-bottom:1px solid #EFECE7;"><td style="padding:8px 12px;font-weight:500;">Signature blocks</td><td style="padding:8px 12px;">Side-by-side, 38pt per field row, Cormorant Garamond titles, Montserrat labels</td></tr>
+      <tr style="border-bottom:1px solid #EFECE7;"><td style="padding:8px 12px;font-weight:500;">Footer</td><td style="padding:8px 12px;">0.75px #D9D5CC rule, 7.5pt Montserrat, 3-column layout</td></tr>
+      <tr><td style="padding:8px 12px;font-weight:500;">Margins</td><td style="padding:8px 12px;">72pt (1 inch) all around — legal standard</td></tr>
     </tbody>
   </table>
 </div>
 
-<p style="margin-top:24px;color:#5A5A6E;font-size:13px;">Open this file in a browser: <code style="background:#EFECE7;padding:2px 8px;border-radius:3px;">/covington-burling/public/_doc-header-preview.html</code></p>
-<p style="color:#5A5A6E;font-size:13px;">The Recommended option uses a navy band header — professional, distinctive, and common among top-tier law firms. The Alternative is lighter/cleaner for a more understated look.</p>
+<p style="margin-top:24px;color:#5A5A6E;font-size:13px;">Open this file in a browser: <code style="background:#EFECE7;padding:2px 8px;border-radius:3px;">/public/_doc-header-preview.html</code></p>
 
 </body>
 </html>
