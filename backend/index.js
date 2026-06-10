@@ -798,6 +798,15 @@ app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
+// Custom 404 for non-API routes that reach Express
+app.use(function (req, res) {
+  if (req.path.indexOf('/api/') === 0) {
+    res.status(404).json({ error: 'Not found' });
+  } else {
+    res.status(404).sendFile(path.join(__dirname, '..', 'public', '404.html'));
+  }
+});
+
 // ── Export for Vercel / listen when run directly ─────────────────────
 module.exports = app;
 
