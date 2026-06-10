@@ -241,12 +241,12 @@ app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 
 // Health check
-app.get('/', function (req, res) {
-  res.json({ status: 'ok', service: 'carlington-burling-api' });
+app.get('/api/health', function (req, res) {
+  res.json({ status: 'ok', service: 'covington-burling-api' });
 });
 
 // Generate waiver PDF
-app.post('/api/generate-waiver', function (req, res) {
+app.post('/api/generate-waiver', requireAuth, function (req, res) {
   var _a = req.body || {}, clientName = _a.clientName, date = _a.date, matter = _a.matter;
   var doc = waiverDefinition({ clientName: clientName, date: date, matter: matter });
   var pdfDoc = printer.createPdfKitDocument(doc);
@@ -257,7 +257,7 @@ app.post('/api/generate-waiver', function (req, res) {
 });
 
 // Generate NDA PDF
-app.post('/api/generate-nda', function (req, res) {
+app.post('/api/generate-nda', requireAuth, function (req, res) {
   var _a = req.body || {}, clientName = _a.clientName, clientAddress = _a.clientAddress, effectiveDate = _a.effectiveDate;
   var doc = ndaDefinition({ clientName: clientName, clientAddress: clientAddress, effectiveDate: effectiveDate });
   var pdfDoc = printer.createPdfKitDocument(doc);
@@ -281,6 +281,7 @@ app.post('/api/request-forms', function (req, res) {
       email: data.email.trim().toLowerCase(),
       phone: (data.phone || '').trim(),
       company: (data.company || '').trim(),
+      contactMethod: (data.contactMethod || '').trim(),
       formType: data.formType,
       matterDescription: data.matterDescription.trim(),
       status: 'pending',

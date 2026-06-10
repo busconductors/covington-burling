@@ -18,6 +18,7 @@
     phone:   { el: document.getElementById('phone'),         error: document.getElementById('phone-error'),         rules: ['optionalPhone'] },
     company: { el: document.getElementById('company'),        error: null, rules: [] },
     message: { el: document.getElementById('message'),       error: document.getElementById('message-error'),       rules: ['required', 'minLength:10'] },
+    contactMethod: { el: document.getElementById('contactMethod'), error: document.getElementById('contactMethod-error'), rules: [] },
     consent: { el: document.getElementById('consent'),       error: document.getElementById('consent-error'),       rules: ['requiredCheckbox'] }
   };
 
@@ -113,6 +114,7 @@
       email: fields.email.el.value.trim(),
       phone: fields.phone.el.value.trim(),
       company: fields.company.el ? fields.company.el.value.trim() : '',
+      contactMethod: fields.contactMethod.el ? fields.contactMethod.el.value : '',
       formType: 'contact',
       matterDescription: fields.message.el.value.trim()
     };
@@ -150,7 +152,7 @@
         clearTimeout(timeoutId);
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Submit Request';
+          submitBtn.textContent = 'Submit Inquiry';
         }
         var msg = err && err.error ? err.error : 'Something went wrong. Please try again or contact our office at 202-662-6000.';
         if (err && err.name === 'AbortError') {

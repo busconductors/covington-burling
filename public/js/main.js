@@ -58,11 +58,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ----- Active Nav Link ----- */
-  const currentPath = window.location.pathname.replace(/\/$/, '') || '/index.html';
-  const setActive = (selector) => {
-    document.querySelectorAll(selector).forEach(link => {
-      const href = link.getAttribute('href') || '';
-      if (href === currentPath || (currentPath === '/index.html' && href === '/index.html')) {
+  var currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+  var setActive = function (selector) {
+    document.querySelectorAll(selector).forEach(function (link) {
+      var href = link.getAttribute('href') || '';
+      if (href === currentPath) {
         link.classList.add(selector === '.nav-desktop__link' ? 'nav-desktop__link--active' : 'nav-drawer__link--active');
       }
     });
