@@ -276,13 +276,26 @@ app.post('/api/request-forms', function (req, res) {
           email: email,
           formType: formType,
         });
+        var isContact = formType === 'contact';
+        var header = isContact
+          ? '<b>\u{1F4AC} New Contact Inquiry — Carlington &amp; Burling</b>'
+          : '<b>\u{1F4CB} New Form Request — Carlington &amp; Burling</b>';
+        var formLine = isContact
+          ? ''
+          : '<b>Form:</b> ' + formType + '\n';
+        var contactMethodLine = isContact && contactMethod
+          ? '<b>Prefers:</b> ' + contactMethod + '\n'
+          : '';
+        var matterLabel = isContact ? 'Matter' : 'Matter';
         sendTelegramMessage(
-          '<b>\u{1F4CB} New Form Request</b>\n' +
+          header + '\n' +
           '<b>Name:</b> ' + name + '\n' +
           '<b>Email:</b> ' + email + '\n' +
+          (phone ? '<b>Phone:</b> ' + phone + '\n' : '') +
           (company ? '<b>Company:</b> ' + company + '\n' : '') +
-          '<b>Form:</b> ' + formType + '\n' +
-          '<b>Matter:</b> ' + matterDescription
+          contactMethodLine +
+          formLine +
+          '<b>' + matterLabel + ':</b>\n' + matterDescription
         ).catch(console.error);
         res.status(201).json({ id: id, message: 'Request submitted successfully.' });
       })
