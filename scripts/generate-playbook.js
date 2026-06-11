@@ -1,8 +1,10 @@
 /**
  * Carlington & Burling LLP — Admin Document Builder Playbook
- * Generates a comprehensive guide PDF in the official Variant C (Bordered
- * Traditional) style. Covers admin access, step-by-step instructions, document
- * types organized by the firm's 7 practice areas, and creation guidelines.
+ *
+ * Generates the internal playbook PDF. The design matches the site's
+ * editorial visual system: navy + burgundy + gold + cream palette,
+ * Cormorant Garamond + Montserrat typography, centered letterhead
+ * with gold rules, and editorial numerals — no heavy decorative borders.
  *
  * Usage:
  *   node scripts/generate-playbook.js
@@ -10,852 +12,929 @@
  * Output:
  *   public/forms/carlington-admin-playbook.pdf
  */
-const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
+const { PDFDocument, rgb } = require('pdf-lib');
+const fontkit = require('@pdf-lib/fontkit');
 const fs = require('fs');
 const path = require('path');
 
-const FORMS_DIR = path.join(__dirname, '..', 'public', 'forms');
+const ROOT = path.join(__dirname, '..');
+const FONTS_DIR = path.join(ROOT, 'public', 'fonts');
+const FORMS_DIR = path.join(ROOT, 'public', 'forms');
 const OUT_FILE = path.join(FORMS_DIR, 'carlington-admin-playbook.pdf');
 
-// ── Design Constants ─────────────────────────────────────────────────────
+// ── Design Constants ────────────────────────────────────────────────────
 const PAGE_W = 612;
 const PAGE_H = 792;
-const MARGIN = 50;
-const NAVY = rgb(0.039, 0.086, 0.157);
-const GOLD = rgb(0.761, 0.643, 0.310);
-const MUTED = rgb(0.353, 0.353, 0.431);
-const BLACK = rgb(0, 0, 0);
-const WHITE = rgb(1, 1, 1);
-const DARK_GRAY = rgb(0.267, 0.267, 0.267);
-const LIGHT_GOLD = rgb(0.95, 0.92, 0.78);
-const CREAM_BG = rgb(0.98, 0.97, 0.96);
+const MARGIN = 72;
 
-// ── Utility Functions ────────────────────────────────────────────────────
+// Brand palette — matches public/css/styles.css :root tokens
+const NAVY      = rgb(0.039, 0.086, 0.157); // #0A1628
+const NAVY_SOFT = rgb(0.078, 0.137, 0.251); // #142340
+const BURGUNDY  = rgb(0.420, 0.110, 0.180); // #6B1C2E
+const GOLD      = rgb(0.690, 0.553, 0.341); // #B08D57
+const GOLD_LT   = rgb(0.788, 0.651, 0.420); // #C9A66B
+const INK       = rgb(0.122, 0.122, 0.180); // #1F1F2E
+const SLATE     = rgb(0.353, 0.353, 0.431); // #5A5A6E
+const MUTED     = rgb(0.541, 0.541, 0.557); // #8A8A9E
+const RULE      = rgb(0.851, 0.835, 0.800); // #D9D5CC (subtle separator)
+const WHITE     = rgb(1, 1, 1);
 
-function embedFonts(doc) {
+// Letterhead constants — mirror carlington-template.js
+const FIRM = 'Carlington & Burling';
+const TAGLINE = 'LLP  ·  ATTORNEYS AT LAW  ·  SINCE 1919';
+const CONTACT_PRE = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
+const CONTACT_DOMAIN = 'carlingtonburling.com';
+
+// ── Font Loading ────────────────────────────────────────────────────────
+
+async function loadFonts(doc) {
+  doc.registerFontkit(fontkit);
+  var read = function (p) { return fs.readFileSync(path.join(FONTS_DIR, p)); };
   return {
-    regular: doc.embedStandardFont(StandardFonts.TimesRoman),
-    bold: doc.embedStandardFont(StandardFonts.TimesRomanBold),
-    italic: doc.embedStandardFont(StandardFonts.TimesRomanItalic),
+    serif:     await doc.embedFont(read('cormorant-garamond-latin-400-normal.ttf')),
+    serifBold: await doc.embedFont(read('cormorant-garamond-latin-600-normal.ttf')),
+    sans:      await doc.embedFont(read('montserrat-latin-400-normal.ttf')),
+    sansMed:   await doc.embedFont(read('montserrat-latin-500-normal.ttf')),
   };
 }
 
+// ── Text helpers ────────────────────────────────────────────────────────
+
+// noLig: identity. The Latin subset fonts don't include U+200C so we can't
+// insert ZWNJ — it renders as a visible space. Instead, splitText() chunks
+// strings on ligature boundaries and drawTextSafe draws each chunk via a
+// separate drawText call, which prevents GSUB substitution.
+function noLig(s) { return s; }
+
+// Split a string at positions between 'f' and a following f/i/l (Montserrat
+// standard ligatures) or between 'q' and 'u' (Cormorant Garamond discretionary
+// ligature). No chunk contains a ligature-eligible pair.
+function splitForLig(s) {
+  if (typeof s !== 'string') return [s];
+  return s.split(/(?<=f)(?=[fil])|(?<=q)(?=u)/g);
+}
+
+// Drop-in replacement for page.drawText that avoids broken ligature glyphs
+// by drawing each chunk separately. Computes x advance using actual chunk widths.
+function safeDrawText(page, text, opts) {
+  if (typeof text !== 'string') text = String(text);
+  const chunks = splitForLig(text);
+  if (chunks.length <= 1) {
+    page.drawText(text, opts);
+    return;
+  }
+  let cx = opts.x;
+  for (const chunk of chunks) {
+    if (!chunk) continue;
+    page.drawText(chunk, Object.assign({}, opts, { x: cx }));
+    cx += opts.font.widthOfTextAtSize(chunk, opts.size);
+  }
+}
+
+// Width of a string, computed as sum of chunk widths (which equals the
+// natural pre-ligature width since chunks contain no ligature opportunities).
+function safeTextWidth(font, text, size) {
+  if (typeof text !== 'string') text = String(text);
+  const chunks = splitForLig(text);
+  let total = 0;
+  for (const chunk of chunks) total += font.widthOfTextAtSize(chunk, size);
+  return total;
+}
+
 function drawWrapped(page, text, x, y, font, size, color, maxWidth, lineHeight) {
-  // Split on both spaces and newlines, preserving newline breaks
-  const paragraphs = text.split('\n');
+  const paragraphs = String(text).split('\n');
+  const lh = lineHeight || size * 1.55;
   let lineY = y;
   for (let pi = 0; pi < paragraphs.length; pi++) {
     const words = paragraphs[pi].split(' ');
     let line = '';
     for (const word of words) {
       const test = line ? line + ' ' + word : word;
-      if (font.widthOfTextAtSize(test, size) < maxWidth && line !== '') {
+      if (safeTextWidth(font, test, size) < maxWidth && line !== '') {
         line = test;
       } else {
         if (line) {
-          page.drawText(line, { x, y: lineY, size, font, color });
-          lineY -= (lineHeight || size * 1.6);
+          safeDrawText(page, line, { x, y: lineY, size, font, color });
+          lineY -= lh;
         }
         line = word;
       }
     }
     if (line) {
-      page.drawText(line, { x, y: lineY, size, font, color });
-      lineY -= (lineHeight || size * 1.6);
+      safeDrawText(page, line, { x, y: lineY, size, font, color });
+      lineY -= lh;
     }
-    // Extra spacing between paragraphs
-    if (pi < paragraphs.length - 1) {
-      lineY -= (lineHeight || size * 1.6) * 0.3;
-    }
+    if (pi < paragraphs.length - 1) lineY -= lh * 0.25;
   }
   return lineY;
 }
 
-function drawBulletList(page, items, x, y, fonts, size, color, maxWidth) {
-  const lh = size * 1.5;
+function drawBullets(page, items, x, y, fonts, size, color, maxWidth) {
+  const lh = size * 1.55;
   let cy = y;
   for (const item of items) {
-    page.drawText('•', { x, y: cy, size, font: fonts.regular, color });
-    cy = drawWrapped(page, item, x + 14, cy, fonts.regular, size, color, maxWidth - 14, lh);
+    // Gold middot bullet
+    page.drawText('·', { x, y: cy, size: size * 1.4, font: fonts.serifBold, color: GOLD });
+    cy = drawWrapped(page, item, x + 12, cy, fonts.sans, size, color, maxWidth - 12, lh);
   }
   return cy;
 }
 
-function drawPageFrame(page) {
-  page.drawRectangle({
-    x: 24, y: 24, width: PAGE_W - 48, height: PAGE_H - 48,
-    borderWidth: 0.5, borderColor: DARK_GRAY,
-  });
-  page.drawRectangle({
-    x: 28, y: 28, width: PAGE_W - 56, height: PAGE_H - 56,
-    borderWidth: 1.5, borderColor: DARK_GRAY,
-  });
+// Wrapper for direct page.drawText that also strips ligatures and recomputes width
+function drawSingleLine(page, text, x, y, font, size, color) {
+  page.drawText(noLig(text), { x, y, size, font, color });
+}
+function textWidth(font, text, size) {
+  return font.widthOfTextAtSize(noLig(text), size);
 }
 
-function addPageNumber(page, fonts, current, total) {
-  page.drawText('Page ' + current + ' of ' + total, {
-    x: PAGE_W - MARGIN - 80, y: 20, size: 8,
-    font: fonts.regular, color: MUTED,
-  });
+// ── Letterhead (mirrors carlington-template.js drawHeader) ──────────────
+
+function drawLetterhead(page, fonts) {
+  const centerX = PAGE_W / 2;
+
+  // Firm name — Cormorant Bold, navy with gold ampersand
+  const wmSize = 22;
+  const cText = 'Carlington ';
+  const ampText = '&';
+  const bText = ' Burling';
+  const fullW = fonts.serifBold.widthOfTextAtSize(cText + ampText + bText, wmSize);
+  const textY = PAGE_H - MARGIN + 14;
+  let x = centerX - fullW / 2;
+
+  page.drawText(cText, { x, y: textY, size: wmSize, font: fonts.serifBold, color: NAVY });
+  x += fonts.serifBold.widthOfTextAtSize(cText, wmSize);
+  page.drawText(ampText, { x, y: textY, size: wmSize, font: fonts.serifBold, color: GOLD });
+  x += fonts.serifBold.widthOfTextAtSize(ampText, wmSize);
+  page.drawText(bText, { x, y: textY, size: wmSize, font: fonts.serifBold, color: NAVY });
+
+  // Full-width gold rule
+  const ruleY = textY - 22;
+  page.drawLine({ start: { x: 0, y: ruleY }, end: { x: PAGE_W, y: ruleY }, thickness: 1, color: GOLD });
+
+  // Tagline — Montserrat slate
+  const tagSize = 8.5;
+  const tagW = fonts.sans.widthOfTextAtSize(TAGLINE, tagSize);
+  const tagY = ruleY - 16;
+  page.drawText(TAGLINE, { x: centerX - tagW / 2, y: tagY, size: tagSize, font: fonts.sans, color: SLATE });
+
+  // Contact line — slate with gold domain
+  const contactSize = 7.5;
+  const contactFull = CONTACT_PRE + CONTACT_DOMAIN;
+  const contactW = fonts.sans.widthOfTextAtSize(contactFull, contactSize);
+  const contactY = tagY - 14;
+  const preW = fonts.sans.widthOfTextAtSize(CONTACT_PRE, contactSize);
+  page.drawText(CONTACT_PRE, { x: centerX - contactW / 2, y: contactY, size: contactSize, font: fonts.sans, color: SLATE });
+  page.drawText(CONTACT_DOMAIN, { x: centerX - contactW / 2 + preW, y: contactY, size: contactSize, font: fonts.sansMed, color: GOLD });
+
+  // Subtle separator rule
+  const sepY = contactY - 18;
+  page.drawLine({ start: { x: 0, y: sepY }, end: { x: PAGE_W, y: sepY }, thickness: 0.5, color: RULE });
+
+  return sepY - 28;
 }
 
-function drawLetterhead(page, fonts, y) {
-  const name = 'Carlington & Burling LLP';
-  const addr = '850 Tenth Street NW, Washington, DC 20001  |  202-662-6000  |  carlingtonburling.com';
-  page.drawText(name, {
-    x: PAGE_W / 2 - fonts.bold.widthOfTextAtSize(name, 14) / 2,
-    y, size: 14, font: fonts.bold, color: NAVY,
-  });
-  page.drawText(addr, {
-    x: PAGE_W / 2 - fonts.regular.widthOfTextAtSize(addr, 8.5) / 2,
-    y: y - 18, size: 8.5, font: fonts.regular, color: MUTED,
-  });
+// ── Footer (page number, editorial style) ───────────────────────────────
+
+function drawFooter(page, fonts, pageNum, totalPages) {
+  // Thin gold rule above footer
   page.drawLine({
-    start: { x: MARGIN, y: y - 28 },
-    end: { x: PAGE_W - MARGIN, y: y - 28 },
+    start: { x: MARGIN, y: 48 },
+    end: { x: PAGE_W - MARGIN, y: 48 },
+    thickness: 0.5, color: GOLD,
+  });
+
+  // Page number: "01 · 18" centered in serif gold
+  const numStr = String(pageNum).padStart(2, '0') + '  ·  ' + String(totalPages).padStart(2, '0');
+  const numSize = 9;
+  const numW = fonts.serif.widthOfTextAtSize(numStr, numSize);
+  page.drawText(numStr, {
+    x: PAGE_W / 2 - numW / 2, y: 30,
+    size: numSize, font: fonts.serif, color: GOLD,
+  });
+}
+
+// ── Section title (eyebrow + serif) ─────────────────────────────────────
+
+function drawSectionTitle(page, fonts, eyebrow, title, y) {
+  // Eyebrow — small caps Montserrat in burgundy
+  const eyebrowSize = 8.5;
+  const ebW = fonts.sansMed.widthOfTextAtSize(eyebrow, eyebrowSize);
+  page.drawText(eyebrow, {
+    x: PAGE_W / 2 - ebW / 2,
+    y, size: eyebrowSize, font: fonts.sansMed, color: BURGUNDY,
+  });
+  y -= 18;
+
+  // Title — Cormorant Bold navy, large
+  const titleSize = 26;
+  const titleW = fonts.serifBold.widthOfTextAtSize(title, titleSize);
+  page.drawText(title, {
+    x: PAGE_W / 2 - titleW / 2,
+    y, size: titleSize, font: fonts.serifBold, color: NAVY,
+  });
+  y -= 14;
+
+  // Short centered gold rule
+  page.drawLine({
+    start: { x: PAGE_W / 2 - 22, y },
+    end: { x: PAGE_W / 2 + 22, y },
     thickness: 1, color: GOLD,
   });
   return y - 28;
 }
 
-function drawTitle(page, fonts, title, y) {
-  page.drawText(title, {
-    x: PAGE_W / 2 - fonts.bold.widthOfTextAtSize(title, 13) / 2,
-    y, size: 13, font: fonts.bold, color: NAVY,
+function drawSubHeading(page, fonts, text, y) {
+  safeDrawText(page, text, {
+    x: MARGIN, y, size: 14, font: fonts.serifBold, color: NAVY,
   });
-  y -= 20;
   page.drawLine({
-    start: { x: 120, y }, end: { x: PAGE_W - 120, y },
-    thickness: 0.5, color: GOLD,
+    start: { x: MARGIN, y: y - 5 },
+    end: { x: MARGIN + 28, y: y - 5 },
+    thickness: 1, color: GOLD,
   });
   return y - 22;
 }
 
-function drawSubHeading(page, fonts, text, y) {
-  page.drawText(text, {
-    x: MARGIN, y, size: 12, font: fonts.bold, color: NAVY,
-  });
-  return y - 20;
-}
-
 function drawSubSubHeading(page, fonts, text, y) {
-  page.drawText(text, {
-    x: MARGIN + 12, y, size: 10.5, font: fonts.bold, color: DARK_GRAY,
+  safeDrawText(page, text, {
+    x: MARGIN, y, size: 11, font: fonts.sansMed, color: NAVY,
   });
   return y - 16;
 }
 
-function drawBullet(page, fonts, text, y, indent, maxWidth) {
-  page.drawText('•', { x: indent, y, size: 10, font: fonts.regular, color: BLACK });
-  return drawWrapped(page, text, indent + 14, y, fonts.regular, 10, BLACK, maxWidth - 14, 10 * 1.5);
+function drawBody(page, fonts, text, y) {
+  return drawWrapped(page, text, MARGIN, y, fonts.sans, 10, INK, PAGE_W - MARGIN * 2, 15.5);
 }
 
-function drawNumberedItem(page, fonts, num, text, y, indent, maxWidth) {
-  const prefix = num + '. ';
-  page.drawText(prefix, { x: indent, y, size: 10, font: fonts.bold, color: NAVY });
-  return drawWrapped(page, text, indent + fonts.bold.widthOfTextAtSize(prefix, 10), y, fonts.regular, 10, BLACK, maxWidth, 10 * 1.5);
+// Editorial numbered item: "01" gold serif + serif title + sans body
+function drawNumberedItem(page, fonts, n, title, body, y) {
+  const numStr = String(n).padStart(2, '0');
+  const numSize = 22;
+  const titleSize = 12;
+  const bodySize = 10;
+
+  // Gold serif numeral
+  page.drawText(numStr, {
+    x: MARGIN, y, size: numSize, font: fonts.serif, color: GOLD,
+  });
+  const numW = fonts.serif.widthOfTextAtSize(numStr, numSize);
+  const textX = MARGIN + numW + 14;
+  const textMaxW = PAGE_W - MARGIN - textX;
+
+  // Title
+  safeDrawText(page, title, {
+    x: textX, y: y + 4,
+    size: titleSize, font: fonts.sansMed, color: NAVY,
+  });
+
+  // Body
+  let by = y - 14;
+  by = drawWrapped(page, body, textX, by, fonts.sans, bodySize, SLATE, textMaxW, bodySize * 1.55);
+  return by - 8;
 }
 
-function drawBodyText(page, fonts, text, y) {
-  return drawWrapped(page, text, MARGIN + 12, y, fonts.regular, 10, BLACK, PAGE_W - MARGIN * 2 - 24, 10 * 1.6);
-}
-
-// ── Cover Page ───────────────────────────────────────────────────────────
+// ── Cover Page ─────────────────────────────────────────────────────────
 
 function drawCoverPage(doc, fonts) {
   const page = doc.addPage([PAGE_W, PAGE_H]);
 
-  // Double-line frame
-  drawPageFrame(page);
-
-  // Heavy outer border
-  page.drawRectangle({
-    x: 40, y: 40, width: PAGE_W - 80, height: PAGE_H - 80,
-    borderWidth: 2.5, borderColor: NAVY,
+  // Top accent: thick navy band + thin gold underline
+  page.drawRectangle({ x: 0, y: PAGE_H - 6, width: PAGE_W, height: 6, color: NAVY });
+  page.drawLine({
+    start: { x: 0, y: PAGE_H - 11 },
+    end: { x: PAGE_W, y: PAGE_H - 11 },
+    thickness: 1, color: GOLD,
   });
 
-  // Inner gold border
-  page.drawRectangle({
-    x: 48, y: 48, width: PAGE_W - 96, height: PAGE_H - 96,
-    borderWidth: 1, borderColor: GOLD,
+  // Bottom accent (mirror)
+  page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: 6, color: NAVY });
+  page.drawLine({
+    start: { x: 0, y: 11 },
+    end: { x: PAGE_W, y: 11 },
+    thickness: 1, color: GOLD,
   });
+
+  const centerX = PAGE_W / 2;
+
+  // Monogram (CB inside double circle, matches site logo)
+  const monoY = PAGE_H * 0.66;
+  const outerR = 42;
+  const innerR = 36;
+  page.drawCircle({ x: centerX, y: monoY, size: outerR, borderWidth: 1.2, borderColor: NAVY, color: WHITE });
+  page.drawCircle({ x: centerX, y: monoY, size: innerR, borderWidth: 2, borderColor: GOLD, color: WHITE });
+
+  // CB letters — C navy + B gold
+  const cbSize = 38;
+  const cW = fonts.serifBold.widthOfTextAtSize('C', cbSize);
+  const bW = fonts.serifBold.widthOfTextAtSize('B', cbSize);
+  const cbTotal = cW + bW;
+  const cbBaseY = monoY - cbSize / 3;
+  let mx = centerX - cbTotal / 2;
+  page.drawText('C', { x: mx, y: cbBaseY, size: cbSize, font: fonts.serifBold, color: NAVY });
+  mx += cW;
+  page.drawText('B', { x: mx, y: cbBaseY, size: cbSize, font: fonts.serifBold, color: GOLD });
 
   // Firm name
-  let y = PAGE_H / 2 + 80;
-  const firm = 'Carlington & Burling LLP';
-  page.drawText(firm, {
-    x: PAGE_W / 2 - fonts.bold.widthOfTextAtSize(firm, 22) / 2,
-    y, size: 22, font: fonts.bold, color: NAVY,
-  });
-  y -= 40;
+  let y = monoY - outerR - 40;
+  const firmSize = 30;
+  const cText = 'Carlington ';
+  const ampText = '&';
+  const bText = ' Burling LLP';
+  const firmFullW = fonts.serifBold.widthOfTextAtSize(cText + ampText + bText, firmSize);
+  let fx = centerX - firmFullW / 2;
+  page.drawText(cText, { x: fx, y, size: firmSize, font: fonts.serifBold, color: NAVY });
+  fx += fonts.serifBold.widthOfTextAtSize(cText, firmSize);
+  page.drawText(ampText, { x: fx, y, size: firmSize, font: fonts.serifBold, color: GOLD });
+  fx += fonts.serifBold.widthOfTextAtSize(ampText, firmSize);
+  page.drawText(bText, { x: fx, y, size: firmSize, font: fonts.serifBold, color: NAVY });
+  y -= 18;
 
-  // Gold divider
+  // Gold rule (short, centered)
   page.drawLine({
-    start: { x: PAGE_W / 2 - 120, y },
-    end: { x: PAGE_W / 2 + 120, y },
-    thickness: 2, color: GOLD,
+    start: { x: centerX - 38, y },
+    end: { x: centerX + 38, y },
+    thickness: 1, color: GOLD,
   });
-  y -= 36;
+  y -= 24;
 
-  // Title
-  const title = 'ADMIN DOCUMENT BUILDER';
-  page.drawText(title, {
-    x: PAGE_W / 2 - fonts.bold.widthOfTextAtSize(title, 18) / 2,
-    y, size: 18, font: fonts.bold, color: NAVY,
-  });
-  y -= 30;
+  // Eyebrow
+  const eyebrow = 'ADMIN  ·  DOCUMENT  BUILDER';
+  const eyebrowSize = 9.5;
+  const ebW = fonts.sansMed.widthOfTextAtSize(eyebrow, eyebrowSize);
+  page.drawText(eyebrow, { x: centerX - ebW / 2, y, size: eyebrowSize, font: fonts.sansMed, color: BURGUNDY });
+  y -= 50;
 
-  const subtitle = 'P L A Y B O O K';
-  let spaced = '';
-  for (const ch of subtitle) spaced += ch + ' ';
-  page.drawText(spaced.trim(), {
-    x: PAGE_W / 2 - fonts.regular.widthOfTextAtSize(spaced.trim(), 14) / 2,
-    y, size: 14, font: fonts.regular, color: MUTED,
-  });
-  y -= 36;
+  // "Playbook" in large Cormorant
+  const playbook = 'Playbook';
+  const playbookSize = 64;
+  const pbW = fonts.serif.widthOfTextAtSize(playbook, playbookSize);
+  page.drawText(playbook, { x: centerX - pbW / 2, y, size: playbookSize, font: fonts.serif, color: NAVY });
 
-  // Thin divider
+  // Description (two lines, slate Montserrat)
+  y -= 56;
+  const desc1 = 'A guide to building official firm documents';
+  const desc2 = 'with the Carlington & Burling Document Builder.';
+  const descSize = 11;
+  const d1W = safeTextWidth(fonts.sans, desc1, descSize);
+  safeDrawText(page, desc1, { x: centerX - d1W / 2, y, size: descSize, font: fonts.sans, color: SLATE });
+  y -= 17;
+  const d2W = safeTextWidth(fonts.sans, desc2, descSize);
+  safeDrawText(page, desc2, { x: centerX - d2W / 2, y, size: descSize, font: fonts.sans, color: SLATE });
+
+  // Bottom metadata
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const versionStr = 'Version 2.0  ·  ' + today;
+  const versionSize = 9;
+  const vW = fonts.sansMed.widthOfTextAtSize(versionStr, versionSize);
+  page.drawText(versionStr, { x: centerX - vW / 2, y: 92, size: versionSize, font: fonts.sansMed, color: SLATE });
+
+  // Gold accent line under version
   page.drawLine({
-    start: { x: PAGE_W / 2 - 80, y },
-    end: { x: PAGE_W / 2 + 80, y },
+    start: { x: centerX - 18, y: 80 },
+    end: { x: centerX + 18, y: 80 },
     thickness: 0.5, color: GOLD,
   });
-  y -= 30;
 
-  // Description
-  const desc = 'A comprehensive guide to generating legal documents\nusing the Carlington & Burling official template system.';
-  const descLines = desc.split('\n');
-  for (const line of descLines) {
-    page.drawText(line, {
-      x: PAGE_W / 2 - fonts.regular.widthOfTextAtSize(line, 10.5) / 2,
-      y, size: 10.5, font: fonts.regular, color: DARK_GRAY,
-    });
-    y -= 18;
-  }
+  // CONFIDENTIAL line in burgundy
+  const conf = 'CONFIDENTIAL  ·  INTERNAL USE';
+  const confSize = 8;
+  const cnW = fonts.sansMed.widthOfTextAtSize(conf, confSize);
+  page.drawText(conf, { x: centerX - cnW / 2, y: 66, size: confSize, font: fonts.sansMed, color: BURGUNDY });
 
-  // Version / date
-  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  y -= 20;
-  page.drawText('Version 1.0  •  ' + today, {
-    x: PAGE_W / 2 - fonts.regular.widthOfTextAtSize('Version 1.0  •  ' + today, 9) / 2,
-    y, size: 9, font: fonts.regular, color: MUTED,
-  });
-
-  // Bottom mark
-  page.drawText('CONFIDENTIAL', {
-    x: PAGE_W / 2 - fonts.bold.widthOfTextAtSize('CONFIDENTIAL', 8) / 2,
-    y: 68, size: 8, font: fonts.bold, color: MUTED,
-  });
-
-  page.drawText('© ' + new Date().getFullYear() + ' Carlington & Burling LLP. All Rights Reserved.', {
-    x: PAGE_W / 2 - fonts.regular.widthOfTextAtSize('© ' + new Date().getFullYear() + ' Carlington & Burling LLP. All Rights Reserved.', 7.5) / 2,
-    y: 54, size: 7.5, font: fonts.regular, color: MUTED,
-  });
-
-  return page;
+  // © line
+  const year = new Date().getFullYear();
+  const copy = '© ' + year + ' Carlington & Burling LLP. All rights reserved.';
+  const copySize = 7.5;
+  const cpW = fonts.sans.widthOfTextAtSize(copy, copySize);
+  page.drawText(copy, { x: centerX - cpW / 2, y: 50, size: copySize, font: fonts.sans, color: MUTED });
 }
 
-// ── Table of Contents ────────────────────────────────────────────────────
+// ── Table of Contents ─────────────────────────────────────────────────
 
-function drawTOC(doc, fonts) {
+function drawTOC(doc, fonts, items, totalPages) {
   const page = doc.addPage([PAGE_W, PAGE_H]);
-  drawPageFrame(page);
+  let y = drawLetterhead(page, fonts);
+  y = drawSectionTitle(page, fonts, 'CONTENTS', 'Table of Contents', y);
 
-  let y = PAGE_H - 62;
-  y = drawLetterhead(page, fonts, y);
-  y -= 10;
-  y = drawTitle(page, fonts, 'TABLE OF CONTENTS', y);
-  y -= 10;
-
-  const toc = [
-    { num: 'I.', title: 'Introduction & Access', page: 3 },
-    { num: 'II.', title: 'Step-by-Step: Generating a Document', page: 4 },
-    { num: 'III.', title: 'Document Types by Practice Area', page: 6 },
-    { num: 'IV.', title: 'Creation Guidelines & Best Practices', page: 14 },
-    { num: 'V.', title: 'Template Customization & Tips', page: 16 },
-  ];
-
-  for (const item of toc) {
-    const label = item.num + '  ' + item.title;
-    page.drawText(label, {
-      x: MARGIN + 12, y, size: 11, font: fonts.bold, color: NAVY,
+  for (const item of items) {
+    // Roman numeral in Cormorant gold
+    const romanSize = 16;
+    page.drawText(item.num, {
+      x: MARGIN, y, size: romanSize, font: fonts.serif, color: GOLD,
     });
-    const dots = '······································';
-    const dotW = fonts.regular.widthOfTextAtSize(dots, 10);
-    const labelW = fonts.bold.widthOfTextAtSize(label, 11);
-    const available = PAGE_W - MARGIN - 80 - MARGIN - 12 - labelW - 10;
-    const pageStr = String(item.page);
-    const pageW = fonts.regular.widthOfTextAtSize(pageStr, 10);
 
-    page.drawText(dots.substring(0, Math.floor(available / (dotW / dots.length))), {
-      x: MARGIN + 12 + labelW + 10, y, size: 10, font: fonts.regular, color: MUTED,
+    // Title in Montserrat 500 navy
+    const titleSize = 11.5;
+    page.drawText(item.title, {
+      x: MARGIN + 44, y: y + 2,
+      size: titleSize, font: fonts.sansMed, color: NAVY,
     });
+
+    // Page number right-aligned, Cormorant gold
+    const pageStr = String(item.page).padStart(2, '0');
+    const pageW = fonts.serif.widthOfTextAtSize(pageStr, romanSize);
     page.drawText(pageStr, {
-      x: PAGE_W - MARGIN - 80 - pageW, y, size: 10, font: fonts.regular, color: MUTED,
+      x: PAGE_W - MARGIN - pageW, y,
+      size: romanSize, font: fonts.serif, color: GOLD,
     });
-    y -= 28;
+
+    // Thin gold dotted-style rule between item and page number
+    const titleW = fonts.sansMed.widthOfTextAtSize(item.title, titleSize);
+    const ruleStartX = MARGIN + 44 + titleW + 10;
+    const ruleEndX = PAGE_W - MARGIN - pageW - 10;
+    if (ruleEndX > ruleStartX) {
+      page.drawLine({
+        start: { x: ruleStartX, y: y + 4 },
+        end: { x: ruleEndX, y: y + 4 },
+        thickness: 0.5, color: RULE,
+      });
+    }
+    y -= 36;
   }
 
-  addPageNumber(page, fonts, 2, 18);
+  drawFooter(page, fonts, 2, totalPages);
   return page;
 }
 
-// ── Content Sections ─────────────────────────────────────────────────────
+// ── Section I: Introduction & Access ──────────────────────────────────
 
-function drawSectionI(doc, fonts, startPage) {
+function drawSectionI(doc, fonts, pageNum, totalPages) {
   const page = doc.addPage([PAGE_W, PAGE_H]);
-  drawPageFrame(page);
+  let y = drawLetterhead(page, fonts);
+  y = drawSectionTitle(page, fonts, 'SECTION  I', 'Introduction & Access', y);
 
-  let y = PAGE_H - 62;
-  y = drawLetterhead(page, fonts, y);
-  y -= 10;
-  y = drawTitle(page, fonts, 'INTRODUCTION & ACCESS', y);
-  y -= 6;
-
-  y = drawBodyText(page, fonts,
-    'This playbook provides step-by-step instructions for using the Carlington & Burling LLP Admin Document Builder. The builder enables authorized firm personnel to generate professional, fillable PDF documents in the official firm template style — Variant C (Bordered Traditional). All generated documents include the firm letterhead, double-line page frame, gold accent rules, and AcroForm fillable fields for client-facing use.',
+  y = drawBody(page, fonts,
+    'This playbook documents the Carlington & Burling LLP Admin Document Builder. It enables authorized firm personnel to generate professional, fillable PDF documents in the official firm template style — centered Cormorant Garamond letterhead with gold accent rules and AcroForm fillable fields for client-facing use.',
     y);
-  y -= 16;
+  y -= 12;
 
-  y = drawSubHeading(page, fonts, 'Accessing the Admin Builder', y);
-
-  y = drawNumberedItem(page, fonts, '1',
-    'Open a web browser and navigate to the admin page at:  [your-domain]/admin/',
-    y, MARGIN + 12, PAGE_W - MARGIN * 2 - 24);
+  y = drawSubHeading(page, fonts, 'Accessing the Admin', y);
+  y -= 2;
+  y = drawNumberedItem(page, fonts, 1, 'Open the admin portal',
+    'Navigate to carlingtonburling.com/admin in a modern browser (Chrome, Safari, or Firefox). The login screen loads in the cream brand background.', y);
+  y = drawNumberedItem(page, fonts, 2, 'Authenticate',
+    'Enter the admin password at the prompt. Default access key: covbur1919. Authentication uses a JWT bearer token stored in sessionStorage for the duration of the browser tab.', y);
+  y = drawNumberedItem(page, fonts, 3, 'Land on the dashboard',
+    'On success, the dashboard shell loads with Document Builder, Requests, Email Templates, and Analytics tabs. Session persists across page reloads in the same tab. Closing the tab clears the token.', y);
+  y = drawNumberedItem(page, fonts, 4, 'Rotate the password',
+    'The password is set via the PASSWORD environment variable in Vercel. To rotate: update PASSWORD in the Vercel dashboard under Settings, then Environment Variables, and redeploy.', y);
   y -= 6;
-
-  y = drawNumberedItem(page, fonts, '2',
-    'Enter the access key when prompted. The default access key is:  covbur1919',
-    y, MARGIN + 12, PAGE_W - MARGIN * 2 - 24);
-  y -= 6;
-
-  y = drawNumberedItem(page, fonts, '3',
-    'Upon successful authentication, the admin builder interface will load. Access is maintained for the duration of the browser session via secure session storage.',
-    y, MARGIN + 12, PAGE_W - MARGIN * 2 - 24);
-  y -= 6;
-
-  y = drawNumberedItem(page, fonts, '4',
-    'To change the access key, edit the ADMIN_ACCESS_KEY variable in /admin/index.html and redeploy.',
-    y, MARGIN + 12, PAGE_W - MARGIN * 2 - 24);
-  y -= 16;
 
   y = drawSubHeading(page, fonts, 'Interface Overview', y);
-  y = drawBodyText(page, fonts,
-    'The admin builder has a two-panel layout. The left sidebar (380px) contains all document configuration controls: preset selector, title input, form fields, clauses, and signature blocks. The main area (right) displays a live preview summary and the Generate PDF / Download buttons. A status indicator shows the current state of PDF generation.',
+  y = drawBody(page, fonts,
+    'The Document Builder uses a two-pane layout. The left sidebar (~380px) holds all document configuration: preset selector, title input, form fields, clauses, and signature blocks. The main area shows a live preview summary plus Generate PDF and Download buttons. A status indicator surfaces the current PDF generation state.',
     y);
-  y -= 16;
+  y -= 12;
 
-  y = drawSubHeading(page, fonts, 'Security Note', y);
-  y = drawBodyText(page, fonts,
-    'The admin builder operates entirely in the browser. No document data is transmitted to any server. PDF generation relies on the pdf-lib library loaded via CDN. The access key provides a basic level of protection; for enhanced security, deploy the admin page behind your firm\'s SSO or VPN.',
+  y = drawSubHeading(page, fonts, 'Security Notes', y);
+  y = drawBody(page, fonts,
+    'PDF generation runs entirely in the browser. No document body or field data is transmitted to any server. The Express API at /api/admin only handles authentication and request-list metadata. For added defense, deploy the admin route behind your firm SSO or VPN — the current password gate is intended as a single layer, not a complete security model.',
     y);
 
-  addPageNumber(page, fonts, startPage, 18);
-  return doc.addPage([PAGE_W, PAGE_H]);
+  drawFooter(page, fonts, pageNum, totalPages);
+  return page;
 }
 
-function drawSectionII(doc, fonts, startPage) {
-  let page = doc.addPage([PAGE_W, PAGE_H]);
-  drawPageFrame(page);
+// ── Section II: Step-by-Step ──────────────────────────────────────────
 
-  let y = PAGE_H - 62;
-  y = drawLetterhead(page, fonts, y);
-  y -= 10;
-  y = drawTitle(page, fonts, 'STEP-BY-STEP: GENERATING A DOCUMENT', y);
-  y -= 6;
+function drawSectionII(doc, fonts, startPage, totalPages) {
+  let page = doc.addPage([PAGE_W, PAGE_H]);
+  let y = drawLetterhead(page, fonts);
+  y = drawSectionTitle(page, fonts, 'SECTION  II', 'Generating a Document', y);
 
   const steps = [
-    {
-      title: 'Step 1 — Load a Preset or Start Fresh',
-      body: 'Use the "Load Preset" dropdown at the top of the sidebar to select a starting template. Available presets include Waiver and Release, Mutual NDA, and Blank. Selecting a preset populates all fields, clauses, and signature blocks automatically. Choose "Custom" to build a document from scratch.',
-    },
-    {
-      title: 'Step 2 — Configure Document Metadata',
-      body: 'Enter the document title (e.g., "ENGAGEMENT LETTER"), the output filename (e.g., "engagement-letter.pdf"), and optionally customize the witness preamble text. The witness preamble appears above the signature blocks and typically reads: "IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above."',
-    },
-    {
-      title: 'Step 3 — Add Form Fields',
-      body: 'Form fields create fillable blanks in the generated PDF. Each field has a label (displayed text, e.g., "Client Name:") and a name (internal identifier for the AcroForm field). Click "+ Add Field" to add a new field row. Click the × button to remove a field. Field width defaults to 370px but can be customized for each field.',
-    },
-    {
-      title: 'Step 4 — Compose Clauses',
-      body: 'Clauses are the substantive provisions of the document. Each clause has a number (e.g., "1."), a title (e.g., "Governing Law."), and body text. Click "+ Add Clause" to add a new clause. Use the text areas to compose the body text. Clauses are rendered with bold number + title on the first line and indented body text below. If content overflows the first page, a new page is automatically created.',
-    },
-    {
-      title: 'Step 5 — Configure Signature Blocks',
-      body: 'The builder supports up to two signature blocks displayed side-by-side. Each block has a label (e.g., "Client" or "For Carlington & Burling LLP") and fields. The "Signature" field type renders as a signature line with the [SEAL] notation. Click "Add Field" within a signature block to add additional lines (e.g., Print Name, Title, Date).',
-    },
-    {
-      title: 'Step 6 — Generate the PDF',
-      body: 'Click the "Generate PDF" button in the main toolbar. The browser will instantaneously build the PDF using the pdf-lib library. A green status indicator confirms successful generation. The PDF is then automatically downloaded to your computer with the filename specified in Step 2.',
-    },
-    {
-      title: 'Step 7 — Distribute the Document',
-      body: 'Email the generated PDF to the client or upload it to the firm\'s document management system. Clients can open the PDF in Adobe Acrobat, Apple Preview, or any modern PDF viewer to fill in the form fields electronically, or print and complete the document by hand.',
-    },
+    { title: 'Load a preset or start fresh',
+      body: 'Use the Load Preset dropdown at the top of the sidebar to select a starting template (Waiver and Release, Mutual NDA, or Blank). Selecting a preset populates fields, clauses, and signature blocks automatically. Choose Custom to build from scratch.' },
+    { title: 'Configure document metadata',
+      body: 'Enter the document title (e.g. ENGAGEMENT LETTER), output filename, and optionally customize the witness preamble. The default witness preamble reads: "IN WITNESS WHEREOF, the parties have executed this Agreement as of the date set forth above."' },
+    { title: 'Add form fields',
+      body: 'Form fields create fillable blanks in the generated PDF. Each has a label (visible text, e.g. "Client Name:") and a name (internal AcroForm identifier). Click + Add Field to add a row, × to remove. Field width defaults to 370 points and is customizable per field.' },
+    { title: 'Compose clauses',
+      body: 'Clauses are the substantive provisions. Each has a number, title (e.g. "Governing Law."), and body. Click + Add Clause to add. Body text wraps; if a page overflows, a new page is created automatically with the letterhead reprinted.' },
+    { title: 'Configure signature blocks',
+      body: 'Up to two signature blocks render side-by-side. Each has a label and a list of fields. The Signature type renders as a signature line with the [SEAL] notation. Add Print Name, Title, or Date fields beneath as needed.' },
+    { title: 'Generate the PDF',
+      body: 'Click Generate PDF in the toolbar. The browser builds the PDF synchronously via pdf-lib. A green status pill confirms success. The PDF downloads automatically with the filename you set in step two.' },
+    { title: 'Distribute the document',
+      body: 'Email the PDF to the client or upload to your document management system. Clients can fill the AcroForm fields in Acrobat or Preview, or print and complete by hand.' },
   ];
 
+  let n = 1;
   for (const step of steps) {
-    if (y < 150) {
-      addPageNumber(page, fonts, startPage, 18);
+    if (y < 160) {
+      drawFooter(page, fonts, startPage, totalPages);
+      startPage++;
       page = doc.addPage([PAGE_W, PAGE_H]);
-      drawPageFrame(page);
-      y = PAGE_H - 62;
-      y = drawLetterhead(page, fonts, y);
-      y -= 10;
-      y = drawTitle(page, fonts, 'STEP-BY-STEP (CONTINUED)', y);
-      y -= 6;
+      y = drawLetterhead(page, fonts);
+      y = drawSectionTitle(page, fonts, 'SECTION  II  (CONTINUED)', 'Generating a Document', y);
     }
-
-    y = drawSubSubHeading(page, fonts, step.title, y);
-    y = drawBodyText(page, fonts, step.body, y);
-    y -= 10;
+    y = drawNumberedItem(page, fonts, n, step.title, step.body, y);
+    n++;
   }
 
-  addPageNumber(page, fonts, startPage, 18);
-  return doc.addPage([PAGE_W, PAGE_H]);
+  drawFooter(page, fonts, startPage, totalPages);
+  return startPage + 1;
 }
 
-// ── Practice Area Document Types ─────────────────────────────────────────
+// ── Practice area document types ──────────────────────────────────────
 
 const practiceAreas = [
   {
     name: 'Antitrust & Competition',
-    desc: 'Carlington\'s antitrust practice handles complex merger reviews, civil and criminal cartel investigations, and competition litigation across jurisdictions worldwide.',
+    desc: 'Complex merger reviews, civil and criminal cartel investigations, and competition litigation across jurisdictions worldwide.',
     documents: [
-      {
-        type: 'Engagement Letter — Antitrust',
-        desc: 'Standard engagement letter for antitrust matters. Include scope of representation, fee structure, conflict waiver, and contact information for the lead antitrust partner. Add fields for client name, matter description, and billing arrangement.',
+      { type: 'Engagement Letter — Antitrust',
+        desc: 'Standard engagement letter for antitrust matters. Includes scope, fee structure, conflict waiver, and lead-partner contact.',
         fields: ['Client Name', 'Date', 'Matter Description', 'Billing Rate', 'Lead Partner'],
-        clauses: ['Scope of Representation', 'Fee and Billing Terms', 'Conflict Waiver', 'Termination', 'Governing Law'],
-      },
-      {
-        type: 'Joint Defense Agreement',
-        desc: 'For multi-party antitrust investigations. Governs sharing of privileged information among co-defendants. Include common interest doctrine language and provisions for withdrawal from the joint defense group.',
-        fields: ['Effective Date', 'Party A', 'Party B', 'Matter/Case No.', 'Lead Counsel for Each Party'],
-        clauses: ['Common Interest Privilege', 'Confidentiality of Shared Materials', 'No Waiver of Privilege', 'Withdrawal Procedure', 'Governing Law'],
-      },
-      {
-        type: 'Document Preservation Notice',
-        desc: 'Issued to clients upon receipt of a subpoena or CID. Instructs on preservation obligations for electronically stored information and physical documents. Include litigation hold language.',
+        clauses: ['Scope of Representation', 'Fee and Billing Terms', 'Conflict Waiver', 'Termination', 'Governing Law'] },
+      { type: 'Joint Defense Agreement',
+        desc: 'For multi-party antitrust investigations. Governs sharing of privileged information among co-defendants. Includes common-interest doctrine language and withdrawal provisions.',
+        fields: ['Effective Date', 'Party A', 'Party B', 'Matter/Case No.', 'Lead Counsel'],
+        clauses: ['Common Interest Privilege', 'Confidentiality of Shared Materials', 'No Waiver of Privilege', 'Withdrawal Procedure', 'Governing Law'] },
+      { type: 'Document Preservation Notice',
+        desc: 'Issued to clients upon receipt of a subpoena or CID. Instructs on preservation obligations for ESI and physical documents. Includes litigation-hold language.',
         fields: ['Date Issued', 'Client Name', 'Matter/Case No.', 'Response Deadline', 'Issuing Authority'],
-        clauses: ['Preservation Obligations', 'Scope of ESI to Preserve', 'Consequences of Spoliation', 'Point of Contact', 'Acknowledgment of Receipt'],
-      },
+        clauses: ['Preservation Obligations', 'Scope of ESI to Preserve', 'Consequences of Spoliation', 'Point of Contact', 'Acknowledgment of Receipt'] },
     ],
   },
   {
     name: 'Litigation',
-    desc: 'Our litigators represent clients in bet-the-company trials, appeals, and arbitrations, with deep experience in complex commercial, securities, and constitutional disputes.',
+    desc: 'Bet-the-company trials, appeals, and arbitrations across commercial, securities, and constitutional disputes.',
     documents: [
-      {
-        type: 'Engagement Letter — Litigation',
-        desc: 'Comprehensive litigation engagement letter. Include detailed scope, litigation budget estimate, discovery obligations, and alternative fee arrangements if applicable.',
-        fields: ['Client Name', 'Date', 'Case Caption', 'Court/Venue', 'Fee Arrangement', 'Initial Retainer Amount'],
-        clauses: ['Scope of Representation', 'Fee and Expense Terms', 'Client Cooperation Obligations', 'Discovery Responsibilities', 'Settlement Authority', 'Withdrawal', 'Governing Law'],
-      },
-      {
-        type: 'Settlement Agreement',
-        desc: 'Full settlement and release agreement for resolved litigation. Include mutual releases, payment terms, dismissal with prejudice, confidentiality, and non-disparagement.',
+      { type: 'Engagement Letter — Litigation',
+        desc: 'Comprehensive engagement letter including detailed scope, budget estimate, discovery obligations, and alternative fee arrangements.',
+        fields: ['Client Name', 'Date', 'Case Caption', 'Court/Venue', 'Fee Arrangement', 'Initial Retainer'],
+        clauses: ['Scope of Representation', 'Fee and Expense Terms', 'Client Cooperation', 'Discovery Responsibilities', 'Settlement Authority', 'Withdrawal', 'Governing Law'] },
+      { type: 'Settlement Agreement',
+        desc: 'Full settlement and release for resolved litigation. Includes mutual releases, payment terms, dismissal with prejudice, confidentiality, and non-disparagement.',
         fields: ['Effective Date', 'Plaintiff', 'Defendant', 'Case No.', 'Settlement Amount', 'Payment Deadline'],
-        clauses: ['Recitals', 'Payment Terms', 'Mutual Release', 'Dismissal with Prejudice', 'Confidentiality', 'Non-Disparagement', 'No Admission of Liability', 'Entire Agreement', 'Governing Law'],
-      },
-      {
-        type: 'Protective Order Stipulation',
-        desc: 'Joint stipulation for entry of a protective order governing confidential discovery materials. Include tiers of confidentiality, clawback provisions, and procedures for challenging designations.',
+        clauses: ['Recitals', 'Payment Terms', 'Mutual Release', 'Dismissal with Prejudice', 'Confidentiality', 'Non-Disparagement', 'No Admission of Liability', 'Entire Agreement', 'Governing Law'] },
+      { type: 'Protective Order Stipulation',
+        desc: 'Joint stipulation for a protective order governing confidential discovery. Includes tiers of confidentiality, clawback provisions, and procedures for challenging designations.',
         fields: ['Court', 'Case No.', 'Case Caption', 'Date of Stipulation'],
-        clauses: ['Definitions', 'Designation of Confidential Material', 'Attorneys\' Eyes Only Tier', 'Use of Protected Material', 'Clawback Procedure', 'Challenging Designations', 'Return or Destruction at Conclusion'],
-      },
+        clauses: ['Definitions', 'Designation of Confidential Material', 'Attorneys\' Eyes Only Tier', 'Use of Protected Material', 'Clawback Procedure', 'Challenging Designations', 'Return at Conclusion'] },
     ],
   },
   {
     name: 'Intellectual Property',
-    desc: 'We protect and enforce IP rights through patent, trademark, copyright, and trade secret litigation, as well as strategic counseling and portfolio management.',
+    desc: 'Patent, trademark, copyright, and trade secret litigation, plus strategic counseling and portfolio management.',
     documents: [
-      {
-        type: 'IP Engagement Letter',
-        desc: 'Engagement letter for IP prosecution or litigation. Specify the IP asset (patent no., trademark reg., etc.), scope of services, and USPTO or court fees.',
-        fields: ['Client Name', 'Date', 'IP Asset Description', 'Registration/Patent No.', 'Fee Arrangement'],
-        clauses: ['Scope of IP Services', 'USPTO/Court Fees and Expenses', 'Client Cooperation', 'File Retention Policy', 'Termination', 'Governing Law'],
-      },
-      {
-        type: 'Confidentiality & IP Assignment Agreement',
-        desc: 'Employee or contractor agreement assigning IP rights to the company. Include invention disclosure procedures, moral rights waiver, and power of attorney for assignment execution.',
-        fields: ['Effective Date', 'Employee/Contractor Name', 'Company Name', 'State of Employment'],
-        clauses: ['Definitions of IP', 'Assignment of Inventions', 'Disclosure Obligations', 'Moral Rights Waiver', 'Power of Attorney', 'Return of Company Property', 'Survival', 'Governing Law'],
-      },
-      {
-        type: 'Trademark License Agreement',
-        desc: 'License agreement for trademark use. Specify quality control provisions, territorial scope, royalty structure, and termination rights.',
-        fields: ['Effective Date', 'Licensor', 'Licensee', 'Mark Description', 'Territory', 'Royalty Rate'],
-        clauses: ['Grant of License', 'Quality Control Standards', 'Royalty and Reporting', 'Term and Renewal', 'Infringement Enforcement', 'Indemnification', 'Termination', 'Governing Law'],
-      },
+      { type: 'IP Engagement Letter',
+        desc: 'For IP prosecution or litigation. Specifies the IP asset (patent no., trademark reg., etc.), scope of services, and USPTO or court fees.',
+        fields: ['Client Name', 'Date', 'IP Asset', 'Registration/Patent No.', 'Fee Arrangement'],
+        clauses: ['Scope of IP Services', 'USPTO/Court Fees', 'Client Cooperation', 'File Retention', 'Termination', 'Governing Law'] },
+      { type: 'Confidentiality & IP Assignment',
+        desc: 'Employee or contractor agreement assigning IP to the company. Includes invention disclosure procedures, moral rights waiver, and power of attorney.',
+        fields: ['Effective Date', 'Employee/Contractor', 'Company', 'State'],
+        clauses: ['Definitions of IP', 'Assignment of Inventions', 'Disclosure Obligations', 'Moral Rights Waiver', 'Power of Attorney', 'Return of Company Property', 'Survival', 'Governing Law'] },
+      { type: 'Trademark License Agreement',
+        desc: 'License agreement for trademark use. Specifies quality control, territorial scope, royalty structure, and termination rights.',
+        fields: ['Effective Date', 'Licensor', 'Licensee', 'Mark', 'Territory', 'Royalty Rate'],
+        clauses: ['Grant of License', 'Quality Control Standards', 'Royalty and Reporting', 'Term and Renewal', 'Infringement Enforcement', 'Indemnification', 'Termination', 'Governing Law'] },
     ],
   },
   {
     name: 'Corporate',
-    desc: 'Our corporate team advises on M&A, capital markets, governance, and complex commercial transactions for Fortune 500 companies and emerging enterprises.',
+    desc: 'M&A, capital markets, governance, and complex commercial transactions for Fortune 500 and emerging enterprises.',
     documents: [
-      {
-        type: 'Corporate Engagement Letter',
-        desc: 'Engagement letter for corporate transactional matters. Include deal structure overview, fee arrangements (including success fees), and team composition.',
-        fields: ['Client Name', 'Date', 'Transaction Description', 'Fee Structure', 'Lead Partner'],
-        clauses: ['Scope of Engagement', 'Fee and Expense Terms', 'Team Composition', 'Third-Party Costs', 'Conflicts Waiver', 'Termination', 'Governing Law'],
-      },
-      {
-        type: 'M&A Due Diligence Request List',
-        desc: 'Comprehensive due diligence request list for M&A transactions. Categories include corporate organization, financial, tax, IP, employment, litigation, and regulatory.',
+      { type: 'Corporate Engagement Letter',
+        desc: 'For transactional matters. Includes deal structure overview, fee arrangements (including success fees), and team composition.',
+        fields: ['Client Name', 'Date', 'Transaction', 'Fee Structure', 'Lead Partner'],
+        clauses: ['Scope of Engagement', 'Fee and Expense Terms', 'Team Composition', 'Third-Party Costs', 'Conflicts Waiver', 'Termination', 'Governing Law'] },
+      { type: 'M&A Due Diligence Request List',
+        desc: 'Comprehensive DD request list. Categories: corporate organization, financial, tax, IP, employment, litigation, regulatory.',
         fields: ['Target Company', 'Date Issued', 'Response Deadline', 'Deal Code Name'],
-        clauses: ['Corporate Organization & Records', 'Financial & Tax Matters', 'Intellectual Property', 'Employment & Benefits', 'Litigation & Regulatory', 'Material Contracts', 'Environmental', 'Insurance'],
-      },
-      {
-        type: 'Board Resolution',
-        desc: 'Formal board resolution approving a corporate action. Include recitals, resolutions, and authorization language.',
-        fields: ['Company Name', 'Date of Meeting', 'Resolution Title', 'Board Members Present'],
-        clauses: ['Recitals', 'Resolutions', 'Authorization', 'Certification', 'Effective Date'],
-      },
+        clauses: ['Corporate Organization & Records', 'Financial & Tax', 'Intellectual Property', 'Employment & Benefits', 'Litigation & Regulatory', 'Material Contracts', 'Environmental', 'Insurance'] },
+      { type: 'Board Resolution',
+        desc: 'Formal board resolution approving a corporate action. Includes recitals, resolutions, and authorization language.',
+        fields: ['Company', 'Date of Meeting', 'Resolution Title', 'Members Present'],
+        clauses: ['Recitals', 'Resolutions', 'Authorization', 'Certification', 'Effective Date'] },
     ],
   },
   {
     name: 'White Collar Defense & Investigations',
-    desc: 'Carlington defends corporations and individuals in government investigations, enforcement actions, and criminal proceedings, including FCPA, fraud, and sanctions matters.',
+    desc: 'Government investigations, enforcement actions, and criminal proceedings — FCPA, fraud, and sanctions matters.',
     documents: [
-      {
-        type: 'Engagement Letter — Investigation',
-        desc: 'Engagement letter for internal or government-facing investigations. Include scope, Upjohn warning language (for corporate clients), privilege considerations, and interview protocols.',
-        fields: ['Client Name', 'Date', 'Investigation Description', 'Government Agency (if any)', 'Fee Arrangement'],
-        clauses: ['Scope of Investigation', 'Privilege and Upjohn Warning', 'Interview Protocols', 'Document Collection & Review', 'Reporting Obligations', 'Joint Defense Considerations', 'Fee and Expense Terms', 'Governing Law'],
-      },
-      {
-        type: 'Proffer Agreement',
-        desc: 'Agreement governing the terms of a client proffer to government investigators. Include scope of waiver, derivative use restrictions, and impeachment limitations.',
-        fields: ['Date', 'Client/Witness Name', 'Government Agency', 'Case/Investigation No.', 'AUSA/Prosecutor Name'],
-        clauses: ['Scope of Proffer', 'Waiver of Rights', 'Derivative Use Restrictions', 'Impeachment Exception', 'No Waiver of Attorney-Client Privilege', 'Acknowledgment'],
-      },
-      {
-        type: 'Internal Investigation Report',
-        desc: 'Template for internal investigation findings. Cover executive summary, investigative methodology, factual findings, legal analysis, and recommendations.',
-        fields: ['Date', 'Subject Matter', 'Prepared By', 'Distribution List', 'Privilege Designation'],
-        clauses: ['Executive Summary', 'Investigative Methodology', 'Factual Findings', 'Legal Analysis', 'Recommendations', 'Privilege Log', 'Document Retention'],
-      },
+      { type: 'Engagement Letter — Investigation',
+        desc: 'For internal or government-facing investigations. Includes scope, Upjohn warning language (corporate clients), privilege, and interview protocols.',
+        fields: ['Client Name', 'Date', 'Investigation', 'Agency', 'Fee Arrangement'],
+        clauses: ['Scope of Investigation', 'Privilege and Upjohn Warning', 'Interview Protocols', 'Document Collection & Review', 'Reporting Obligations', 'Joint Defense Considerations', 'Fee and Expense Terms', 'Governing Law'] },
+      { type: 'Proffer Agreement',
+        desc: 'Governs the terms of a client proffer to government investigators. Includes scope of waiver, derivative use restrictions, and impeachment limitations.',
+        fields: ['Date', 'Witness Name', 'Agency', 'Case No.', 'AUSA'],
+        clauses: ['Scope of Proffer', 'Waiver of Rights', 'Derivative Use Restrictions', 'Impeachment Exception', 'No Waiver of Attorney-Client Privilege', 'Acknowledgment'] },
+      { type: 'Internal Investigation Report',
+        desc: 'Template for internal investigation findings. Covers executive summary, methodology, factual findings, legal analysis, and recommendations.',
+        fields: ['Date', 'Subject Matter', 'Prepared By', 'Distribution', 'Privilege Designation'],
+        clauses: ['Executive Summary', 'Methodology', 'Factual Findings', 'Legal Analysis', 'Recommendations', 'Privilege Log', 'Document Retention'] },
     ],
   },
   {
     name: 'Health Care',
-    desc: 'We provide regulatory, transactional, and litigation counsel to health care providers, payors, pharmaceutical companies, and medical device manufacturers.',
+    desc: 'Regulatory, transactional, and litigation counsel to providers, payors, pharma, and medical device manufacturers.',
     documents: [
-      {
-        type: 'Health Care Engagement Letter',
-        desc: 'Engagement letter for health care regulatory, transactional, or litigation matters. Include HIPAA compliance obligations and FDA regulatory scope as applicable.',
-        fields: ['Client Name', 'Date', 'Matter Description', 'Regulatory Agency (if any)', 'Fee Arrangement'],
-        clauses: ['Scope of Representation', 'HIPAA & Data Privacy', 'FDA Regulatory Scope', 'Fee and Expense Terms', 'Conflict Waiver', 'Termination', 'Governing Law'],
-      },
-      {
-        type: 'Business Associate Agreement (BAA)',
-        desc: 'HIPAA-required business associate agreement. Define permitted uses of PHI, breach notification obligations, and subcontractor requirements.',
-        fields: ['Effective Date', 'Covered Entity', 'Business Associate', 'Services Description'],
-        clauses: ['Definitions', 'Permitted Uses of PHI', 'Business Associate Obligations', 'Breach Notification', 'Subcontractors', 'Term and Termination', 'Governing Law'],
-      },
-      {
-        type: 'Clinical Trial Agreement',
-        desc: 'Agreement between sponsor and research institution for clinical trial conduct. Include protocol compliance, IP ownership of trial results, indemnification, and publication rights.',
+      { type: 'Health Care Engagement Letter',
+        desc: 'For health care regulatory, transactional, or litigation matters. Includes HIPAA compliance obligations and FDA regulatory scope.',
+        fields: ['Client Name', 'Date', 'Matter', 'Agency', 'Fee Arrangement'],
+        clauses: ['Scope of Representation', 'HIPAA & Data Privacy', 'FDA Regulatory Scope', 'Fee and Expense Terms', 'Conflict Waiver', 'Termination', 'Governing Law'] },
+      { type: 'Business Associate Agreement (BAA)',
+        desc: 'HIPAA-required BAA. Defines permitted PHI uses, breach notification, and subcontractor requirements.',
+        fields: ['Effective Date', 'Covered Entity', 'Business Associate', 'Services'],
+        clauses: ['Definitions', 'Permitted Uses of PHI', 'Business Associate Obligations', 'Breach Notification', 'Subcontractors', 'Term and Termination', 'Governing Law'] },
+      { type: 'Clinical Trial Agreement',
+        desc: 'Between sponsor and research institution. Includes protocol compliance, IP ownership, indemnification, and publication rights.',
         fields: ['Effective Date', 'Sponsor', 'Institution', 'Protocol Title/No.', 'Principal Investigator'],
-        clauses: ['Protocol Compliance', 'Subject Safety & Informed Consent', 'IP & Data Ownership', 'Publication Rights', 'Indemnification', 'Insurance', 'Confidentiality', 'Term and Termination', 'Governing Law'],
-      },
+        clauses: ['Protocol Compliance', 'Subject Safety', 'IP & Data Ownership', 'Publication Rights', 'Indemnification', 'Insurance', 'Confidentiality', 'Term and Termination', 'Governing Law'] },
     ],
   },
   {
     name: 'Privacy & Cybersecurity',
-    desc: 'Carlington\'s privacy practice guides clients through data protection laws, breach response, regulatory investigations, and compliance programs globally.',
+    desc: 'Data protection laws, breach response, regulatory investigations, and compliance programs globally.',
     documents: [
-      {
-        type: 'Data Processing Agreement (DPA)',
-        desc: 'GDPR/CCPA-compliant data processing addendum. Define processing purposes, data categories, security measures, cross-border transfer mechanisms, and sub-processor requirements.',
-        fields: ['Effective Date', 'Controller', 'Processor', 'Processing Purpose', 'Data Categories', 'Transfer Mechanism'],
-        clauses: ['Definitions', 'Processing Purpose & Duration', 'Data Subject Rights', 'Security Measures', 'Sub-Processors', 'Cross-Border Transfers', 'Breach Notification', 'Audit Rights', 'Governing Law'],
-      },
-      {
-        type: 'Privacy Policy',
-        desc: 'External-facing privacy policy for website, app, or service. Cover data collection, use, sharing, data subject rights, and contact information.',
-        fields: ['Effective Date', 'Company Name', 'Service Description', 'DPO Contact', 'Jurisdiction(s)'],
-        clauses: ['Information We Collect', 'How We Use Information', 'Information Sharing', 'Data Subject Rights', 'Data Security', 'Data Retention', 'Children\'s Privacy', 'International Transfers', 'Contact Information'],
-      },
-      {
-        type: 'Data Breach Response Plan',
-        desc: 'Internal incident response plan for data breaches. Define escalation procedures, notification timelines, forensic investigation steps, and regulatory reporting obligations.',
-        fields: ['Plan Effective Date', 'Plan Owner', 'Incident Response Team Lead', 'External Counsel', 'Forensics Vendor'],
-        clauses: ['Incident Classification', 'Escalation Procedures', 'Containment & Eradication', 'Forensic Investigation', 'Notification Obligations', 'Regulatory Reporting', 'Communications Plan', 'Post-Incident Review'],
-      },
+      { type: 'Data Processing Agreement (DPA)',
+        desc: 'GDPR/CCPA-compliant DPA. Defines processing purposes, data categories, security measures, transfer mechanisms, and sub-processor requirements.',
+        fields: ['Effective Date', 'Controller', 'Processor', 'Purpose', 'Data Categories', 'Transfer Mechanism'],
+        clauses: ['Definitions', 'Processing Purpose & Duration', 'Data Subject Rights', 'Security Measures', 'Sub-Processors', 'Cross-Border Transfers', 'Breach Notification', 'Audit Rights', 'Governing Law'] },
+      { type: 'Privacy Policy',
+        desc: 'External-facing policy for website, app, or service. Covers data collection, use, sharing, rights, and contact information.',
+        fields: ['Effective Date', 'Company', 'Service', 'DPO Contact', 'Jurisdiction(s)'],
+        clauses: ['Information We Collect', 'How We Use Information', 'Information Sharing', 'Data Subject Rights', 'Data Security', 'Data Retention', 'Children\'s Privacy', 'International Transfers', 'Contact Information'] },
+      { type: 'Data Breach Response Plan',
+        desc: 'Internal incident response plan. Defines escalation, notification timelines, forensics, and regulatory reporting.',
+        fields: ['Plan Date', 'Plan Owner', 'IR Lead', 'External Counsel', 'Forensics Vendor'],
+        clauses: ['Incident Classification', 'Escalation', 'Containment & Eradication', 'Forensic Investigation', 'Notification Obligations', 'Regulatory Reporting', 'Communications Plan', 'Post-Incident Review'] },
     ],
   },
 ];
 
-function drawSectionIII(doc, fonts, startPage) {
+function drawSectionIII(doc, fonts, startPage, totalPages) {
   let page = doc.addPage([PAGE_W, PAGE_H]);
-  drawPageFrame(page);
+  let y = drawLetterhead(page, fonts);
+  y = drawSectionTitle(page, fonts, 'SECTION  III', 'Document Types by Practice Area', y);
 
-  let y = PAGE_H - 62;
-  y = drawLetterhead(page, fonts, y);
-  y -= 10;
-  y = drawTitle(page, fonts, 'DOCUMENT TYPES BY PRACTICE AREA', y);
-  y -= 6;
-
-  y = drawBodyText(page, fonts,
-    'The following section catalogs recommended document types for each of the firm\'s seven practice areas. For each document type, we provide the required form fields, recommended clause structure, and creation guidelines. Use these as starting points when building documents in the admin builder.',
+  y = drawBody(page, fonts,
+    'The seven core practice areas each have a recommended set of document types. For every type below, you will find required form fields and a suggested clause structure. Use these as starting points when building documents in the admin builder.',
     y);
   y -= 14;
 
-  let areaIdx = 0;
+  let n = 1;
   for (const area of practiceAreas) {
-    areaIdx++;
-
-    if (y < 180) {
-      addPageNumber(page, fonts, startPage + areaIdx - 1, 18);
+    if (y < 260) {
+      drawFooter(page, fonts, startPage, totalPages);
+      startPage++;
       page = doc.addPage([PAGE_W, PAGE_H]);
-      drawPageFrame(page);
-      y = PAGE_H - 62;
-      y = drawLetterhead(page, fonts, y);
-      y -= 10;
-      y = drawTitle(page, fonts, 'DOCUMENT TYPES (CONTINUED)', y);
-      y -= 6;
+      y = drawLetterhead(page, fonts);
+      y = drawSectionTitle(page, fonts, 'SECTION  III  (CONTINUED)', 'Document Types by Practice Area', y);
     }
 
-    y = drawSubHeading(page, fonts, areaIdx + '. ' + area.name, y);
-    y = drawBodyText(page, fonts, area.desc, y);
-    y -= 8;
+    // Practice area heading: editorial gold numeral + serif title
+    const numStr = String(n).padStart(2, '0');
+    const numSize = 24;
+    page.drawText(numStr, { x: MARGIN, y, size: numSize, font: fonts.serif, color: GOLD });
+    const numW = fonts.serif.widthOfTextAtSize(numStr, numSize);
+
+    safeDrawText(page, area.name, {
+      x: MARGIN + numW + 14,
+      y: y + 6,
+      size: 16, font: fonts.serifBold, color: NAVY,
+    });
+    // thin gold underline under name
+    const nameW = safeTextWidth(fonts.serifBold, area.name, 16);
+    page.drawLine({
+      start: { x: MARGIN + numW + 14, y: y + 2 },
+      end: { x: MARGIN + numW + 14 + nameW, y: y + 2 },
+      thickness: 0.5, color: GOLD,
+    });
+    y -= 18;
+    y = drawWrapped(page, area.desc, MARGIN + numW + 14, y, fonts.sans, 9.5, SLATE, PAGE_W - MARGIN * 2 - numW - 14, 13.5);
+    y -= 10;
 
     for (const docType of area.documents) {
-      // Each document type block
-      if (y < 140) {
-        addPageNumber(page, fonts, startPage + areaIdx, 18);
+      if (y < 300) {
+        drawFooter(page, fonts, startPage, totalPages);
+        startPage++;
         page = doc.addPage([PAGE_W, PAGE_H]);
-        drawPageFrame(page);
-        y = PAGE_H - 62;
-        y = drawLetterhead(page, fonts, y);
-        y -= 10;
-        y = drawTitle(page, fonts, 'DOCUMENT TYPES (CONTINUED)', y);
-        y -= 6;
+        y = drawLetterhead(page, fonts);
+        y = drawSectionTitle(page, fonts, 'SECTION  III  (CONTINUED)', 'Document Types by Practice Area', y);
       }
 
       y = drawSubSubHeading(page, fonts, docType.type, y);
-      y = drawBodyText(page, fonts, docType.desc, y);
+      y = drawWrapped(page, docType.desc, MARGIN, y, fonts.sans, 9.5, INK, PAGE_W - MARGIN * 2, 14);
+      y -= 6;
+
+      // Fields label
+      page.drawText('Form Fields', {
+        x: MARGIN + 12, y, size: 8.5, font: fonts.sansMed, color: BURGUNDY,
+      });
+      y -= 12;
+      y = drawBullets(page, docType.fields, MARGIN + 12, y, fonts, 9, SLATE, PAGE_W - MARGIN * 2 - 24);
       y -= 4;
 
-      // Fields
-      const fieldLabel = 'Form Fields: ';
-      page.drawText(fieldLabel, {
-        x: MARGIN + 24, y, size: 9.5, font: fonts.bold, color: DARK_GRAY,
+      // Clauses label
+      page.drawText('Clauses', {
+        x: MARGIN + 12, y, size: 8.5, font: fonts.sansMed, color: BURGUNDY,
       });
-      y = drawBulletList(page, docType.fields, MARGIN + 24, y - 14, fonts, 9, MUTED, PAGE_W - MARGIN * 2 - 48);
-      y -= 2;
-
-      // Clauses
-      const clauseLabel = 'Clauses: ';
-      page.drawText(clauseLabel, {
-        x: MARGIN + 24, y, size: 9.5, font: fonts.bold, color: DARK_GRAY,
-      });
-      y = drawBulletList(page, docType.clauses, MARGIN + 24, y - 14, fonts, 9, MUTED, PAGE_W - MARGIN * 2 - 48);
-      y -= 8;
+      y -= 12;
+      y = drawBullets(page, docType.clauses, MARGIN + 12, y, fonts, 9, SLATE, PAGE_W - MARGIN * 2 - 24);
+      y -= 12;
     }
 
-    y -= 10;
+    n++;
+    y -= 8;
   }
 
-  // Fix: compute the page number for the last page of this section dynamically
-  addPageNumber(page, fonts, startPage + 7, 18);
-  return doc.addPage([PAGE_W, PAGE_H]);
+  drawFooter(page, fonts, startPage, totalPages);
+  return startPage + 1;
 }
 
-function drawSectionIV(doc, fonts, startPage) {
-  let page = doc.addPage([PAGE_W, PAGE_H]);
-  drawPageFrame(page);
+// ── Section IV: Guidelines ────────────────────────────────────────────
 
-  let y = PAGE_H - 62;
-  y = drawLetterhead(page, fonts, y);
-  y -= 10;
-  y = drawTitle(page, fonts, 'CREATION GUIDELINES & BEST PRACTICES', y);
-  y -= 6;
+function drawSectionIV(doc, fonts, startPage, totalPages) {
+  let page = doc.addPage([PAGE_W, PAGE_H]);
+  let y = drawLetterhead(page, fonts);
+  y = drawSectionTitle(page, fonts, 'SECTION  IV', 'Creation Guidelines', y);
 
   const guidelines = [
-    {
-      title: 'Document Title Naming',
-      body: 'Use full capitalization for document titles (e.g., "MUTUAL NON-DISCLOSURE AGREEMENT"). Center the title between the gold rules. Keep titles concise — ideally one to two lines at 13pt Times Roman Bold. Avoid abbreviations in formal document titles.',
-    },
-    {
-      title: 'Field Label Standards',
-      body: 'Field labels should end with a colon and be descriptive enough for clients to understand (e.g., "Client Name:" not just "Name:"). Group related fields together. Place date fields early in the document for easy reference. Standard widths: 370 for name/address lines, 200 for dates.',
-    },
-    {
-      title: 'Clause Numbering & Structure',
-      body: 'Use sequential numbering (1., 2., 3.) for clauses. Each clause should have a short, descriptive title ending with a period (e.g., "Governing Law."). Body text should be in complete, well-formed sentences. Use consistent defined terms throughout (capitalize the first letter of each defined term).',
-    },
-    {
-      title: 'Signature Block Configuration',
-      body: 'Always include the [SEAL] notation on signature lines to comply with jurisdictions requiring sealed instruments. Use two signature blocks side-by-side for bilateral agreements. For multi-party agreements, use separate signature pages. Include Print Name and Date fields below each signature line.',
-    },
-    {
-      title: 'Page Overflow Handling',
-      body: 'The template engine automatically creates new pages when content exceeds available space. Signature blocks will always start on a fresh page if fewer than 300 points of vertical space remain. Review multi-page documents to ensure clause breaks occur at logical points.',
-    },
-    {
-      title: 'Quality Control Checklist',
-      body: 'Before distributing any generated document: (1) Verify all form fields are present and correctly labeled, (2) Confirm clause numbering is sequential, (3) Check that signature blocks match the parties to the agreement, (4) Review for typographical errors in clause body text, (5) Open the PDF in Adobe Acrobat to verify AcroForm field functionality, (6) Confirm the document prints correctly with double-line frame intact.',
-    },
-    {
-      title: 'Version Control',
-      body: 'Save preset configurations for frequently used document types. Export as preset to capture your configuration as JSON that can be shared with colleagues. Maintain a changelog of preset modifications. For each generated document, retain the configuration used for reproducibility.',
-    },
-    {
-      title: 'Brand Consistency',
-      body: 'All documents use the official Variant C (Bordered Traditional) template with Carlington & Burling letterhead, navy (#0A1628) and gold (#C2A44F) color scheme, Times Roman typography, and double-line page frames. Do not deviate from this template for client-facing documents without approval from the firm\'s Brand & Communications team.',
-    },
+    { title: 'Document title naming',
+      body: 'Use full capitalization for document titles (e.g. MUTUAL NON-DISCLOSURE AGREEMENT). Keep titles concise — one or two lines at the default 18pt Cormorant Bold. Avoid abbreviations in formal document titles.' },
+    { title: 'Field label standards',
+      body: 'End labels with a colon and make them descriptive enough for clients to understand ("Client Name:" not just "Name:"). Group related fields. Place date fields early. Standard widths: 370 for name/address lines, 200 for dates.' },
+    { title: 'Clause numbering and structure',
+      body: 'Use sequential numbering (1., 2., 3.) for clauses. Each clause has a short descriptive title ending with a period ("Governing Law."). Body text in complete sentences. Capitalize defined terms consistently throughout.' },
+    { title: 'Signature block configuration',
+      body: 'Always include the [SEAL] notation on signature lines to comply with jurisdictions requiring sealed instruments. Two signature blocks side-by-side for bilateral agreements. For multi-party agreements, use separate signature pages. Include Print Name and Date fields below each signature line.' },
+    { title: 'Page overflow handling',
+      body: 'The template engine creates new pages automatically when content exceeds available space. Signature blocks always start on a fresh page if fewer than 300 points of vertical space remain. Review multi-page documents to ensure clause breaks land at logical points.' },
+    { title: 'Quality control checklist',
+      body: 'Before distributing: (1) verify all form fields are present and labeled, (2) confirm clause numbering is sequential, (3) check signature blocks match the parties, (4) review clause body text for typos, (5) open the PDF in Acrobat to verify AcroForm field functionality, (6) confirm the document prints with the gold rule and letterhead intact.' },
+    { title: 'Version control',
+      body: 'Save frequently used document types as presets. Use Export as Preset to capture your configuration as JSON for sharing with colleagues. Maintain a changelog of preset modifications. For each generated document, retain the configuration JSON for reproducibility.' },
+    { title: 'Brand consistency',
+      body: 'All documents share the same editorial system: navy #0A1628, burgundy #6B1C2E, gold #B08D57 on cream #FAF8F5. Cormorant Garamond for serif/display, Montserrat for sans. Do not deviate from these tokens for client-facing documents without approval from Brand & Communications.' },
   ];
 
-  for (let i = 0; i < guidelines.length; i++) {
-    if (y < 150) {
-      addPageNumber(page, fonts, startPage, 18);
+  let n = 1;
+  for (const g of guidelines) {
+    if (y < 140) {
+      drawFooter(page, fonts, startPage, totalPages);
+      startPage++;
       page = doc.addPage([PAGE_W, PAGE_H]);
-      drawPageFrame(page);
-      y = PAGE_H - 62;
-      y = drawLetterhead(page, fonts, y);
-      y -= 10;
-      y = drawTitle(page, fonts, 'GUIDELINES (CONTINUED)', y);
-      y -= 6;
+      y = drawLetterhead(page, fonts);
+      y = drawSectionTitle(page, fonts, 'SECTION  IV  (CONTINUED)', 'Creation Guidelines', y);
     }
-
-    y = drawSubSubHeading(page, fonts, (i + 1) + '. ' + guidelines[i].title, y);
-    y = drawBodyText(page, fonts, guidelines[i].body, y);
-    y -= 10;
+    y = drawNumberedItem(page, fonts, n, g.title, g.body, y);
+    n++;
   }
 
-  addPageNumber(page, fonts, startPage, 18);
-  return doc.addPage([PAGE_W, PAGE_H]);
+  drawFooter(page, fonts, startPage, totalPages);
+  return startPage + 1;
 }
 
-function drawSectionV(doc, fonts, startPage) {
+// ── Section V: Customization ──────────────────────────────────────────
+
+function drawSectionV(doc, fonts, startPage, totalPages) {
   let page = doc.addPage([PAGE_W, PAGE_H]);
-  drawPageFrame(page);
+  let y = drawLetterhead(page, fonts);
+  y = drawSectionTitle(page, fonts, 'SECTION  V', 'Template Customization & Tips', y);
 
-  let y = PAGE_H - 62;
-  y = drawLetterhead(page, fonts, y);
-  y -= 10;
-  y = drawTitle(page, fonts, 'TEMPLATE CUSTOMIZATION & TIPS', y);
-  y -= 6;
+  const topics = [
+    { title: 'Customizing the template presets',
+      body: 'Presets live in public/js/template-presets.js. Each is a JavaScript object with: title (string), fields (array of {label, name, width}), intro (string), witnessText (string), clauses (array of {num, title, body}), and signatureBlocks (array of {label, fields}). To add a new preset, edit template-presets.js and add your object to window.CarlingtonPresets following the existing pattern.' },
+    { title: 'Generating PDFs programmatically',
+      body: 'public/js/carlington-template.js exposes CarlingtonTemplate.generate(def), returning a Uint8Array of PDF bytes, and CarlingtonTemplate.download(bytes, filename) to trigger a browser download. You can call these from any page or from devtools for quick generation.' },
+    { title: 'Adding new document types',
+      body: 'For a type not covered by existing presets: (1) open the admin builder, (2) choose Custom from the preset dropdown, (3) enter title and filename, (4) add form fields, (5) compose clauses, (6) configure signature blocks. Click Export as Preset to save the configuration as JSON. Then add it to template-presets.js as a named preset.' },
+    { title: 'Deployment',
+      body: 'The admin builder is a static site deployed via Vercel. To ship a change: edit the relevant files under public/ (admin/index.html, js/carlington-template.js, js/template-presets.js, css/*), then run vercel --prod from the project root, or push to main if your branch is connected to auto-deploy. All changes propagate to the edge within ~60 seconds.' },
+    { title: 'Testing new templates',
+      body: 'Always test new or modified templates: (1) generate from the admin builder, (2) open in Acrobat to verify AcroForm fields are fillable, (3) test in Apple Preview on macOS (most attorney laptops), (4) print to verify the gold rule and letterhead render correctly, (5) have a second reviewer proofread clause text.' },
+    { title: 'Technical reference',
+      body: 'PDF generation: pdf-lib v1.17.1 + @pdf-lib/fontkit v1.1.1, loaded via CDN in the admin shell. Template engine: public/js/carlington-template.js. Presets: public/js/template-presets.js. Admin UI: public/admin/index.html. Brand fonts: Cormorant Garamond 400/600 + Montserrat 400/500, served as .ttf from public/fonts/. Brand palette: navy #0A1628, burgundy #6B1C2E, gold #B08D57, cream #FAF8F5. For template requests or issues, contact Knowledge Management.' },
+  ];
 
-  y = drawSubHeading(page, fonts, 'Customizing the Template Presets', y);
-  y = drawBodyText(page, fonts,
-    'Template presets are defined in public/js/template-presets.js. Each preset is a JavaScript object with the following structure: title (string), fields (array of {label, name, width}), intro (string), witnessText (string), clauses (array of {num, title, body}), and signatureBlocks (array of {label, fields}). To add a new preset, edit template-presets.js and add your preset object to the window.CarlingtonPresets object following the existing pattern.',
-    y);
-  y -= 14;
+  let n = 1;
+  for (const t of topics) {
+    if (y < 150) {
+      drawFooter(page, fonts, startPage, totalPages);
+      startPage++;
+      page = doc.addPage([PAGE_W, PAGE_H]);
+      y = drawLetterhead(page, fonts);
+      y = drawSectionTitle(page, fonts, 'SECTION  V  (CONTINUED)', 'Template Customization & Tips', y);
+    }
+    y = drawNumberedItem(page, fonts, n, t.title, t.body, y);
+    n++;
+  }
 
-  y = drawSubHeading(page, fonts, 'Creating the PDF Programmatically', y);
-  y = drawBodyText(page, fonts,
-    'The browser-side template engine at public/js/carlington-template.js exposes two functions: CarlingtonTemplate.generate(def) which returns a Uint8Array of PDF bytes, and CarlingtonTemplate.download(pdfBytes, filename) which triggers a browser download. You can call these from any page on the site or from browser developer tools for quick document generation.',
-    y);
-  y -= 14;
-
-  y = drawSubHeading(page, fonts, 'Adding New Document Types', y);
-  y = drawBodyText(page, fonts,
-    'To create a document type not covered by existing presets: (1) Open the admin builder and select "Custom" from the preset dropdown, (2) Enter the document title and output filename, (3) Add form fields for each blank the client needs to complete, (4) Compose the substantive clauses, (5) Configure signature blocks. Once satisfied, click "Export as Preset" to save the configuration as JSON. You can then add this JSON to template-presets.js as a new named preset.',
-    y);
-  y -= 14;
-
-  y = drawSubHeading(page, fonts, 'Deployment & Updates', y);
-  y = drawBodyText(page, fonts,
-    'The admin builder is a static HTML page deployed via Firebase Hosting. To update: (1) Edit the relevant files in public/ (admin/index.html, js/carlington-template.js, js/template-presets.js), (2) Run firebase deploy --only hosting from the project root. All changes take effect immediately upon deployment. No server restarts or Cloud Functions redeployment are required.',
-    y);
-  y -= 14;
-
-  y = drawSubHeading(page, fonts, 'Testing New Templates', y);
-  y = drawBodyText(page, fonts,
-    'Always test new or modified templates before distributing to clients: (1) Generate the PDF from the admin builder, (2) Open in Adobe Acrobat and verify all AcroForm fields are fillable, (3) Test in Apple Preview (macOS) as many clients use it, (4) Print the document to verify the double-line frame renders correctly, (5) Have a second reviewer proofread all clause text for accuracy.',
-    y);
-  y -= 14;
-
-  y = drawSubHeading(page, fonts, 'Technical Reference', y);
-  y = drawBodyText(page, fonts,
-    'PDF Generation: pdf-lib v1.17.1 via CDN (unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js). Template Engine: public/js/carlington-template.js (278 lines, IIFE pattern). Presets: public/js/template-presets.js. Admin UI: public/admin/index.html. Styles: public/css/admin.css. Server-side generation: scripts/generate-fillable-pdfs.js (Node.js). For support or template requests, contact the firm\'s Knowledge Management team.',
-    y);
-
-  // Back cover note
-  y -= 40;
-  if (y < 120) {
-    addPageNumber(page, fonts, startPage, 18);
+  // Closing rule + sign-off
+  y -= 18;
+  if (y < 100) {
+    drawFooter(page, fonts, startPage, totalPages);
+    startPage++;
     page = doc.addPage([PAGE_W, PAGE_H]);
-    drawPageFrame(page);
-    y = PAGE_H - 62;
-    y = drawLetterhead(page, fonts, y);
+    y = drawLetterhead(page, fonts);
+    y -= 40;
   }
 
   page.drawLine({
-    start: { x: MARGIN + 60, y },
-    end: { x: PAGE_W - MARGIN - 60, y },
+    start: { x: PAGE_W / 2 - 30, y },
+    end: { x: PAGE_W / 2 + 30, y },
     thickness: 1, color: GOLD,
   });
-  y -= 22;
+  y -= 24;
 
-  const endNote = 'This playbook is an internal firm resource. For questions about the admin document builder, template requests, or to report issues, please contact the Knowledge Management team. Updated versions of this playbook will be distributed as the template system evolves.';
-  y = drawWrapped(page, endNote, MARGIN + 30, y, fonts.italic, 9, MUTED, PAGE_W - MARGIN * 2 - 60, 9 * 1.5);
-  y -= 20;
+  const endNote = 'This playbook is an internal firm resource. For questions about the admin builder, template requests, or to report issues, contact Knowledge Management. Updated editions will be distributed as the template system evolves.';
+  y = drawWrapped(page, endNote, MARGIN + 30, y, fonts.serif, 10, SLATE, PAGE_W - MARGIN * 2 - 60, 14);
+  y -= 24;
 
-  const endFirm = 'Carlington & Burling LLP';
-  page.drawText(endFirm, {
-    x: PAGE_W / 2 - fonts.bold.widthOfTextAtSize(endFirm, 10) / 2,
-    y, size: 10, font: fonts.bold, color: NAVY,
+  // Firm sign-off
+  const signSize = 14;
+  const signW = fonts.serifBold.widthOfTextAtSize(FIRM, signSize);
+  page.drawText(FIRM, {
+    x: PAGE_W / 2 - signW / 2, y,
+    size: signSize, font: fonts.serifBold, color: NAVY,
   });
 
-  addPageNumber(page, fonts, startPage, 18);
-  return page;
+  drawFooter(page, fonts, startPage, totalPages);
+  return startPage + 1;
 }
 
-// ── Main ─────────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log('Generating Carlington & Burling Admin Playbook PDF...\n');
+  console.log('Generating Carlington & Burling Admin Playbook (v2.0)...\n');
 
-  const doc = await PDFDocument.create();
-  const fonts = embedFonts(doc);
+  // First pass: build content, count pages
+  let doc = await PDFDocument.create();
+  let fonts = await loadFonts(doc);
 
-  // Cover page
-  console.log('  [1/8] Cover page...');
+  console.log('  [1/7] Cover page...');
   drawCoverPage(doc, fonts);
 
-  // TOC
-  console.log('  [2/8] Table of Contents...');
-  drawTOC(doc, fonts);
+  // Placeholder TOC — we'll regenerate with correct page numbers after content
+  const tocItems = [
+    { num: 'I',   title: 'Introduction & Access',                  page: 3 },
+    { num: 'II',  title: 'Step-by-Step: Generating a Document',    page: 4 },
+    { num: 'III', title: 'Document Types by Practice Area',        page: 6 },
+    { num: 'IV',  title: 'Creation Guidelines & Best Practices',   page: 14 },
+    { num: 'V',   title: 'Template Customization & Tips',          page: 17 },
+  ];
 
-  // Section I: Introduction
-  console.log('  [3/8] Section I — Introduction & Access...');
-  drawSectionI(doc, fonts, 3);
+  console.log('  [2/7] Table of contents...');
+  // Use placeholder totalPages — we'll regenerate in pass 2
+  drawTOC(doc, fonts, tocItems, 20);
 
-  // Section II: Step-by-Step
-  console.log('  [4/8] Section II — Step-by-Step Guide...');
-  drawSectionII(doc, fonts, 4);
+  console.log('  [3/7] Section I — Introduction & Access...');
+  drawSectionI(doc, fonts, 3, 20);
 
-  // Section III: Document Types
-  console.log('  [5/8] Section III — Document Types by Practice Area...');
-  drawSectionIII(doc, fonts, 6);
+  console.log('  [4/7] Section II — Step-by-Step Guide...');
+  const sec2End = drawSectionII(doc, fonts, 4, 20);
 
-  // Section IV: Guidelines
-  console.log('  [6/8] Section IV — Creation Guidelines...');
-  drawSectionIV(doc, fonts, 14);
+  console.log('  [5/7] Section III — Document Types...');
+  const sec3End = drawSectionIII(doc, fonts, sec2End, 20);
 
-  // Section V: Customization
-  console.log('  [7/8] Section V — Template Customization...');
-  drawSectionV(doc, fonts, 16);
+  console.log('  [6/7] Section IV — Guidelines...');
+  const sec4End = drawSectionIV(doc, fonts, sec3End, 20);
 
-  // Save
-  console.log('  [8/8] Saving PDF...');
+  console.log('  [7/7] Section V — Customization...');
+  const sec5End = drawSectionV(doc, fonts, sec4End, 20);
+
+  const realTotal = doc.getPageCount();
+  console.log('\n  Total pages: ' + realTotal);
+  console.log('  Section starts → I:3, II:4, III:' + sec2End + ', IV:' + sec3End + ', V:' + sec4End);
+
+  // Pass 2: rebuild with correct TOC page numbers + footer totals
+  console.log('\n  Rebuilding with final page numbers...');
+  doc = await PDFDocument.create();
+  fonts = await loadFonts(doc);
+
+  // Use the discovered offsets for TOC
+  const tocItemsFinal = [
+    { num: 'I',   title: 'Introduction & Access',                  page: 3 },
+    { num: 'II',  title: 'Step-by-Step: Generating a Document',    page: 4 },
+    { num: 'III', title: 'Document Types by Practice Area',        page: sec2End },
+    { num: 'IV',  title: 'Creation Guidelines & Best Practices',   page: sec3End },
+    { num: 'V',   title: 'Template Customization & Tips',          page: sec4End },
+  ];
+
+  drawCoverPage(doc, fonts);
+  drawTOC(doc, fonts, tocItemsFinal, realTotal);
+  drawSectionI(doc, fonts, 3, realTotal);
+  drawSectionII(doc, fonts, 4, realTotal);
+  drawSectionIII(doc, fonts, sec2End, realTotal);
+  drawSectionIV(doc, fonts, sec3End, realTotal);
+  drawSectionV(doc, fonts, sec4End, realTotal);
+
   const pdfBytes = await doc.save();
-
-  if (!fs.existsSync(FORMS_DIR)) {
-    fs.mkdirSync(FORMS_DIR, { recursive: true });
-  }
+  if (!fs.existsSync(FORMS_DIR)) fs.mkdirSync(FORMS_DIR, { recursive: true });
   fs.writeFileSync(OUT_FILE, pdfBytes);
-  console.log('\nPlaybook saved to: ' + OUT_FILE);
-  console.log('Size: ' + (pdfBytes.length / 1024).toFixed(1) + ' KB');
+
+  console.log('\nSaved: ' + OUT_FILE);
+  console.log('Size:  ' + (pdfBytes.length / 1024).toFixed(1) + ' KB');
+  console.log('Pages: ' + doc.getPageCount());
 }
 
-main().catch(err => {
+main().catch(function (err) {
   console.error('Error generating playbook:', err);
   process.exit(1);
 });
