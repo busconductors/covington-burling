@@ -1447,18 +1447,18 @@ h4 { font-size: 1.125rem; font-weight: 500; }
 }
 
 .step-item__number {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--navy);
-  color: var(--white);
   font-family: var(--font-serif);
-  font-size: 1.25rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1rem;
+  font-size: 2.5rem;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--gold);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(176, 141, 87, 0.3);
+  display: inline-block;
+  min-width: 3rem;
 }
 
 .step-item__title {
