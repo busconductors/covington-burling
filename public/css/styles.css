@@ -1526,58 +1526,142 @@ h4 { font-size: 1.125rem; font-weight: 500; }
 /* ----- 20d. SUBMISSION BOX ----- */
 .submission-box {
   background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 2rem;
-  margin-top: 2rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  border: 1px solid #E4E0D8;
+  border-radius: var(--radius-lg);
+  margin-top: 2.5rem;
+  box-shadow: 0 2px 8px rgba(10, 22, 40, 0.05);
+  overflow: hidden;
 }
 
 .submission-box__methods {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: 1fr;
+  align-items: stretch;
 }
 
 .submission-method {
   display: flex;
-  align-items: flex-start;
-  gap: 0.875rem;
-  padding: 1.25rem;
-  background: var(--cream);
-  border-radius: 6px;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 1.75rem 1.5rem;
+}
+
+.submission-method + .submission-method {
+  border-top: 1px solid #E4E0D8;
+}
+
+.submission-method__head {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0;
 }
 
 .submission-method__icon {
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  color: var(--navy);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.submission-method__contact {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--burgundy);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(10, 22, 40, 0.05);
+  color: var(--gold);
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.submission-method__title {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--navy);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.submission-method__desc {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.submission-method__value {
+  align-self: flex-start;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--navy);
+  line-height: 1.5;
+  font-style: normal;
+  text-decoration: none;
+  background-image: linear-gradient(var(--gold), var(--gold));
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size var(--transition-base), color var(--transition-fast);
+}
+
+.submission-method__value:hover,
+.submission-method__value:focus-visible {
+  color: var(--gold-dark);
+  background-size: 100% 1px;
+}
+
+.submission-method__value:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.submission-method__value--phone {
+  white-space: nowrap;
+}
+
+.submission-method__value--email {
+  overflow-wrap: anywhere;
 }
 
 .submission-note {
-  margin-top: 1.5rem;
+  margin: 0;
+  padding: 1.125rem 1.5rem;
+  border-top: 1px solid #E4E0D8;
   font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+  background: rgba(250, 248, 245, 0.45);
 }
 
 .submission-note a {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.9375rem 0;
-  line-height: 1;
-  vertical-align: middle;
+  color: var(--burgundy);
+  font-weight: 600;
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size var(--transition-base), color var(--transition-fast);
+}
+
+.submission-note a:hover {
+  color: var(--burgundy-dark);
+  background-size: 100% 1px;
+}
+
+.submission-note a:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (min-width: 768px) {
+  .submission-box__methods {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .submission-method + .submission-method {
+    border-top: none;
+    border-left: 1px solid #E4E0D8;
+  }
 }
 
 /* ----- 20. BIO SECTION ----- */
@@ -1878,7 +1962,6 @@ h4 { font-size: 1.125rem; font-weight: 500; }
 
   .steps-row { grid-template-columns: repeat(3, 1fr); }
   .instructions-grid { grid-template-columns: repeat(2, 1fr); }
-  .submission-box__methods { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* 1024px */

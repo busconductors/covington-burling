@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400..700;1,400..700&family=Montserrat:ital,wght@0,300..600;1,300..600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/styles.css?v=4">
+  <link rel="stylesheet" href="/css/styles.css?v=5">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
 <body>
@@ -307,41 +307,41 @@
     <!-- Submission -->
     <section class="section section--cream" aria-labelledby="submission-heading">
       <div class="container container--narrow">
-        <h2 class="section-title" id="submission-heading">Submitting Completed Forms</h2>
+        <h2 class="section-title text-center" id="submission-heading">Submitting Completed Forms</h2>
         <div class="submission-box">
           <div class="submission-box__methods">
-            <div class="submission-method">
-              <div class="submission-method__icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <article class="submission-method">
+              <div class="submission-method__head">
+                <span class="submission-method__icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                </span>
+                <h3 class="submission-method__title">Email</h3>
               </div>
-              <div>
-                <strong>Email</strong><br>
-                <span class="text-muted">Send your completed PDF to:</span><br>
-                <a href="mailto:info@carlingtonburling.com" class="submission-method__contact">info@carlingtonburling.com</a>
+              <p class="submission-method__desc">Send your completed PDF to:</p>
+              <a href="mailto:info@carlingtonburling.com" class="submission-method__value submission-method__value--email">info@carlingtonburling.com</a>
+            </article>
+            <article class="submission-method">
+              <div class="submission-method__head">
+                <span class="submission-method__icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                </span>
+                <h3 class="submission-method__title">Mail or In Person</h3>
               </div>
-            </div>
-            <div class="submission-method">
-              <div class="submission-method__icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <p class="submission-method__desc">Deliver to our DC office:</p>
+              <address class="submission-method__value">850 Tenth Street NW<br>Washington, DC 20001</address>
+            </article>
+            <article class="submission-method">
+              <div class="submission-method__head">
+                <span class="submission-method__icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                </span>
+                <h3 class="submission-method__title">Phone</h3>
               </div>
-              <div>
-                <strong>Mail or In Person</strong><br>
-                <span class="text-muted">Deliver to our Washington, DC office:</span><br>
-                <span class="submission-method__contact">850 Tenth Street NW, Washington, DC 20001</span>
-              </div>
-            </div>
-            <div class="submission-method">
-              <div class="submission-method__icon" aria-hidden="true">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-              </div>
-              <div>
-                <strong>Phone</strong><br>
-                <span class="text-muted">Questions about these forms?</span><br>
-                <a href="tel:+12026626000" class="submission-method__contact">202-662-6000</a>
-              </div>
-            </div>
+              <p class="submission-method__desc">Questions about these forms?</p>
+              <a href="tel:+12026626000" class="submission-method__value submission-method__value--phone">202-662-6000</a>
+            </article>
           </div>
-          <p class="text-muted submission-note">These forms are provided for general informational purposes. For legal advice specific to your situation, please <a href="/contact">schedule a consultation</a>.</p>
+          <p class="submission-note">These forms are provided for general informational purposes. For legal advice specific to your situation, please <a href="/contact">schedule a consultation</a>.</p>
         </div>
       </div>
     </section>
