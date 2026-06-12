@@ -116,15 +116,5 @@
     apiBase: API_BASE
   };
 
-  // Shared utilities for all admin modules
-  window.AdminUtils = {
-    escHtml: function (s) {
-      if (!s) return '';
-      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    },
-    escAttr: function (s) {
-      if (!s) return '';
-      return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-  };
+  // Shared utilities live in admin-utils.js (loaded before this file).
 })();

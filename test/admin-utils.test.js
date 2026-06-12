@@ -1,42 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import { createRequire } from 'module';
 
-// ── AdminUtils escHtml / escAttr ────────────────────────────────────
-// These implementations mirror window.AdminUtils in public/js/admin-auth.js
-// (lines 104-113). They're duplicated here because admin-auth.js is an IIFE
-// that requires DOM setup. The parity test below verifies the function bodies
-// match the production source code to prevent drift.
-
-function escHtml(s) {
-  if (!s) return '';
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function escAttr(s) {
-  if (!s) return '';
-  return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-describe('AdminUtils parity with production admin-auth.js', () => {
-  it('local escHtml and escAttr source bodies match production code', () => {
-    const authPath = resolve(__dirname, '../public/js/admin-auth.js');
-    const authSrc = readFileSync(authPath, 'utf8');
-
-    // escHtml body: String(s).replace(/&/g, ...).replace(/</g, ...).replace(/>/g, ...).replace(/"/g, ...)
-    expect(authSrc).toContain(
-      "String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;')"
-    );
-
-    // escAttr body: String(s).replace(/&/g, ...).replace(/"/g, ...).replace(/</g, ...).replace(/>/g, ...)
-    expect(authSrc).toContain(
-      "String(s).replace(/&/g, '&amp;').replace(/\"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')"
-    );
-
-    // Verify the guard clause pattern
-    expect(authSrc).toContain('if (!s) return \'\'');
-  });
-});
+// Tests import the PRODUCTION module directly (dual-mode UMD), so test and
+// production cannot drift — no hand-copied fork, no source-grep parity check.
+const nodeRequire = createRequire(import.meta.url);
+const { escHtml, escAttr } = nodeRequire('../public/js/admin-utils.js');
 
 describe('AdminUtils escHtml', () => {
   it('escapes <, >, &, and "', () => {

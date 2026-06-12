@@ -85,8 +85,8 @@ describe('admin-builder null-guard coverage', () => {
       },
     };
 
-    // Load admin-auth.js first for window.AdminUtils
-    loadScript('public/js/admin-auth.js');
+    // Load admin-utils.js first for window.AdminUtils (shared module)
+    loadScript('public/js/admin-utils.js');
     // Then load the builder
     loadScript('public/js/admin-builder.js');
   });
