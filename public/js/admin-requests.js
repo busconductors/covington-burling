@@ -46,6 +46,7 @@
         }
         table.classList.remove('hidden');
         renderTable();
+        updateTotalNotice(data.total);
       })
       .catch(function (err) {
         if (err.message !== 'Unauthorized') {
@@ -599,6 +600,17 @@
     }
     document.addEventListener('keydown', escHandler);
     currentEscHandler = escHandler;
+  }
+
+  function updateTotalNotice(total) {
+    var existing = document.getElementById('requestsTotalNotice');
+    if (existing) existing.parentNode.removeChild(existing);
+    if (!total || total <= requestsData.length) return;
+    var notice = document.createElement('p');
+    notice.id = 'requestsTotalNotice';
+    notice.style.cssText = 'color:var(--text-muted);font-size:0.8125rem;margin:0.5rem 0 0;';
+    notice.textContent = 'Showing ' + requestsData.length + ' of ' + total + ' requests (pending shown first).';
+    table.parentNode.insertBefore(notice, table.nextSibling);
   }
 
   function updatePendingBadge() {

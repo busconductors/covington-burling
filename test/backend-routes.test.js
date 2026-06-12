@@ -290,22 +290,41 @@ describe('GET /api/admin/requests', () => {
     expect(res.status).toBe(401);
   });
 
-  it('200 returns rows mapped to the camelCase UI contract', async () => {
+  it('200 returns rows mapped to the camelCase UI contract, pending-first, with total', async () => {
     sqlHandler = (text) => {
-      if (/SELECT \* FROM form_requests ORDER BY created_at/i.test(text)) {
+      if (/SELECT \* FROM form_requests ORDER BY \(status = 'pending'\) DESC/i.test(text)) {
         return [pendingRow(), pendingRow({ id: 'req-2', status: 'approved', approved_at: '2026-06-10T00:00:00Z' })];
+      }
+      if (/SELECT COUNT\(\*\)::int AS count FROM form_requests/i.test(text)) {
+        return [{ count: 150 }];
       }
       return [];
     };
     const res = await request(app).get('/api/admin/requests').set(AUTH);
     expect(res.status).toBe(200);
     expect(res.body.requests).toHaveLength(2);
+    expect(res.body.total).toBe(150);
     const first = res.body.requests[0];
     expect(first.formType).toBe('waiver');
     expect(first.matterDescription).toBe('Contract review');
     expect(first.createdAt).toBe('2026-06-01T00:00:00Z');
     expect(first).not.toHaveProperty('form_type');
     expect(res.body.requests[1].approvedAt).toBe('2026-06-10T00:00:00Z');
+  });
+
+  it('clamps limit to 200 and floors offset at 0', async () => {
+    let received;
+    sqlHandler = (text, values) => {
+      if (/SELECT \* FROM form_requests ORDER BY/i.test(text)) {
+        received = values;
+        return [];
+      }
+      if (/SELECT COUNT/i.test(text)) return [{ count: 0 }];
+      return [];
+    };
+    await request(app).get('/api/admin/requests?limit=9999&offset=-5').set(AUTH);
+    expect(received[0]).toBe(200);
+    expect(received[1]).toBe(0);
   });
 
   it('500 when the DB read fails', async () => {
@@ -591,13 +610,28 @@ describe('GET /api/admin/analytics', () => {
     expect(res.status).toBe(401);
   });
 
-  it('200 aggregates pipeline counts, form types, and monthly trend', async () => {
+  function aggRow(overrides = {}) {
+    return {
+      total: 0, pending: 0, approved: 0, rejected: 0,
+      waiver_count: 0, nda_count: 0, both_count: 0,
+      avg_approval_seconds: null,
+      ...overrides,
+    };
+  }
+
+  it('200 aggregates pipeline counts, form types, and monthly trend (SQL-side)', async () => {
     sqlHandler = (text) => {
-      if (/SELECT status, form_type, created_at, approved_at FROM form_requests/i.test(text)) {
+      if (/COUNT\(\*\) FILTER \(WHERE status = 'pending'\)/i.test(text)) {
+        return [aggRow({
+          total: 3, pending: 1, approved: 1, rejected: 1,
+          waiver_count: 1, nda_count: 1, both_count: 1,
+          avg_approval_seconds: 86400,
+        })];
+      }
+      if (/to_char\(created_at, 'YYYY-MM'\)/i.test(text)) {
         return [
-          { status: 'pending', form_type: 'waiver', created_at: '2026-05-01T00:00:00Z', approved_at: null },
-          { status: 'approved', form_type: 'nda', created_at: '2026-05-02T00:00:00Z', approved_at: '2026-05-03T00:00:00Z' },
-          { status: 'rejected', form_type: 'both', created_at: '2026-06-01T00:00:00Z', approved_at: null },
+          { month: '2026-05', count: 2 },
+          { month: '2026-06', count: 1 },
         ];
       }
       return [];
@@ -614,11 +648,12 @@ describe('GET /api/admin/analytics', () => {
     expect(res.body.avgApprovalHours).toBe(24);
   });
 
-  it('CHARACTERIZATION: approvalRate serializes to null when nothing is approved/rejected (NaN bug, T15 fixes)', async () => {
+  it('approvalRate is null when nothing is approved/rejected (NaN bug fixed)', async () => {
     sqlHandler = (text) => {
-      if (/SELECT status, form_type/i.test(text)) {
-        return [{ status: 'pending', form_type: 'waiver', created_at: '2026-06-01T00:00:00Z', approved_at: null }];
+      if (/COUNT\(\*\) FILTER/i.test(text)) {
+        return [aggRow({ total: 1, pending: 1, waiver_count: 1 })];
       }
+      if (/to_char/i.test(text)) return [{ month: '2026-06', count: 1 }];
       return [];
     };
     const res = await request(app).get('/api/admin/analytics').set(AUTH);
@@ -627,11 +662,17 @@ describe('GET /api/admin/analytics', () => {
   });
 
   it('200 with zero rows returns empty aggregates', async () => {
+    sqlHandler = (text) => {
+      if (/COUNT\(\*\) FILTER/i.test(text)) return [aggRow()];
+      if (/to_char/i.test(text)) return [];
+      return [];
+    };
     const res = await request(app).get('/api/admin/analytics').set(AUTH);
     expect(res.status).toBe(200);
     expect(res.body.pipeline.total).toBe(0);
-    expect(res.body.approvalRate).toBe(0);
+    expect(res.body.approvalRate).toBe(null);
     expect(res.body.avgApprovalHours).toBe(null);
+    expect(res.body.monthlyTrend).toEqual([]);
   });
 });
 

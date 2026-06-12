@@ -75,13 +75,30 @@ function toApiRequest(r) {
   };
 }
 
-// List all requests
+// List requests — pending first so an old pending request can never be
+// pushed out of view by newer traffic; paginated with a total count.
 router.get('/api/admin/requests', requireAuth, function (req, res) {
   try {
     var s = getSql();
-    s`SELECT * FROM form_requests ORDER BY created_at DESC LIMIT 100`
-      .then(function (rows) {
-        res.json({ requests: rows.map(toApiRequest) });
+    var limit = parseInt(req.query.limit || '100', 10);
+    if (isNaN(limit) || limit < 1) limit = 100;
+    if (limit > 200) limit = 200;
+    var offset = parseInt(req.query.offset || '0', 10);
+    if (isNaN(offset) || offset < 0) offset = 0;
+
+    Promise.all([
+      s`SELECT * FROM form_requests
+        ORDER BY (status = 'pending') DESC, created_at DESC
+        LIMIT ${limit} OFFSET ${offset}`,
+      s`SELECT COUNT(*)::int AS count FROM form_requests`,
+    ])
+      .then(function (results) {
+        res.json({
+          requests: results[0].map(toApiRequest),
+          total: results[1][0].count,
+          limit: limit,
+          offset: offset,
+        });
       })
       .catch(function (err) {
         console.error('Database read error:', err);
@@ -270,65 +287,50 @@ router.post('/api/admin/requests/:id/reject', requireAuth, function (req, res) {
   }
 });
 
-// Analytics
+// Analytics — aggregated in SQL so the dashboard cost doesn't grow with
+// table size. approvalRate is null (not NaN) when nothing has been decided.
 router.get('/api/admin/analytics', requireAuth, function (req, res) {
   try {
     var s = getSql();
-    s`SELECT status, form_type, created_at, approved_at FROM form_requests`
-      .then(function (rows) {
-        var total = 0;
-        var pending = 0;
-        var approved = 0;
-        var rejected = 0;
-        var byFormType = { waiver: 0, nda: 0, both: 0 };
-        var monthlySubmissions = {};
-        var approvalDurations = [];
-
-        rows.forEach(function (d) {
-          total++;
-
-          if (d.status === 'pending') pending++;
-          else if (d.status === 'approved') approved++;
-          else if (d.status === 'rejected') rejected++;
-
-          var ft = d.form_type;
-          if (byFormType[ft] !== undefined) byFormType[ft]++;
-
-          if (d.created_at) {
-            var month = (typeof d.created_at === 'string' ? d.created_at : d.created_at.toISOString()).substring(0, 7);
-            monthlySubmissions[month] = (monthlySubmissions[month] || 0) + 1;
-          }
-
-          if (d.status === 'approved' && d.created_at && d.approved_at) {
-            var created = new Date(d.created_at).getTime();
-            var approvedAt = new Date(d.approved_at).getTime();
-            if (!isNaN(created) && !isNaN(approvedAt)) {
-              approvalDurations.push(approvedAt - created);
-            }
-          }
+    Promise.all([
+      s`SELECT
+          COUNT(*)::int AS total,
+          COUNT(*) FILTER (WHERE status = 'pending')::int AS pending,
+          COUNT(*) FILTER (WHERE status = 'approved')::int AS approved,
+          COUNT(*) FILTER (WHERE status = 'rejected')::int AS rejected,
+          COUNT(*) FILTER (WHERE form_type = 'waiver')::int AS waiver_count,
+          COUNT(*) FILTER (WHERE form_type = 'nda')::int AS nda_count,
+          COUNT(*) FILTER (WHERE form_type = 'both')::int AS both_count,
+          AVG(EXTRACT(EPOCH FROM (approved_at - created_at)))
+            FILTER (WHERE status = 'approved' AND approved_at IS NOT NULL AND created_at IS NOT NULL) AS avg_approval_seconds
+        FROM form_requests`,
+      s`SELECT to_char(created_at, 'YYYY-MM') AS month, COUNT(*)::int AS count
+        FROM form_requests
+        WHERE created_at IS NOT NULL
+        GROUP BY 1 ORDER BY 1`,
+    ])
+      .then(function (results) {
+        var agg = results[0][0];
+        var monthlyTrend = results[1].map(function (m) {
+          return { month: m.month, count: m.count };
         });
 
-        // Sort monthly data
-        var sortedMonths = Object.keys(monthlySubmissions).sort();
-        var monthlyTrend = sortedMonths.map(function (m) {
-          return { month: m, count: monthlySubmissions[m] };
-        });
-
-        var approvalRate = total > 0 ? Math.round((approved / (approved + rejected)) * 100) : 0;
-        var avgApprovalHours = approvalDurations.length > 0
-          ? Math.round(approvalDurations.reduce(function (a, b) { return a + b; }, 0) / approvalDurations.length / (1000 * 60 * 60))
+        var decided = agg.approved + agg.rejected;
+        var approvalRate = decided > 0 ? Math.round((agg.approved / decided) * 100) : null;
+        var avgApprovalHours = agg.avg_approval_seconds !== null && agg.avg_approval_seconds !== undefined
+          ? Math.round(Number(agg.avg_approval_seconds) / 3600)
           : null;
 
         res.json({
           pipeline: {
-            total: total,
-            pending: pending,
-            approved: approved,
-            rejected: rejected,
+            total: agg.total,
+            pending: agg.pending,
+            approved: agg.approved,
+            rejected: agg.rejected,
           },
           approvalRate: approvalRate,
           avgApprovalHours: avgApprovalHours,
-          byFormType: byFormType,
+          byFormType: { waiver: agg.waiver_count, nda: agg.nda_count, both: agg.both_count },
           monthlyTrend: monthlyTrend,
         });
       })
