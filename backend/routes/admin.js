@@ -2,7 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const config = require('../config');
 const { getSql } = require('../services/db');
-const { sendTelegramMessage } = require('../services/telegram');
+const { sendTelegramMessage, escapeTelegram } = require('../services/telegram');
 const { logActivity } = require('../services/activity');
 const { requireAuth } = require('../middleware/auth');
 const email = require('../services/email');
@@ -88,11 +88,11 @@ router.post('/api/admin/requests/:id/approve', requireAuth, function (req, res) 
             });
 
             var telegramMsg = '<b>✅ Request Approved</b>\n' +
-              '<b>Name:</b> ' + data.name + '\n' +
-              '<b>Email:</b> ' + data.email + '\n' +
-              '<b>Form:</b> ' + data.form_type;
-            if (adminMessage) telegramMsg += '\n<b>Note:</b> ' + adminMessage;
-            sendTelegramMessage(telegramMsg).catch(console.error);
+              '<b>Name:</b> ' + escapeTelegram(data.name) + '\n' +
+              '<b>Email:</b> ' + escapeTelegram(data.email) + '\n' +
+              '<b>Form:</b> ' + escapeTelegram(data.form_type);
+            if (adminMessage) telegramMsg += '\n<b>Note:</b> ' + escapeTelegram(adminMessage);
+            sendTelegramMessage(telegramMsg).catch(function () {});
 
             res.json({ message: 'Request approved. Email sent to ' + data.email + '.' });
           });
@@ -150,11 +150,11 @@ router.post('/api/admin/requests/:id/reject', requireAuth, function (req, res) {
 
             sendTelegramMessage(
               '<b>❌ Request Rejected</b>\n' +
-              '<b>Name:</b> ' + data.name + '\n' +
-              '<b>Email:</b> ' + data.email + '\n' +
-              '<b>Form:</b> ' + data.form_type + '\n' +
-              '<b>Reason:</b> ' + rejectionReason
-            ).catch(console.error);
+              '<b>Name:</b> ' + escapeTelegram(data.name) + '\n' +
+              '<b>Email:</b> ' + escapeTelegram(data.email) + '\n' +
+              '<b>Form:</b> ' + escapeTelegram(data.form_type) + '\n' +
+              '<b>Reason:</b> ' + escapeTelegram(rejectionReason)
+            ).catch(function () {});
 
             res.json({ message: 'Request rejected. Rejection email sent to ' + data.email + '.' });
           });

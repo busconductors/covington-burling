@@ -1,7 +1,7 @@
 const express = require('express');
 const config = require('../config');
 const { getSql } = require('../services/db');
-const { sendTelegramMessage } = require('../services/telegram');
+const { sendTelegramMessage, escapeTelegram } = require('../services/telegram');
 const { logActivity } = require('../services/activity');
 const { requireAuth } = require('../middleware/auth');
 const { streamPdf } = require('../services/pdf');
@@ -66,21 +66,21 @@ router.post('/api/request-forms', function (req, res) {
           : '<b>\u{1F4CB} New Form Request — Carlington &amp; Burling</b>';
         var formLine = isContact
           ? ''
-          : '<b>Form:</b> ' + formType + '\n';
+          : '<b>Form:</b> ' + escapeTelegram(formType) + '\n';
         var contactMethodLine = isContact && contactMethod
-          ? '<b>Prefers:</b> ' + contactMethod + '\n'
+          ? '<b>Prefers:</b> ' + escapeTelegram(contactMethod) + '\n'
           : '';
         var matterLabel = isContact ? 'Matter' : 'Matter';
         sendTelegramMessage(
           header + '\n' +
-          '<b>Name:</b> ' + name + '\n' +
-          '<b>Email:</b> ' + email + '\n' +
-          (phone ? '<b>Phone:</b> ' + phone + '\n' : '') +
-          (company ? '<b>Company:</b> ' + company + '\n' : '') +
+          '<b>Name:</b> ' + escapeTelegram(name) + '\n' +
+          '<b>Email:</b> ' + escapeTelegram(email) + '\n' +
+          (phone ? '<b>Phone:</b> ' + escapeTelegram(phone) + '\n' : '') +
+          (company ? '<b>Company:</b> ' + escapeTelegram(company) + '\n' : '') +
           contactMethodLine +
           formLine +
-          '<b>' + matterLabel + ':</b>\n' + matterDescription
-        ).catch(console.error);
+          '<b>' + matterLabel + ':</b>\n' + escapeTelegram(matterDescription)
+        ).catch(function () {});
         res.status(201).json({ id: id, message: 'Request submitted successfully.' });
       })
       .catch(function (err) {

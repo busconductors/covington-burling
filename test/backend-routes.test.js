@@ -631,6 +631,99 @@ describe('GET /api/admin/activity', () => {
   });
 });
 
+// ── Telegram notification hardening ──────────────────────────────────────
+describe('telegram notifications (env-configured per test)', () => {
+  let origFetch;
+
+  beforeEach(() => {
+    origFetch = globalThis.fetch;
+    process.env.TELEGRAM_BOT_TOKEN = '0000000000:TEST-FAKE-TOKEN-NOT-REAL';
+    process.env.TELEGRAM_CHAT_ID = 'fake-chat-id';
+  });
+
+  afterEach(() => {
+    globalThis.fetch = origFetch;
+    delete process.env.TELEGRAM_BOT_TOKEN;
+    delete process.env.TELEGRAM_CHAT_ID;
+  });
+
+  it('escapes user-typed HTML characters in the form-submission notification', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ ok: true }) });
+    globalThis.fetch = fetchSpy;
+    sqlHandler = (text) => {
+      if (/INSERT INTO form_requests/i.test(text)) return [{ id: 'new-1' }];
+      return [];
+    };
+
+    const res = await request(app).post('/api/request-forms').send({
+      name: 'Jane <script> & Co',
+      email: 'jane@example.test',
+      formType: 'waiver',
+      matterDescription: 'Needs < review > & fast',
+    });
+    expect(res.status).toBe(201);
+
+    const telegramCall = fetchSpy.mock.calls.find((c) => String(c[0]).includes('api.telegram.org'));
+    expect(telegramCall).toBeDefined();
+    const body = JSON.parse(telegramCall[1].body);
+    expect(body.text).toContain('Jane &lt;script&gt; &amp; Co');
+    expect(body.text).toContain('Needs &lt; review &gt; &amp; fast');
+    expect(body.text).not.toContain('<script>');
+    // Intended formatting tags survive
+    expect(body.text).toContain('<b>Name:</b>');
+  });
+
+  it('truncates messages beyond the 4096-char Telegram limit', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ ok: true }) });
+    globalThis.fetch = fetchSpy;
+    sqlHandler = (text) => {
+      if (/INSERT INTO form_requests/i.test(text)) return [{ id: 'new-1' }];
+      return [];
+    };
+
+    const res = await request(app).post('/api/request-forms').send({
+      name: 'Jane',
+      email: 'jane@example.test',
+      formType: 'waiver',
+      matterDescription: 'y'.repeat(8000),
+    });
+    expect(res.status).toBe(201);
+
+    const telegramCall = fetchSpy.mock.calls.find((c) => String(c[0]).includes('api.telegram.org'));
+    const body = JSON.parse(telegramCall[1].body);
+    expect(body.text.length).toBeLessThanOrEqual(4096);
+    expect(body.text.endsWith('…')).toBe(true);
+  });
+
+  it('logs but does not propagate a Telegram API failure (201 still returned)', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({ ok: false, description: 'Bad Request: chat not found' }),
+    });
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    sqlHandler = (text) => {
+      if (/INSERT INTO form_requests/i.test(text)) return [{ id: 'new-1' }];
+      return [];
+    };
+
+    const res = await request(app).post('/api/request-forms').send({
+      name: 'Jane',
+      email: 'jane@example.test',
+      formType: 'waiver',
+      matterDescription: 'A perfectly fine matter.',
+    });
+    expect(res.status).toBe(201);
+
+    // allow the fire-and-forget promise chain to settle
+    await new Promise((r) => setTimeout(r, 10));
+    expect(errSpy).toHaveBeenCalledWith(
+      'Telegram notification failed:',
+      'Bad Request: chat not found'
+    );
+    errSpy.mockRestore();
+  });
+});
+
 // ── Body size limits ─────────────────────────────────────────────────────
 describe('body size limits', () => {
   it('413 for oversized bodies on public endpoints (100kb cap)', async () => {
