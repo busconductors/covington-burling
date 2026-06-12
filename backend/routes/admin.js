@@ -133,14 +133,15 @@ router.post('/api/admin/requests/:id/approve', requireAuth, function (req, res) 
         }
 
         var now = new Date().toISOString();
+        // columns are nullable; one query shape beats conditional fragments
         return s`UPDATE form_requests SET
           status = 'approved',
           approved_at = ${now},
           approved_by = 'admin',
           download_token = ${downloadToken},
-          token_expires_at = ${tokenExpiresAt}
-          ${adminMessage ? s` , admin_message = ${adminMessage}` : s``}
-          ${documentFields ? s` , document_fields = ${JSON.stringify(documentFields)}` : s``}
+          token_expires_at = ${tokenExpiresAt},
+          admin_message = ${adminMessage},
+          document_fields = ${documentFields ? JSON.stringify(documentFields) : null}
           WHERE id = ${id}`
           .then(function () {
             logActivity('approve', {
