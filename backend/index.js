@@ -13,7 +13,10 @@ const config = require('./config');
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '5mb' }));
+// Only the email routes carry base64 PDF attachments; everything else —
+// including the unauthenticated public forms — gets the small default.
+app.use(['/api/admin/send-email', '/api/admin/send-email-attachment'], express.json({ limit: '5mb' }));
+app.use(express.json({ limit: '100kb' }));
 app.use(function (err, req, res, next) {
   if (err.type === 'entity.parse.failed') {
     return res.status(400).json({ error: 'Invalid request body.' });

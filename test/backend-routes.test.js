@@ -631,6 +631,47 @@ describe('GET /api/admin/activity', () => {
   });
 });
 
+// ── Body size limits ─────────────────────────────────────────────────────
+describe('body size limits', () => {
+  it('413 for oversized bodies on public endpoints (100kb cap)', async () => {
+    const res = await request(app)
+      .post('/api/request-forms')
+      .send({
+        name: 'Jane',
+        email: 'jane@example.test',
+        formType: 'waiver',
+        matterDescription: 'x'.repeat(200 * 1024),
+      });
+    expect(res.status).toBe(413);
+  });
+
+  it('accepts a ~1mb attachment on send-email-attachment (5mb cap)', async () => {
+    const res = await request(app)
+      .post('/api/admin/send-email-attachment')
+      .set(AUTH)
+      .send({
+        toEmail: 'a@b.test',
+        subject: 'Hi',
+        body: 'Doc attached',
+        attachment: { name: 'big.pdf', content: 'x'.repeat(1024 * 1024) },
+      });
+    expect(res.status).toBe(200);
+  });
+
+  it('accepts a ~1mb attachment on send-email too (5mb cap, optional attachment)', async () => {
+    const res = await request(app)
+      .post('/api/admin/send-email')
+      .set(AUTH)
+      .send({
+        toEmail: 'a@b.test',
+        subject: 'Hi',
+        body: 'Doc attached',
+        attachment: { name: 'big.pdf', content: 'x'.repeat(1024 * 1024) },
+      });
+    expect(res.status).toBe(200);
+  });
+});
+
 // ── Fallthrough routes ───────────────────────────────────────────────────
 describe('fallthrough', () => {
   it('404 JSON for unknown /api/ paths', async () => {
