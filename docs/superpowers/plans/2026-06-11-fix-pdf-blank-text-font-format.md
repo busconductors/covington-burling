@@ -152,7 +152,7 @@ git -C /Users/sk_hga/lawfirmprojet/covington-burling push origin main
 
 - [ ] **Step 3: Generate a test PDF from the admin builder and open it**
 
-Log in at `https://carlingtonburling.com/admin` with `covbur1919`, go to Document Builder, generate either a Waiver or NDA, download it, and open it.
+Log in at `https://carlingtonburling.com/admin` with `covbur1927`, go to Document Builder, generate either a Waiver or NDA, download it, and open it.
 
 Expected: firm name, tagline, contact line, document title, body text, clauses, signature blocks, and footer text all render correctly in Cormorant Garamond and Montserrat. No blank text.
 
@@ -160,7 +160,7 @@ Expected: firm name, tagline, contact line, document title, body text, clauses, 
 
 Confirm in the PDF:
 - Firm name "Carlington & Burling" renders in Cormorant Garamond Bold (serif)
-- Tagline "LLP · ATTORNEYS AT LAW · SINCE 1919" renders in Montserrat (sans)
+- Tagline "LLP · ATTORNEYS AT LAW · SINCE 1927" renders in Montserrat (sans)
 - Body clauses render in Cormorant Garamond Regular
 - Footer text renders in Montserrat
 

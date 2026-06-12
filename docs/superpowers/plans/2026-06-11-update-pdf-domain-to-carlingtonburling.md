@@ -30,11 +30,11 @@
 
 Change:
 ```js
-  var CONTACT_LINE = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  covbur.com';
+  var CONTACT_LINE = '1450 Meridian Hill Lane NW, Washington, DC 20009  ·  202-555-0142  ·  covbur.com';
 ```
 To:
 ```js
-  var CONTACT_LINE = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  carlingtonburling.com';
+  var CONTACT_LINE = '1450 Meridian Hill Lane NW, Washington, DC 20009  ·  202-555-0142  ·  carlingtonburling.com';
 ```
 
 - [ ] **Step 2: Update contactDomain variable (line 158)**
@@ -56,7 +56,7 @@ grep -n "covbur\|carlingtonburling" /Users/sk_hga/lawfirmprojet/covington-burlin
 
 Expected:
 ```
-27:  var CONTACT_LINE = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  carlingtonburling.com';
+27:  var CONTACT_LINE = '1450 Meridian Hill Lane NW, Washington, DC 20009  ·  202-555-0142  ·  carlingtonburling.com';
 158:    var contactDomain = 'carlingtonburling.com';
 ```
 
@@ -155,7 +155,7 @@ Log in at `https://carlingtonburling.com/admin`, go to Document Builder, generat
 
 Verify in the PDF header contact line:
 ```
-850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  carlingtonburling.com
+1450 Meridian Hill Lane NW, Washington, DC 20009  ·  202-555-0142  ·  carlingtonburling.com
 ```
 - The address and phone number render in slate/gray (Montserrat 400)
 - `carlingtonburling.com` renders in gold (Montserrat 500)

@@ -18,8 +18,8 @@
     sendingLabel: 'Submitting…',
     successClass: 'request-success--visible',
     scrollToSuccess: false,
-    genericError: 'Something went wrong. Please try again or contact our office at 202-662-6000.',
-    timeoutError: 'Request timed out. Please check your connection and try again, or contact our office at 202-662-6000.',
+    genericError: 'Something went wrong. Please try again or contact our office at 202-555-0142.',
+    timeoutError: 'Request timed out. Please check your connection and try again, or contact our office at 202-555-0142.',
     messages: {
       'minLength:10': 'Please provide at least 10 characters describing your matter.',
       requiredCheckbox: 'You must consent to continue.',

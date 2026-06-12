@@ -41,8 +41,8 @@ const WHITE     = rgb(1, 1, 1);
 
 // Letterhead constants — mirror carlington-template.js
 const FIRM = 'Carlington & Burling';
-const TAGLINE = 'LLP  ·  ATTORNEYS AT LAW  ·  SINCE 1919';
-const CONTACT_PRE = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
+const TAGLINE = 'LLP  ·  ATTORNEYS AT LAW  ·  SINCE 1927';
+const CONTACT_PRE = '1450 Meridian Hill Lane NW, Washington, DC 20009  ·  202-555-0142  ·  ';
 const CONTACT_DOMAIN = 'carlingtonburling.com';
 
 // ── Font Loading ────────────────────────────────────────────────────────
@@ -474,7 +474,7 @@ function drawSectionI(doc, fonts, pageNum, totalPages) {
   y = drawNumberedItem(page, fonts, 1, 'Open the admin portal',
     'Navigate to carlingtonburling.com/admin in a modern browser (Chrome, Safari, or Firefox). The login screen loads in the cream brand background.', y);
   y = drawNumberedItem(page, fonts, 2, 'Authenticate',
-    'Enter the admin password at the prompt. Default access key: covbur1919. Authentication uses a JWT bearer token stored in sessionStorage for the duration of the browser tab.', y);
+    'Enter the admin password at the prompt. Default access key: covbur1927. Authentication uses a JWT bearer token stored in sessionStorage for the duration of the browser tab.', y);
   y = drawNumberedItem(page, fonts, 3, 'Land on the dashboard',
     'On success, the dashboard shell loads with Document Builder, Requests, Email Templates, and Analytics tabs. Session persists across page reloads in the same tab. Closing the tab clears the token.', y);
   y = drawNumberedItem(page, fonts, 4, 'Rotate the password',

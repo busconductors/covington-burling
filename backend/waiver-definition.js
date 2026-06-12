@@ -44,12 +44,12 @@ module.exports = function waiverDefinition({ clientName, date, matter } = {}) {
       { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 468, y2: 0, lineWidth: 1, lineColor: '#B08D57' }], margin: [0, 18, 0, 14] },
 
       // ── Tagline ──
-      { text: 'LLP  ·  ATTORNEYS AT LAW  ·  SINCE 1919', fontSize: 8, font: 'Helvetica', color: '#5A5A6E', characterSpacing: 6, alignment: 'center', margin: [0, 0, 0, 0] },
+      { text: 'LLP  ·  ATTORNEYS AT LAW  ·  SINCE 1927', fontSize: 8, font: 'Helvetica', color: '#5A5A6E', characterSpacing: 6, alignment: 'center', margin: [0, 0, 0, 0] },
 
       // ── Contact ──
       {
         text: [
-          { text: '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ', fontSize: 7.5, font: 'Helvetica', color: '#5A5A6E' },
+          { text: '1450 Meridian Hill Lane NW, Washington, DC 20009  ·  202-555-0142  ·  ', fontSize: 7.5, font: 'Helvetica', color: '#5A5A6E' },
           { text: 'covbur.com', fontSize: 7.5, font: 'Helvetica', bold: true, color: '#B08D57' }
         ],
         alignment: 'center',

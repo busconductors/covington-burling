@@ -24,8 +24,8 @@
   var SUBTLE     = rgb(0.604, 0.620, 0.698);   // #9AA3B2
   var HEADER_TEXT = rgb(0.627, 0.635, 0.706);  // #A0A0B4
 
-  var CONTACT_LINE = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  carlingtonburling.com';
-  var TAGLINE = 'LLP  ·  ATTORNEYS AT LAW  ·  SINCE 1919';
+  var CONTACT_LINE = '1450 Meridian Hill Lane NW, Washington, DC 20009  ·  202-555-0142  ·  carlingtonburling.com';
+  var TAGLINE = 'LLP  ·  ATTORNEYS AT LAW  ·  SINCE 1927';
 
   var FONT_PATHS = [
     { key: 'serif',     url: '/fonts/cormorant-garamond-latin-400-normal.ttf' },
@@ -143,7 +143,7 @@
     var ruleY = textY - 28;
     page.drawLine({ start: { x: 0, y: ruleY }, end: { x: PAGE_W, y: ruleY }, thickness: 1, color: GOLD });
 
-    // Tagline: LLP · ATTORNEYS AT LAW · SINCE 1919
+    // Tagline: LLP · ATTORNEYS AT LAW · SINCE 1927
     var tagSize = 9;
     var tagW = fonts.sans.widthOfTextAtSize(TAGLINE, tagSize);
     var tagY = ruleY - 18;
@@ -154,7 +154,7 @@
     var contactW = fonts.sans.widthOfTextAtSize(CONTACT_LINE, contactSize);
     var contactY = tagY - 20;
     // Draw muted portion, then gold domain
-    var contactPre = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
+    var contactPre = '1450 Meridian Hill Lane NW, Washington, DC 20009  ·  202-555-0142  ·  ';
     var contactDomain = 'carlingtonburling.com';
     var preW = fonts.sans.widthOfTextAtSize(contactPre, contactSize);
     page.drawText(contactPre, { x: centerX - contactW / 2, y: contactY, size: contactSize, font: fonts.sans, color: SLATE });

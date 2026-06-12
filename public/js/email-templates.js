@@ -30,7 +30,7 @@
     return '<td style="padding:36px 40px 0;text-align:center;">'
       + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:24px;font-weight:bold;color:#0A1628;letter-spacing:0.5px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</div>'
       + '<hr style="border:none;border-top:1px solid #B08D57;margin:14px 80px 10px;">'
-      + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:8.5px;letter-spacing:4px;color:#5A5A6E;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; ATTORNEYS AT LAW &nbsp;&#183;&nbsp; SINCE 1919</div>'
+      + '<div style="font-family:Arial,Helvetica,sans-serif;font-size:8.5px;letter-spacing:4px;color:#5A5A6E;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; ATTORNEYS AT LAW &nbsp;&#183;&nbsp; SINCE 1927</div>'
       + '<hr style="border:none;border-top:1px solid #D9D5CC;margin:18px 0 0;">'
       + '</td></tr>';
   }
@@ -38,10 +38,10 @@
   function emailFooter() {
     return '<td style="background-color:#FAF9F6;padding:26px 40px 30px;border-top:1px solid #E4E0D8;text-align:center;font-family:Arial,Helvetica,sans-serif;">'
       + '<div style="font-family:Georgia,\'Times New Roman\',Times,serif;font-size:15px;font-weight:bold;color:#0A1628;letter-spacing:0.3px;">Carlington &amp; Burling LLP</div>'
-      + '<div style="font-size:12px;color:#5A6577;margin-top:8px;line-height:1.6;">850 Tenth Street NW, Washington, DC 20001<br>'
-      + '202&#8209;662&#8209;6000 &nbsp;|&nbsp; <a href="https://carlingtonburling.com" style="color:#B08D57;text-decoration:none;">carlingtonburling.com</a></div>'
+      + '<div style="font-size:12px;color:#5A6577;margin-top:8px;line-height:1.6;">1450 Meridian Hill Lane NW, Washington, DC 20009<br>'
+      + '202&#8209;555&#8209;0142 &nbsp;|&nbsp; <a href="https://carlingtonburling.com" style="color:#B08D57;text-decoration:none;">carlingtonburling.com</a></div>'
       + '<div style="font-size:10px;color:#9AA3B2;margin-top:12px;letter-spacing:0.5px;text-transform:uppercase;">'
-      + 'SINCE 1919 &nbsp;&#183;&nbsp; This message is confidential &amp; attorney&#8209;client privileged</div>'
+      + 'SINCE 1927 &nbsp;&#183;&nbsp; This message is confidential &amp; attorney&#8209;client privileged</div>'
       + '</td>';
   }
 

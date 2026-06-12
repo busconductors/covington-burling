@@ -116,11 +116,11 @@ git -C /Users/sk_hga/lawfirmprojet/covington-burling commit -m "feat: replace Go
 
 Old:
 ```html
-  <meta name="description" content="About Carlington &amp; Burling LLP — Founded 1919 in Washington, D.C. Learn about our firm history and featured attorney David M. Gottesman.">
+  <meta name="description" content="About Carlington &amp; Burling LLP — Founded 1927 in Washington, D.C. Learn about our firm history and featured attorney David M. Gottesman.">
 ```
 New:
 ```html
-  <meta name="description" content="About Carlington &amp; Burling LLP — Founded 1919 in Washington, D.C. Learn about our firm history and featured attorney Max Theodore.">
+  <meta name="description" content="About Carlington &amp; Burling LLP — Founded 1927 in Washington, D.C. Learn about our firm history and featured attorney Max Theodore.">
 ```
 
 - [ ] **Step 2: Replace aria-label and placeholder with real image (lines 88-92)**
@@ -177,11 +177,11 @@ New:
 
 Old:
 ```html
-              <div class="accordion__panel-content">David M. Gottesman is an active partner at the firm. For inquiries regarding his availability, please contact our office directly at 202-662-6000. All consultations are confidential and protected by attorney-client privilege.</div>
+              <div class="accordion__panel-content">David M. Gottesman is an active partner at the firm. For inquiries regarding his availability, please contact our office directly at 202-555-0142. All consultations are confidential and protected by attorney-client privilege.</div>
 ```
 New:
 ```html
-              <div class="accordion__panel-content">Max Theodore is an active partner at the firm. For inquiries regarding his availability, please contact our office directly at 202-662-6000. All consultations are confidential and protected by attorney-client privilege.</div>
+              <div class="accordion__panel-content">Max Theodore is an active partner at the firm. For inquiries regarding his availability, please contact our office directly at 202-555-0142. All consultations are confidential and protected by attorney-client privilege.</div>
 ```
 
 - [ ] **Step 7: Verify no remaining "Gottesman" or "David M." in about.html**

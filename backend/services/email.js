@@ -42,7 +42,7 @@ function sendResendEmail(toEmail, toName, formType, downloadToken, adminMessage)
   <tr><td style="padding:36px 40px 0;text-align:center;">
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:600;color:#0A1628;margin:0;letter-spacing:0.5px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</p>
     <hr style="border:none;border-top:1px solid #B08D57;margin:14px 80px 10px;">
-    <p style="font-family:Arial,Helvetica,sans-serif;font-size:8.5px;letter-spacing:4px;color:#5A5A6E;margin:0;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; ATTORNEYS AT LAW &nbsp;&#183;&nbsp; SINCE 1919</p>
+    <p style="font-family:Arial,Helvetica,sans-serif;font-size:8.5px;letter-spacing:4px;color:#5A5A6E;margin:0;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; ATTORNEYS AT LAW &nbsp;&#183;&nbsp; SINCE 1927</p>
     <hr style="border:none;border-top:1px solid #D9D5CC;margin:18px 0 0;">
   </td></tr>
   <tr><td style="padding:40px;">
@@ -52,11 +52,11 @@ function sendResendEmail(toEmail, toName, formType, downloadToken, adminMessage)
     <p style="font-family:Montserrat,Arial,sans-serif;font-size:15px;color:#1F1F2E;line-height:1.6;margin:0 0 12px;">Your request for the following legal form(s) has been approved:</p>
     <p style="font-family:Georgia,'Times New Roman',serif;font-size:17px;color:#0A1628;font-weight:600;margin:0 0 20px;">${formLabel}</p>
     ${linksHtml}
-    <p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">These links will expire in 7 days. If you have any questions, please contact our office at <a href="tel:+12026626000" style="color:#B08D57;">202-662-6000</a>.</p>
-    <p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:12px 0 0;">After completing your form(s), email them to <a href="mailto:info@carlingtonburling.com" style="color:#B08D57;">info@carlingtonburling.com</a> or deliver to 850 Tenth Street NW, Washington, DC 20001.</p>
+    <p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">These links will expire in 7 days. If you have any questions, please contact our office at <a href="tel:+12025550142" style="color:#B08D57;">202-555-0142</a>.</p>
+    <p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:12px 0 0;">After completing your form(s), email them to <a href="mailto:info@carlingtonburling.com" style="color:#B08D57;">info@carlingtonburling.com</a> or deliver to 1450 Meridian Hill Lane NW, Washington, DC 20009.</p>
   </td></tr>
   <tr><td style="background-color:#FAF8F5;padding:24px 40px;border-top:1px solid #D5D5DE;">
-    <p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Carlington &amp; Burling LLP, 850 Tenth Street NW, Washington, DC 20001. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>
+    <p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Carlington &amp; Burling LLP, 1450 Meridian Hill Lane NW, Washington, DC 20009. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>
   </td></tr>
 </table>
 </td></tr>
@@ -89,7 +89,7 @@ function sendResendRejectionEmail(toEmail, toName, reason) {
     '<tr><td style="padding:36px 40px 0;text-align:center;">' +
     '<p style="font-family:Georgia,\'Times New Roman\',serif;font-size:24px;font-weight:600;color:#0A1628;margin:0;letter-spacing:0.5px;">Carlington <span style="color:#B08D57;">&amp;</span> Burling</p>' +
     '<hr style="border:none;border-top:1px solid #B08D57;margin:14px 80px 10px;">' +
-    '<p style="font-family:Arial,Helvetica,sans-serif;font-size:8.5px;letter-spacing:4px;color:#5A5A6E;margin:0;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; ATTORNEYS AT LAW &nbsp;&#183;&nbsp; SINCE 1919</p>' +
+    '<p style="font-family:Arial,Helvetica,sans-serif;font-size:8.5px;letter-spacing:4px;color:#5A5A6E;margin:0;text-transform:uppercase;">LLP &nbsp;&#183;&nbsp; ATTORNEYS AT LAW &nbsp;&#183;&nbsp; SINCE 1927</p>' +
     '<hr style="border:none;border-top:1px solid #D9D5CC;margin:18px 0 0;">' +
     '</td></tr>' +
     '<tr><td style="padding:40px;">' +
@@ -100,10 +100,10 @@ function sendResendRejectionEmail(toEmail, toName, reason) {
     '<p style="font-family:Montserrat,Arial,sans-serif;font-size:13px;color:#991B1B;margin:0;font-weight:600;">Reason:</p>' +
     '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#1F1F2E;line-height:1.6;margin:4px 0 0;">' + templates.escapeHtml(reason) + '</p>' +
     '</div>' +
-    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">If you have any questions, please contact our office at <a href="tel:+12026626000" style="color:#B08D57;">202-662-6000</a> or email us at <a href="mailto:info@carlingtonburling.com" style="color:#B08D57;">info@carlingtonburling.com</a>.</p>' +
+    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:14px;color:#5A5A6E;line-height:1.6;margin:24px 0 0;">If you have any questions, please contact our office at <a href="tel:+12025550142" style="color:#B08D57;">202-555-0142</a> or email us at <a href="mailto:info@carlingtonburling.com" style="color:#B08D57;">info@carlingtonburling.com</a>.</p>' +
     '</td></tr>' +
     '<tr><td style="background-color:#FAF8F5;padding:24px 40px;border-top:1px solid #D5D5DE;">' +
-    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Carlington &amp; Burling LLP, 850 Tenth Street NW, Washington, DC 20001. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>' +
+    '<p style="font-family:Montserrat,Arial,sans-serif;font-size:12px;color:#8A8A9E;margin:0;line-height:1.5;">This message is from Carlington &amp; Burling LLP, 1450 Meridian Hill Lane NW, Washington, DC 20009. This email and any attachments are confidential and may be protected by attorney-client privilege.</p>' +
     '</td></tr>' +
     '</table>' +
     '</td></tr>' +

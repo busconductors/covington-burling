@@ -181,16 +181,16 @@ function drawHeader(page, fonts, y) {
   const ruleY = textY - 28;
   page.drawLine({ start: { x: 0, y: ruleY }, end: { x: PAGE_W, y: ruleY }, thickness: 1, color: BRAND_GOLD });
 
-  // Tagline: LLP · ATTORNEYS AT LAW · SINCE 1919
+  // Tagline: LLP · ATTORNEYS AT LAW · SINCE 1927
   const tagSize = 9;
-  const tagText = 'LLP  ·  ATTORNEYS AT LAW  ·  SINCE 1919';
+  const tagText = 'LLP  ·  ATTORNEYS AT LAW  ·  SINCE 1927';
   const tagW = fonts.helvetica.widthOfTextAtSize(tagText, tagSize);
   const tagY = ruleY - 18;
   page.drawText(tagText, { x: centerX - tagW / 2, y: tagY, size: tagSize, font: fonts.helvetica, color: MUTED });
 
   // Contact line
   const contactSize = 8;
-  const contactPre = '850 Tenth Street NW, Washington, DC 20001  ·  202-662-6000  ·  ';
+  const contactPre = '1450 Meridian Hill Lane NW, Washington, DC 20009  ·  202-555-0142  ·  ';
   const contactDomain = 'covbur.com';
   const contactFull = contactPre + contactDomain;
   const contactW = fonts.helvetica.widthOfTextAtSize(contactFull, contactSize);
@@ -727,7 +727,7 @@ async function buildNdaC(outputName) {
   y -= 38;
 
   // Intro paragraph
-  const intro = 'This Mutual Non-Disclosure Agreement (the "Agreement") is entered into by and between Carlington & Burling LLP, with offices at 850 Tenth Street NW, Washington, DC 20001 (the "Firm"), and the Client identified above (collectively, the "Parties").';
+  const intro = 'This Mutual Non-Disclosure Agreement (the "Agreement") is entered into by and between Carlington & Burling LLP, with offices at 1450 Meridian Hill Lane NW, Washington, DC 20009 (the "Firm"), and the Client identified above (collectively, the "Parties").';
   y = drawWrapped(page, intro, MARGIN, y, fonts.regular, 10.5, BLACK, PAGE_W - MARGIN * 2);
   y -= 12;
 
@@ -937,7 +937,7 @@ async function buildNdaDigitalC(outputName) {
   y -= 38;
 
   // Intro paragraph
-  const intro = 'This Mutual Non-Disclosure Agreement (the "Agreement") is entered into by and between Carlington & Burling LLP, with offices at 850 Tenth Street NW, Washington, DC 20001 (the "Firm"), and the Client identified above (collectively, the "Parties").';
+  const intro = 'This Mutual Non-Disclosure Agreement (the "Agreement") is entered into by and between Carlington & Burling LLP, with offices at 1450 Meridian Hill Lane NW, Washington, DC 20009 (the "Firm"), and the Client identified above (collectively, the "Parties").';
   y = drawWrapped(page, intro, MARGIN, y, fonts.regular, 10.5, BLACK, PAGE_W - MARGIN * 2);
   y -= 12;
 

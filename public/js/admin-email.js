@@ -17,11 +17,11 @@
   var templates = {
     'approved-forms': {
       subject: 'Your Carlington & Burling Legal Forms Are Ready',
-      body: 'Dear {name},\n\nYour request for legal forms has been approved. Please use the secure download link(s) in your original approval email to access your documents.\n\nIf you have any questions, please contact our office at 202-662-6000.\n\nSincerely,\nCarlington & Burling LLP',
+      body: 'Dear {name},\n\nYour request for legal forms has been approved. Please use the secure download link(s) in your original approval email to access your documents.\n\nIf you have any questions, please contact our office at 202-555-0142.\n\nSincerely,\nCarlington & Burling LLP',
     },
     'follow-up': {
       subject: 'Follow-Up: Carlington & Burling LLP',
-      body: 'Dear {name},\n\nI am writing to follow up regarding your recent inquiry. Our team is available to discuss your legal needs at your convenience.\n\nPlease do not hesitate to contact our office at 202-662-6000 to schedule a consultation.\n\nSincerely,\nCarlington & Burling LLP',
+      body: 'Dear {name},\n\nI am writing to follow up regarding your recent inquiry. Our team is available to discuss your legal needs at your convenience.\n\nPlease do not hesitate to contact our office at 202-555-0142 to schedule a consultation.\n\nSincerely,\nCarlington & Burling LLP',
     },
     'consultation': {
       subject: 'Consultation Confirmation — Carlington & Burling LLP',
