@@ -1,131 +1,105 @@
 # Carlington & Burling LLP — Website
 
-Professional law firm website for **Carlington & Burling LLP**, a preeminent international law firm founded in 1919 in Washington, D.C.
+Professional website for **Carlington & Burling LLP**, a fictional law firm. Static marketing site plus an Express API for form requests, PDF generation, and an admin dashboard.
+
+**Production:** https://carlingtonburling.com (Vercel)
+
+## Architecture
+
+```
+User ──► Vercel CDN ──► static HTML/CSS/JS (public/)
+                   └──► /api/* ──► Express (api/index.js → backend/)
+                                     ├── Neon Postgres   (requests, sessions, rate limits, activity)
+                                     ├── Resend          (transactional email)
+                                     ├── Telegram bot    (admin notifications)
+                                     └── pdfmake (lazy)  (waiver/NDA PDFs)
+```
 
 ## Project Structure
 
 ```
-carlington-burling/
-├── public/
-│   ├── index.html              # Home page
-│   ├── about.html              # Firm history + attorney bio
-│   ├── practice.html           # 7 practice areas
-│   ├── contact.html            # Contact form + HQ details
-│   ├── waiver-nda.html         # Fillable PDF downloads
-│   ├── 404.html                # Custom 404 page
-│   ├── css/
-│   │   └── styles.css          # Complete stylesheet (WCAG AA compliant)
-│   ├── js/
-│   │   ├── main.js             # Navigation, scroll, accordion
-│   │   └── contact-form.js     # Form validation
-│   ├── forms/
-│   │   ├── waiver-fillable.pdf # Fillable Waiver form
-│   │   └── nda-fillable.pdf    # Fillable NDA form
-│   └── images/                 # Image assets (placeholder headshot)
-├── server.js                   # Express server (PDF generation)
-├── functions/                  # Firebase Cloud Functions
-│   ├── index.js                # PDF generation endpoints
-│   └── package.json
-├── pdf-templates/
-│   ├── waiver-definition.js    # pdfmake waiver definition
-│   └── nda-definition.js       # pdfmake NDA definition
-├── scripts/
-│   └── generate-fillable-pdfs.js  # One-off script to create fillable PDFs
-├── package.json
-├── .gitignore
-├── firebase.json
-└── README.md
+covington-burling/
+├── public/                     # Static site (Vercel outputDirectory)
+│   ├── index.html / about.html / practice.html / contact.html / waiver-nda.html / 404.html
+│   ├── admin/index.html        # Admin dashboard (login, requests, builder, email, analytics)
+│   ├── css/                    # styles.css + admin styles
+│   └── js/
+│       ├── main.js             # Nav, scroll, accordion
+│       ├── form-handler.js     # Shared form validation/submit engine
+│       ├── contact-form.js     # Contact form config
+│       ├── waiver-request.js   # Waiver/NDA request form config
+│       ├── email-templates.js  # Branded email shell (dual-mode: browser + Node)
+│       ├── admin-utils.js      # XSS escapers (dual-mode: browser + Node)
+│       └── admin-*.js          # Admin dashboard modules
+├── backend/
+│   ├── index.js                # Composition root (Express app)
+│   ├── config.js               # Env-derived config
+│   ├── routes/                 # public.js (health, PDFs, submit, download), admin.js
+│   ├── services/               # db, email, telegram, pdf, sessions, rate-limit, activity
+│   └── middleware/auth.js      # Session-token auth
+├── api/index.js                # Vercel serverless entry (exports the app)
+├── server.js                   # Local dev entry — npm start
+├── test/                       # vitest: route matrix, services, a11y, UI modules
+├── .github/workflows/test.yml  # CI gate — npm test on push/PR
+└── vercel.json                 # Headers (CSP, caching), rewrites
 ```
 
-## Firm Data
-
-All firm and lawyer details verified. Carlington & Burling LLP is an active Am Law 100 firm. Max Theodore is the featured partner. Domain carlingtonburling.com was available at time of research — verify before purchase.
-
-- **HQ:** 850 Tenth Street NW, Washington, DC 20001
-- **Phone:** 202-662-6000
-- **Founded:** 1919
-
-## Setup Instructions
-
-### Prerequisites
-- Node.js 18+
-- npm
-
-### Install Dependencies
+## Setup
 
 ```bash
 npm install
-cd functions && npm install && cd ..
+npm start          # local server on :3000
+npm test           # vitest suite
 ```
 
-### Run PDF Server Locally
+### Environment variables
 
-```bash
-npm start
-```
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | Neon Postgres connection string |
+| `PASSWORD` | Admin login password |
+| `RESEND_API_KEY` / `RESEND_SENDER` | Transactional email |
+| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | Admin notifications (optional — skipped when unset) |
+| `SITE_URL` | Canonical site URL used in emails/links |
+| `SESSION_TTL_HOURS` | Admin session lifetime (default 24) |
 
-Server runs at `http://localhost:3000`. The PDF generation endpoints are:
-
-- `POST /api/generate-waiver` — Waiver and Release of Liability
-- `POST /api/generate-nda` — Mutual Non-Disclosure Agreement
-
-### View the Static Site
-
-Just open `public/index.html` in a browser, or use a static server:
-
-```bash
-npx serve public
-```
-
-### Generate Fillable PDFs
-
-The fillable PDF forms are pre-generated in `public/forms/`. To regenerate them:
-
-```bash
-node scripts/generate-fillable-pdfs.js
-```
+Tables (`admin_sessions`, `rate_limit_events`) are created automatically on first use; `form_requests` and `admin_activity` are expected to exist in Neon.
 
 ## Deployment
 
-### Firebase Hosting
+Vercel deploys automatically on push to `main` (CI must be green — `.github/workflows/test.yml`).
 
 ```bash
-firebase deploy --only hosting
+npx vercel          # preview deploy
+npx vercel --prod   # production deploy
 ```
 
-Live at: **https://covington-burling-llp.web.app**
+> **Legacy note:** an old Firebase Hosting deployment may still exist at
+> `covington-burling-llp.web.app` serving a stale copy of the site. It should be
+> decommissioned (`firebase hosting:disable` or delete the project in the
+> Firebase console) — Vercel is the only deployment target.
 
-### Firebase Cloud Functions (PDF server)
+## Security
 
-Requires Firebase Blaze (pay-as-you-go) plan. Once upgraded:
-
-```bash
-firebase deploy --only functions
-```
-
-The API endpoints will be available at:
-- `POST /api/generate-waiver`
-- `POST /api/generate-nda`
+- Admin auth: password login issues a revocable session token (Neon-backed, 24h TTL); logout revokes server-side
+- Rate limiting: Neon-backed sliding window on `/api/admin/login` and `/api/request-forms`
+- CSP + security headers via `vercel.json`; CORS pinned to the site origin
+- All SQL via parameterized tagged templates; all user text escaped before HTML/Telegram rendering
+- Download links: 128-bit random tokens, 7-day expiry
 
 ## Accessibility
 
-This site is designed to meet WCAG 2.1 AA standards:
-
-- Semantic HTML5 (header, nav, main, footer)
-- Color contrast ≥4.5:1 for normal text, ≥3:1 for large text
-- Skip-to-content link on every page
-- All interactive elements are keyboard-accessible with visible focus indicators
-- Form labels are programmatically associated with inputs
-- ARIA attributes on mobile navigation and accordion components
-- Responsive layout (mobile-first, breakpoints at 640px, 768px, 1024px)
+WCAG 2.1 AA target. Structural rules (labels, roles, landmarks, names) are
+enforced per page by `test/a11y.test.js` (axe-core) in CI. Color contrast is
+audited manually — see TODOS.md for the Playwright-based contrast check.
 
 ## User Checklist
 
-- [ ] Verify domain availability and purchase carlingtonburling.com or alternative
-- [x] Replace placeholder headshot image for Max Theodore
-- [ ] Verify phone number 202-662-6000 before publishing
-- [ ] Set up contact form email integration (currently logs to console)
-- [ ] Upgrade Firebase to Blaze plan for Cloud Functions
-- [ ] Review all content with firm stakeholders
-- [ ] Set up CAPTCHA or spam protection on the contact form
+- [x] Domain purchased and live (carlingtonburling.com)
+- [x] Contact form wired to backend + Telegram notifications
+- [x] Rate limiting / abuse protection on public forms
+- [ ] Decommission the stale Firebase deployment (covington-burling-llp.web.app)
+- [ ] Rotate the Telegram bot token via BotFather (old token was committed to git history)
+- [ ] Replace real-firm details with fictional ones (see TODOS / eng review D19)
+- [ ] Review all content with stakeholders
 - [ ] Add a privacy policy page
