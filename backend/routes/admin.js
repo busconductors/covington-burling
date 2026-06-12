@@ -24,14 +24,36 @@ router.post('/api/admin/login', function (req, res) {
   res.json({ token: config.apiKey });
 });
 
+// The admin UI consumes camelCase; Neon returns raw snake_case columns.
+function toApiRequest(r) {
+  return {
+    id: r.id,
+    name: r.name,
+    email: r.email,
+    phone: r.phone,
+    company: r.company,
+    contactMethod: r.contact_method,
+    formType: r.form_type,
+    matterDescription: r.matter_description,
+    status: r.status,
+    createdAt: r.created_at,
+    approvedAt: r.approved_at,
+    rejectedAt: r.rejected_at,
+    approvedBy: r.approved_by,
+    rejectionReason: r.rejection_reason,
+    adminMessage: r.admin_message,
+    downloadToken: r.download_token,
+    tokenExpiresAt: r.token_expires_at,
+  };
+}
+
 // List all requests
 router.get('/api/admin/requests', requireAuth, function (req, res) {
   try {
     var s = getSql();
     s`SELECT * FROM form_requests ORDER BY created_at DESC LIMIT 100`
       .then(function (rows) {
-        var requests = rows.map(function (r) { return r; });
-        res.json({ requests: requests });
+        res.json({ requests: rows.map(toApiRequest) });
       })
       .catch(function (err) {
         console.error('Database read error:', err);
@@ -76,10 +98,6 @@ router.post('/api/admin/requests/:id/approve', requireAuth, function (req, res) 
           ${documentFields ? s` , document_fields = ${JSON.stringify(documentFields)}` : s``}
           WHERE id = ${id}`
           .then(function () {
-            email.sendResendEmail(data.email, data.name, data.form_type, downloadToken, adminMessage).catch(function (err) {
-              console.error('Resend email error:', err);
-            });
-
             logActivity('approve', {
               requestId: id,
               name: data.name,
@@ -94,7 +112,21 @@ router.post('/api/admin/requests/:id/approve', requireAuth, function (req, res) 
             if (adminMessage) telegramMsg += '\n<b>Note:</b> ' + escapeTelegram(adminMessage);
             sendTelegramMessage(telegramMsg).catch(function () {});
 
-            res.json({ message: 'Request approved. Email sent to ' + data.email + '.' });
+            // The approval is committed either way; the response must be
+            // honest about whether the client actually got their link.
+            return email.sendResendEmail(data.email, data.name, data.form_type, downloadToken, adminMessage)
+              .then(function () {
+                res.json({ message: 'Request approved. Email sent to ' + data.email + '.' });
+              })
+              .catch(function (err) {
+                console.error('Approval email failed:', err);
+                logActivity('approve-email-failed', { requestId: id, email: data.email });
+                res.status(502).json({
+                  error: 'Request approved, but the email to ' + data.email + ' failed to send. Use "Resend Email" to retry.',
+                  approved: true,
+                  emailFailed: true,
+                });
+              });
           });
       })
       .catch(function (err) {
@@ -103,6 +135,47 @@ router.post('/api/admin/requests/:id/approve', requireAuth, function (req, res) 
       });
   } catch (err) {
     console.error('Approve error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
+// Resend the approval email (recovery path when the original send failed,
+// or the client lost it). Regenerates the token so the new link is fresh.
+router.post('/api/admin/requests/:id/resend-email', requireAuth, function (req, res) {
+  try {
+    var s = getSql();
+    var id = req.params.id;
+    var downloadToken = crypto.randomBytes(16).toString('hex');
+    var tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    s`SELECT * FROM form_requests WHERE id = ${id}`
+      .then(function (rows) {
+        if (rows.length === 0) {
+          return res.status(404).json({ error: 'Request not found.' });
+        }
+        var data = rows[0];
+        if (data.status !== 'approved') {
+          return res.status(400).json({ error: 'Request is not approved.' });
+        }
+
+        return s`UPDATE form_requests SET
+          download_token = ${downloadToken},
+          token_expires_at = ${tokenExpiresAt}
+          WHERE id = ${id}`
+          .then(function () {
+            return email.sendResendEmail(data.email, data.name, data.form_type, downloadToken, data.admin_message || null);
+          })
+          .then(function () {
+            logActivity('resend-email', { requestId: id, email: data.email });
+            res.json({ message: 'Approval email re-sent to ' + data.email + '.' });
+          });
+      })
+      .catch(function (err) {
+        console.error('Resend approval email error:', err);
+        res.status(502).json({ error: 'Failed to re-send the approval email.' });
+      });
+  } catch (err) {
+    console.error('Resend approval email error:', err);
     res.status(500).json({ error: 'Internal server error.' });
   }
 });

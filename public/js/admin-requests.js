@@ -85,10 +85,33 @@
   function actionsHtml(r) {
     if (r.status !== 'pending') {
       var at = r.approvedAt ? new Date(r.approvedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-      return '<span style="color:var(--text-muted);font-size:0.8125rem;">' + AdminUtils.escHtml(r.status === 'approved' ? 'Approved' : 'Rejected') + ' ' + at + '</span>';
+      var label = '<span style="color:var(--text-muted);font-size:0.8125rem;">' + AdminUtils.escHtml(r.status === 'approved' ? 'Approved' : 'Rejected') + ' ' + at + '</span>';
+      if (r.status === 'approved') {
+        label += ' <button class="btn--sm btn--approve" data-id="' + AdminUtils.escAttr(r.id) + '" data-action="resend">Resend Email</button>';
+      }
+      return label;
     }
     return '<button class="btn--sm btn--approve" data-id="' + AdminUtils.escAttr(r.id) + '" data-action="approve">Approve</button>' +
       '<button class="btn--sm btn--reject" data-id="' + AdminUtils.escAttr(r.id) + '" data-action="reject">Reject</button>';
+  }
+
+  function resendEmail(id, btn) {
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    fetch(apiBase + '/requests/' + id + '/resend-email', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' },
+    })
+      .then(function (resp) { return resp.json().then(function (d) { if (!resp.ok) throw d; return d; }); })
+      .then(function (d) {
+        btn.textContent = 'Sent ✓';
+        setTimeout(function () { btn.disabled = false; btn.textContent = 'Resend Email'; }, 3000);
+      })
+      .catch(function (err) {
+        if (window.AdminAuth) window.AdminAuth.showError(err && err.error ? err.error : 'Failed to re-send email.');
+        btn.disabled = false;
+        btn.textContent = 'Resend Email';
+      });
   }
 
   // Row click → detail modal
@@ -115,6 +138,10 @@
 
     if (btn.dataset.action === 'reject') {
       openRejectModal(id);
+    }
+
+    if (btn.dataset.action === 'resend') {
+      resendEmail(id, btn);
     }
   });
 
@@ -367,7 +394,15 @@
           closeModal();
           loadRequests();
         })
-        .catch(function () {
+        .catch(function (err) {
+          if (err && err.emailFailed) {
+            // Approval committed but the email didn't go out — surface the
+            // honest message and refresh so the Resend Email action appears.
+            if (window.AdminAuth) window.AdminAuth.showError(err.error);
+            closeModal();
+            loadRequests();
+            return;
+          }
           if (window.AdminAuth) window.AdminAuth.showError('Failed to approve.');
           btn.disabled = false;
           btn.textContent = 'Approve & Send';

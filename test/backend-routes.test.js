@@ -248,16 +248,22 @@ describe('GET /api/admin/requests', () => {
     expect(res.status).toBe(401);
   });
 
-  it('200 returns rows', async () => {
+  it('200 returns rows mapped to the camelCase UI contract', async () => {
     sqlHandler = (text) => {
       if (/SELECT \* FROM form_requests ORDER BY created_at/i.test(text)) {
-        return [pendingRow(), pendingRow({ id: 'req-2', status: 'approved' })];
+        return [pendingRow(), pendingRow({ id: 'req-2', status: 'approved', approved_at: '2026-06-10T00:00:00Z' })];
       }
       return [];
     };
     const res = await request(app).get('/api/admin/requests').set(AUTH);
     expect(res.status).toBe(200);
     expect(res.body.requests).toHaveLength(2);
+    const first = res.body.requests[0];
+    expect(first.formType).toBe('waiver');
+    expect(first.matterDescription).toBe('Contract review');
+    expect(first.createdAt).toBe('2026-06-01T00:00:00Z');
+    expect(first).not.toHaveProperty('form_type');
+    expect(res.body.requests[1].approvedAt).toBe('2026-06-10T00:00:00Z');
   });
 
   it('500 when the DB read fails', async () => {
@@ -319,7 +325,7 @@ describe('POST /api/admin/requests/:id/approve', () => {
     expect(activity).toBeDefined();
   });
 
-  it('CHARACTERIZATION: still 200 "approved" even when the email send fails (T8 will change this)', async () => {
+  it('502 with approved+emailFailed flags when the email send fails (honest response, T8)', async () => {
     sqlHandler = (text) => {
       if (/SELECT \* FROM form_requests WHERE id/i.test(text)) return [pendingRow()];
       return [];
@@ -330,8 +336,13 @@ describe('POST /api/admin/requests/:id/approve', () => {
       .post('/api/admin/requests/req-1/approve')
       .set(AUTH)
       .send({});
-    expect(res.status).toBe(200);
-    expect(res.body.message).toContain('Email sent');
+    expect(res.status).toBe(502);
+    expect(res.body.approved).toBe(true);
+    expect(res.body.emailFailed).toBe(true);
+    expect(res.body.error).toContain('Resend Email');
+    // the approval itself was still committed
+    const update = sqlCalls.find((c) => /UPDATE form_requests/i.test(c.text));
+    expect(update).toBeDefined();
     errSpy.mockRestore();
   });
 
@@ -342,6 +353,74 @@ describe('POST /api/admin/requests/:id/approve', () => {
       .set(AUTH)
       .send({});
     expect(res.status).toBe(500);
+  });
+});
+
+// ── Resend approval email ────────────────────────────────────────────────
+describe('POST /api/admin/requests/:id/resend-email', () => {
+  it('401 without auth', async () => {
+    const res = await request(app).post('/api/admin/requests/req-1/resend-email').send({});
+    expect(res.status).toBe(401);
+  });
+
+  it('404 when the request does not exist', async () => {
+    sqlHandler = (text) => {
+      if (/SELECT \* FROM form_requests WHERE id/i.test(text)) return [];
+      return [];
+    };
+    const res = await request(app)
+      .post('/api/admin/requests/missing/resend-email')
+      .set(AUTH)
+      .send({});
+    expect(res.status).toBe(404);
+  });
+
+  it('400 when the request is not approved', async () => {
+    sqlHandler = (text) => {
+      if (/SELECT \* FROM form_requests WHERE id/i.test(text)) return [pendingRow()];
+      return [];
+    };
+    const res = await request(app)
+      .post('/api/admin/requests/req-1/resend-email')
+      .set(AUTH)
+      .send({});
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Request is not approved.');
+  });
+
+  it('200 regenerates the token and re-sends the email', async () => {
+    sqlHandler = (text) => {
+      if (/SELECT \* FROM form_requests WHERE id/i.test(text)) {
+        return [pendingRow({ status: 'approved', admin_message: 'See you soon' })];
+      }
+      return [];
+    };
+    const res = await request(app)
+      .post('/api/admin/requests/req-1/resend-email')
+      .set(AUTH)
+      .send({});
+    expect(res.status).toBe(200);
+    expect(res.body.message).toContain('re-sent to jane@example.test');
+    expect(resendSend).toHaveBeenCalledTimes(1);
+    const update = sqlCalls.find((c) => /UPDATE form_requests SET download_token/i.test(c.text));
+    expect(update).toBeDefined();
+  });
+
+  it('502 when the re-send fails', async () => {
+    sqlHandler = (text) => {
+      if (/SELECT \* FROM form_requests WHERE id/i.test(text)) {
+        return [pendingRow({ status: 'approved' })];
+      }
+      return [];
+    };
+    resendSend.mockRejectedValue(new Error('resend still down'));
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const res = await request(app)
+      .post('/api/admin/requests/req-1/resend-email')
+      .set(AUTH)
+      .send({});
+    expect(res.status).toBe(502);
+    errSpy.mockRestore();
   });
 });
 
