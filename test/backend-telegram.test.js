@@ -16,10 +16,20 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
  * branch without requiring a structural refactor.
  */
 
-// ── Recreated sendTelegramMessage (mirrors backend/index.js lines 145-161) ──
+// ── Recreated sendTelegramMessage (mirrors backend/index.js lines 167-187) ──
+// Mirrors production behavior: credentials come from injection (env vars in
+// production); when unconfigured, the send is skipped with a resolved promise.
+// NEVER put real credentials in this file — fakes only.
+const FAKE_TOKEN = '0000000000:TEST-FAKE-TOKEN-NOT-REAL';
+const FAKE_CHAT_ID = 'fake-chat-id';
+
 function sendTelegramMessage(text, { token, chatId } = {}) {
-  var t = token || '8774901284:AAEd4rUxpTUgrGr8ieqy0Fgwfq9Ew9nYZ_U';
-  var c = chatId || '7771296485';
+  var t = token;
+  var c = chatId;
+  if (!t || !c) {
+    console.warn('Telegram not configured — skipping notification');
+    return Promise.resolve();
+  }
 
   return fetch('https://api.telegram.org/bot' + t + '/sendMessage', {
     method: 'POST',
@@ -119,50 +129,58 @@ describe('sendTelegramMessage', () => {
       const telegramResponse = { ok: true, result: { message_id: 42 } };
       globalThis.fetch = vi.fn().mockResolvedValue(mockFetchResponse(true, telegramResponse));
 
-      const result = await sendTelegramMessage('Hello');
+      const result = await sendTelegramMessage('Hello', { token: FAKE_TOKEN, chatId: FAKE_CHAT_ID });
       expect(result).toEqual(telegramResponse);
     });
 
-    it('uses hardcoded token fallback when no token is provided', async () => {
+    it('uses the injected token in the request URL', async () => {
       const fetchSpy = vi.fn().mockResolvedValue(mockFetchResponse(true, { ok: true }));
       globalThis.fetch = fetchSpy;
 
-      await sendTelegramMessage('Hello', {});  // no token, no chatId
+      await sendTelegramMessage('Hello', { token: FAKE_TOKEN, chatId: FAKE_CHAT_ID });
 
       const url = fetchSpy.mock.calls[0][0];
-      expect(url).toContain('8774901284:AAEd4rUxpTUgrGr8ieqy0Fgwfq9Ew9nYZ_U');
+      expect(url).toContain(FAKE_TOKEN);
     });
 
-    it('uses hardcoded chatId fallback when no chatId is provided', async () => {
+    it('uses the injected chatId in the request body', async () => {
       const fetchSpy = vi.fn().mockResolvedValue(mockFetchResponse(true, { ok: true }));
       globalThis.fetch = fetchSpy;
 
-      await sendTelegramMessage('Hello', {});  // no chatId
+      await sendTelegramMessage('Hello', { token: FAKE_TOKEN, chatId: FAKE_CHAT_ID });
 
       const body = JSON.parse(fetchSpy.mock.calls[0][1].body);
-      expect(body.chat_id).toBe('7771296485');
+      expect(body.chat_id).toBe(FAKE_CHAT_ID);
+    });
+  });
+
+  describe('unconfigured — credentials missing (mirrors production env-var guard)', () => {
+    it('skips the send and resolves when token is missing', async () => {
+      const fetchSpy = vi.fn();
+      globalThis.fetch = fetchSpy;
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      await expect(sendTelegramMessage('Hello', { chatId: FAKE_CHAT_ID })).resolves.toBeUndefined();
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalled();
     });
 
-    it('uses env token over hardcoded default when provided', async () => {
-      const fetchSpy = vi.fn().mockResolvedValue(mockFetchResponse(true, { ok: true }));
+    it('skips the send and resolves when chatId is missing', async () => {
+      const fetchSpy = vi.fn();
       globalThis.fetch = fetchSpy;
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      await sendTelegramMessage('Hello', { token: 'envToken123' });
-
-      const url = fetchSpy.mock.calls[0][0];
-      expect(url).toContain('envToken123');
-      expect(url).not.toContain('8774901284');
+      await expect(sendTelegramMessage('Hello', { token: FAKE_TOKEN })).resolves.toBeUndefined();
+      expect(fetchSpy).not.toHaveBeenCalled();
     });
 
-    it('uses env chatId over hardcoded default when provided', async () => {
-      const fetchSpy = vi.fn().mockResolvedValue(mockFetchResponse(true, { ok: true }));
+    it('skips the send when neither credential is provided', async () => {
+      const fetchSpy = vi.fn();
       globalThis.fetch = fetchSpy;
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      await sendTelegramMessage('Hello', { chatId: 'envChat456' });
-
-      const body = JSON.parse(fetchSpy.mock.calls[0][1].body);
-      expect(body.chat_id).toBe('envChat456');
-      expect(body.chat_id).not.toBe('7771296485');
+      await expect(sendTelegramMessage('Hello', {})).resolves.toBeUndefined();
+      expect(fetchSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -171,7 +189,7 @@ describe('sendTelegramMessage', () => {
       const errorBody = { ok: false, error_code: 400, description: 'Bad Request: chat not found' };
       globalThis.fetch = vi.fn().mockResolvedValue(mockFetchResponse(false, errorBody));
 
-      await expect(sendTelegramMessage('Hello')).rejects.toEqual(errorBody);
+      await expect(sendTelegramMessage('Hello', { token: FAKE_TOKEN, chatId: FAKE_CHAT_ID })).rejects.toEqual(errorBody);
     });
 
     it('throws with the full error object (not a string)', async () => {
@@ -179,7 +197,7 @@ describe('sendTelegramMessage', () => {
       globalThis.fetch = vi.fn().mockResolvedValue(mockFetchResponse(false, errorBody));
 
       try {
-        await sendTelegramMessage('Hello');
+        await sendTelegramMessage('Hello', { token: FAKE_TOKEN, chatId: FAKE_CHAT_ID });
         expect.unreachable('should have thrown');
       } catch (e) {
         expect(e).toEqual(errorBody);
@@ -192,7 +210,7 @@ describe('sendTelegramMessage', () => {
       const nonStandard = { html: '<h1>502 Bad Gateway</h1>' };
       globalThis.fetch = vi.fn().mockResolvedValue(mockFetchResponse(false, nonStandard));
 
-      await expect(sendTelegramMessage('Hello')).rejects.toEqual(nonStandard);
+      await expect(sendTelegramMessage('Hello', { token: FAKE_TOKEN, chatId: FAKE_CHAT_ID })).rejects.toEqual(nonStandard);
     });
   });
 
@@ -200,19 +218,19 @@ describe('sendTelegramMessage', () => {
     it('rejects when fetch itself throws (network error)', async () => {
       globalThis.fetch = vi.fn().mockRejectedValue(new Error('ECONNREFUSED'));
 
-      await expect(sendTelegramMessage('Hello')).rejects.toThrow('ECONNREFUSED');
+      await expect(sendTelegramMessage('Hello', { token: FAKE_TOKEN, chatId: FAKE_CHAT_ID })).rejects.toThrow('ECONNREFUSED');
     });
 
     it('rejects when fetch times out', async () => {
       globalThis.fetch = vi.fn().mockRejectedValue(new Error('ETIMEDOUT'));
 
-      await expect(sendTelegramMessage('Hello')).rejects.toThrow('ETIMEDOUT');
+      await expect(sendTelegramMessage('Hello', { token: FAKE_TOKEN, chatId: FAKE_CHAT_ID })).rejects.toThrow('ETIMEDOUT');
     });
 
     it('rejects when DNS resolution fails', async () => {
       globalThis.fetch = vi.fn().mockRejectedValue(new Error('ENOTFOUND api.telegram.org'));
 
-      await expect(sendTelegramMessage('Hello')).rejects.toThrow('ENOTFOUND');
+      await expect(sendTelegramMessage('Hello', { token: FAKE_TOKEN, chatId: FAKE_CHAT_ID })).rejects.toThrow('ENOTFOUND');
     });
   });
 });
@@ -345,7 +363,7 @@ describe('Telegram fire-and-forget error boundary', () => {
 
     // Fire-and-forget pattern from the call site
     let responseSent = false;
-    const result = sendTelegramMessage('test msg')
+    const result = sendTelegramMessage('test msg', { token: FAKE_TOKEN, chatId: FAKE_CHAT_ID })
       .catch((err) => {
         console.error(err);
         // After catch, the promise resolves (no throw in catch handler)
@@ -368,7 +386,7 @@ describe('Telegram fire-and-forget error boundary', () => {
     const mockConsoleError = (e) => errors.push(e.message);
 
     // Pattern: the route handler fires Telegram and moves on
-    const promise = sendTelegramMessage('msg').catch(mockConsoleError);
+    const promise = sendTelegramMessage('msg', { token: FAKE_TOKEN, chatId: FAKE_CHAT_ID }).catch(mockConsoleError);
 
     // Route sends response immediately (does not await Telegram)
     const responseData = { id: 'req-123', message: 'Request submitted successfully.' };
