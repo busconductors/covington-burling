@@ -95,6 +95,13 @@
   // Logout handler (delegated — shell wires this up)
   document.addEventListener('click', function (e) {
     if (e.target.closest('#adminLogout')) {
+      // revoke the session server-side; local cleanup happens regardless
+      if (token) {
+        fetch(API_BASE + '/logout', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token }
+        }).catch(function () {});
+      }
       sessionStorage.removeItem('admin_token');
       delete window._analyticsStarted;
       token = null;

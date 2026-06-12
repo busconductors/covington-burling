@@ -5,11 +5,13 @@ const { getSql } = require('../services/db');
 const { sendTelegramMessage, escapeTelegram } = require('../services/telegram');
 const { logActivity } = require('../services/activity');
 const { requireAuth } = require('../middleware/auth');
+const sessions = require('../services/sessions');
 const email = require('../services/email');
 
 const router = express.Router();
 
-// Admin login
+// Admin login — issues a short-lived session token; the static API key
+// never leaves the server.
 router.post('/api/admin/login', function (req, res) {
   var password = (req.body || {}).password || '';
   if (!config.password) {
@@ -18,10 +20,28 @@ router.post('/api/admin/login', function (req, res) {
   if (password !== config.password) {
     return res.status(401).json({ error: 'Invalid password.' });
   }
-  if (!config.apiKey) {
-    return res.status(500).json({ error: 'Admin API key not configured.' });
-  }
-  res.json({ token: config.apiKey });
+  sessions.createSession()
+    .then(function (token) {
+      logActivity('login', {});
+      res.json({ token: token });
+    })
+    .catch(function (err) {
+      console.error('Session create error:', err);
+      res.status(500).json({ error: 'Failed to create session.' });
+    });
+});
+
+// Admin logout — revokes exactly this session.
+router.post('/api/admin/logout', requireAuth, function (req, res) {
+  var token = (req.headers.authorization || '').replace('Bearer ', '');
+  sessions.destroySession(token)
+    .then(function () {
+      res.json({ message: 'Logged out.' });
+    })
+    .catch(function (err) {
+      console.error('Session destroy error:', err);
+      res.status(500).json({ error: 'Failed to log out.' });
+    });
 });
 
 // The admin UI consumes camelCase; Neon returns raw snake_case columns.

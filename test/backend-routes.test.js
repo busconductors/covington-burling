@@ -39,9 +39,21 @@ const nodeRequire = createRequire(import.meta.url);
 
 let sqlHandler;
 const sqlCalls = [];
+// Session-auth plumbing is handled inside the mock so per-test sqlHandler
+// overrides don't each have to re-implement it. AUTH's bearer value is a
+// valid session by default; tests revoke via validSessionTokens.
+const VALID_SESSION = 'test-session-token';
+const validSessionTokens = new Set();
 
 function sqlMock(strings, ...values) {
   const text = strings.join('$').replace(/\s+/g, ' ').trim();
+  if (/admin_sessions/i.test(text)) {
+    sqlCalls.push({ text, values });
+    if (/^SELECT token FROM admin_sessions/i.test(text)) {
+      return Promise.resolve(validSessionTokens.has(values[0]) ? [{ token: values[0] }] : []);
+    }
+    return Promise.resolve([]); // CREATE TABLE / INSERT / DELETE on sessions
+  }
   if (!/^(SELECT|INSERT|UPDATE|DELETE)/i.test(text)) {
     return { __fragment: text };
   }
@@ -83,7 +95,7 @@ beforeAll(() => {
   app = nodeRequire('../backend/index.js');
 });
 
-const AUTH = { Authorization: 'Bearer test-api-key' };
+const AUTH = { Authorization: 'Bearer ' + VALID_SESSION };
 
 function pendingRow(overrides = {}) {
   return {
@@ -102,6 +114,8 @@ function pendingRow(overrides = {}) {
 
 beforeEach(() => {
   sqlCalls.length = 0;
+  validSessionTokens.clear();
+  validSessionTokens.add(VALID_SESSION);
   sqlHandler = (text) => {
     if (/INSERT INTO admin_activity/i.test(text)) return [];
     return [];
@@ -210,14 +224,17 @@ describe('POST /api/request-forms', () => {
   });
 });
 
-// ── Admin login ──────────────────────────────────────────────────────────
+// ── Admin login / logout (session tokens) ────────────────────────────────
 describe('POST /api/admin/login', () => {
-  it('200 returns the API token on correct password', async () => {
+  it('200 issues a random session token (NOT the static API key)', async () => {
     const res = await request(app)
       .post('/api/admin/login')
       .send({ password: 'test-password' });
     expect(res.status).toBe(200);
-    expect(res.body.token).toBe('test-api-key');
+    expect(res.body.token).toMatch(/^[0-9a-f]{64}$/);
+    expect(res.body.token).not.toBe('test-api-key');
+    const insert = sqlCalls.find((c) => /INSERT INTO admin_sessions/i.test(c.text));
+    expect(insert).toBeDefined();
   });
 
   it('401 on wrong password', async () => {
@@ -230,6 +247,31 @@ describe('POST /api/admin/login', () => {
 
   it('401 on empty body', async () => {
     const res = await request(app).post('/api/admin/login').send({});
+    expect(res.status).toBe(401);
+  });
+});
+
+describe('POST /api/admin/logout', () => {
+  it('401 without a valid session', async () => {
+    const res = await request(app)
+      .post('/api/admin/logout')
+      .set('Authorization', 'Bearer not-a-session');
+    expect(res.status).toBe(401);
+  });
+
+  it('200 deletes the session row', async () => {
+    const res = await request(app).post('/api/admin/logout').set(AUTH);
+    expect(res.status).toBe(200);
+    const del = sqlCalls.find((c) => /DELETE FROM admin_sessions WHERE token/i.test(c.text));
+    expect(del).toBeDefined();
+    expect(del.values[0]).toBe(VALID_SESSION);
+  });
+});
+
+describe('session validation', () => {
+  it('401 when the session token has been revoked', async () => {
+    validSessionTokens.clear();
+    const res = await request(app).get('/api/admin/requests').set(AUTH);
     expect(res.status).toBe(401);
   });
 });
