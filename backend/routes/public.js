@@ -4,7 +4,15 @@ const { getSql } = require('../services/db');
 const { sendTelegramMessage, escapeTelegram } = require('../services/telegram');
 const { logActivity } = require('../services/activity');
 const { requireAuth } = require('../middleware/auth');
+const { rateLimitMiddleware } = require('../services/rate-limit');
 const { streamPdf } = require('../services/pdf');
+
+const formRateLimit = rateLimitMiddleware({
+  bucket: 'request-forms',
+  max: 20,
+  windowMinutes: 60,
+  message: 'Too many submissions. Please try again later or call our office.',
+});
 const waiverDefinition = require('../waiver-definition');
 const ndaDefinition = require('../nda-definition');
 
@@ -30,7 +38,7 @@ router.post('/api/generate-nda', requireAuth, function (req, res) {
 });
 
 // Submit a form request
-router.post('/api/request-forms', function (req, res) {
+router.post('/api/request-forms', formRateLimit, function (req, res) {
   try {
     var data = req.body || {};
     if (!data.name || !data.email || !data.formType || !data.matterDescription) {

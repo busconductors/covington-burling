@@ -752,6 +752,68 @@ describe('GET /api/admin/activity', () => {
   });
 });
 
+// ── Rate limiting (Neon-backed sliding window) ───────────────────────────
+describe('rate limiting', () => {
+  it('429 on login when the window count is at the cap', async () => {
+    sqlHandler = (text) => {
+      if (/SELECT COUNT\(\*\)::int AS count FROM rate_limit_events/i.test(text)) {
+        return [{ count: 10 }];
+      }
+      return [];
+    };
+    const res = await request(app)
+      .post('/api/admin/login')
+      .send({ password: 'test-password' });
+    expect(res.status).toBe(429);
+    expect(res.body.error).toContain('Too many login attempts');
+  });
+
+  it('login proceeds and records an attempt when under the cap', async () => {
+    sqlHandler = (text) => {
+      if (/SELECT COUNT\(\*\)::int AS count FROM rate_limit_events/i.test(text)) {
+        return [{ count: 3 }];
+      }
+      return [];
+    };
+    const res = await request(app)
+      .post('/api/admin/login')
+      .send({ password: 'test-password' });
+    expect(res.status).toBe(200);
+    const insert = sqlCalls.find((c) => /INSERT INTO rate_limit_events/i.test(c.text));
+    expect(insert).toBeDefined();
+    expect(insert.values[0]).toBe('admin-login');
+  });
+
+  it('429 on form submissions at the cap', async () => {
+    sqlHandler = (text) => {
+      if (/SELECT COUNT\(\*\)::int AS count FROM rate_limit_events/i.test(text)) {
+        return [{ count: 20 }];
+      }
+      return [];
+    };
+    const res = await request(app).post('/api/request-forms').send({
+      name: 'Jane',
+      email: 'jane@example.test',
+      formType: 'waiver',
+      matterDescription: 'A perfectly fine matter.',
+    });
+    expect(res.status).toBe(429);
+  });
+
+  it('fails open when the rate-limit store errors', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    sqlHandler = (text) => {
+      if (/rate_limit_events/i.test(text)) return new Error('store down');
+      return [];
+    };
+    const res = await request(app)
+      .post('/api/admin/login')
+      .send({ password: 'test-password' });
+    expect(res.status).toBe(200);
+    errSpy.mockRestore();
+  });
+});
+
 // ── Telegram notification hardening ──────────────────────────────────────
 describe('telegram notifications (env-configured per test)', () => {
   let origFetch;

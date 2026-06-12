@@ -6,13 +6,21 @@ const { sendTelegramMessage, escapeTelegram } = require('../services/telegram');
 const { logActivity } = require('../services/activity');
 const { requireAuth } = require('../middleware/auth');
 const sessions = require('../services/sessions');
+const { rateLimitMiddleware } = require('../services/rate-limit');
 const email = require('../services/email');
+
+const loginRateLimit = rateLimitMiddleware({
+  bucket: 'admin-login',
+  max: 10,
+  windowMinutes: 15,
+  message: 'Too many login attempts. Please try again in 15 minutes.',
+});
 
 const router = express.Router();
 
 // Admin login — issues a short-lived session token; the static API key
 // never leaves the server.
-router.post('/api/admin/login', function (req, res) {
+router.post('/api/admin/login', loginRateLimit, function (req, res) {
   var password = (req.body || {}).password || '';
   if (!config.password) {
     return res.status(500).json({ error: 'Admin password not configured.' });

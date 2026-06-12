@@ -12,7 +12,10 @@ const path = require('path');
 const config = require('./config');
 
 const app = express();
-app.use(cors());
+// Vercel terminates TLS in front of Express; trust the forwarded IP so
+// rate limiting sees the real client, not the proxy.
+app.set('trust proxy', 1);
+app.use(cors({ origin: config.siteUrl }));
 // Only the email routes carry base64 PDF attachments; everything else —
 // including the unauthenticated public forms — gets the small default.
 app.use(['/api/admin/send-email', '/api/admin/send-email-attachment'], express.json({ limit: '5mb' }));
