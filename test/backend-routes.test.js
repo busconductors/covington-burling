@@ -701,6 +701,20 @@ describe('POST /api/admin/send-email', () => {
     const payload = resendSend.mock.calls[0][0];
     expect(payload.to).toEqual(['a@b.test']);
     expect(payload.html).toContain('Hello there');
+    // branded shell comes from the shared module — correct domain, no drift
+    expect(payload.html).toContain('carlingtonburling.com');
+    expect(payload.html).not.toContain('covbur.com');
+  });
+
+  it('sent html matches the shared template module byte-for-byte (preview parity)', async () => {
+    const templates = nodeRequire('../public/js/email-templates.js');
+    await request(app)
+      .post('/api/admin/send-email')
+      .set(AUTH)
+      .send({ toEmail: 'a@b.test', subject: 'Hi', body: 'Para one\n\nPara & two <x>' });
+    const payload = resendSend.mock.calls[0][0];
+    expect(payload.html).toBe(templates.buildEmailHtml('Para one\n\nPara & two <x>'));
+    expect(payload.html).toContain('Para &amp; two &lt;x&gt;');
   });
 
   it('200 includes an attachment when provided', async () => {
