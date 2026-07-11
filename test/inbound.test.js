@@ -57,7 +57,7 @@ describe('storeInboundEmail', function () {
   });
 
   it('strips script tags from HTML body', async function () {
-    mockRows.push({ id: 'abc-456', message_id: 'msg-002' });
+    // mockRows stays empty so SELECT returns [] and INSERT proceeds
 
     const payload = {
       'Message-Id': '<msg-002@mailgun>',
@@ -70,8 +70,9 @@ describe('storeInboundEmail', function () {
     };
 
     await inbound.storeInboundEmail(payload);
-    const query = mockQueries[0];
-    const htmlStored = query.values[3]; // body_html is 4th param (0-indexed: 3)
+    // Query 0 = SELECT, Query 1 = INSERT (the one with sanitized HTML)
+    const query = mockQueries[1];
+    const htmlStored = query.values[4]; // body_html is 5th param (0-indexed: 4)
     assert.ok(!htmlStored.includes('<script'));
     assert.ok(!htmlStored.includes('onerror'));
     assert.ok(htmlStored.includes('Safe text'));
@@ -81,11 +82,11 @@ describe('storeInboundEmail', function () {
     // First call — no existing row
     mockRows.length = 0;
     // Second call — mock the SELECT returning existing row
-    let callCount = 0;
     const origS = db.getSql;
     db.getSql = function () {
-      callCount++;
+      let callCount = 0;
       const s = function () {
+        callCount++;
         const vals = Array.prototype.slice.call(arguments, 1);
         return {
           then: function (cb) {
