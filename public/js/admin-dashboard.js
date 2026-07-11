@@ -15,6 +15,7 @@
     'adminRequestsSection': 'Form Requests',
     'adminBuilderSection': 'Document Builder',
     'adminEmailSection': 'Email',
+    'adminInboxSection': 'Inbox',
   };
 
   function switchSection(targetId) {
@@ -36,6 +37,11 @@
       window.AdminAnalytics.stop();
     }
 
+    // Stop inbox polling when switching away
+    if (targetId !== 'adminInboxSection' && window.AdminInbox) {
+      window.AdminInbox.stop();
+    }
+
     // Lazy-load section content on first visit
     if (targetId === 'adminRequestsSection' && window.AdminRequests) {
       window.AdminRequests.load();
@@ -45,6 +51,8 @@
       window.AdminEmail.init();
     } else if (targetId === 'adminBuilderSection' && window.AdminBuilder) {
       window.AdminBuilder.init();
+    } else if (targetId === 'adminInboxSection' && window.AdminInbox) {
+      window.AdminInbox.init();
     }
 
     // Close mobile sidebar
