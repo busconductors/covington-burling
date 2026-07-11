@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/css/styles.css?v=3">
   <link rel="stylesheet" href="/css/admin.css?v=4">
   <link rel="stylesheet" href="/css/admin-dashboard.css?v=7">
+  <link rel="stylesheet" href="/css/admin-inbox.css?v=1">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <!-- PDF generation deps (needed by Document Builder section) -->
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" defer></script>
@@ -27,6 +28,7 @@
   <script src="/js/admin-requests.js?v=4" defer></script>
   <script src="/js/admin-builder.js?v=8" defer></script>
   <script src="/js/admin-email.js?v=9" defer></script>
+  <script src="/js/admin-inbox.js?v=1" defer></script>
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -89,6 +91,11 @@
           <button class="admin-sidebar__link" data-section="adminEmailSection">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             Email
+          </button>
+          <button class="admin-sidebar__link" data-section="adminInboxSection">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-1l-2-3H8L6 7H5a2 2 0 00-2 2z"/><path d="M18 22H6a2 2 0 01-2-2V9"/></svg>
+            Inbox
+            <span class="admin-sidebar__badge admin-sidebar__badge--zero" id="inboxBadge">0</span>
           </button>
         </nav>
         <div class="admin-sidebar__footer">
@@ -479,6 +486,83 @@ Carlington & Burling LLP" required></textarea>
                 ></iframe>
               </div>
               <p class="email-preview__hint">Plain text is automatically wrapped in the firm-branded email template.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Inbox Section ──────────────────────────────────────────── -->
+        <section class="admin-section" id="adminInboxSection">
+          <div class="inbox-container">
+            <!-- Left: Email list -->
+            <div class="inbox-list-panel">
+              <div class="inbox-list-header">
+                <h2 class="inbox-list-title">Inbox</h2>
+                <button class="inbox-refresh-btn" id="inboxRefreshBtn" title="Refresh">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+                </button>
+              </div>
+              <div class="inbox-list" id="inboxList">
+                <div class="inbox-empty" id="inboxEmpty">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3"><path d="M22 12h-6l-2 3H10l-2-3H2"/><path d="M5.45 5.12L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.88A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.12z"/></svg>
+                  <p>No emails yet.</p>
+                </div>
+              </div>
+              <div class="inbox-list-footer">
+                <button class="inbox-load-more hidden" id="inboxLoadMore">Load more</button>
+              </div>
+            </div>
+
+            <!-- Right: Detail panel -->
+            <div class="inbox-detail-panel" id="inboxDetailPanel">
+              <div class="inbox-detail-empty" id="inboxDetailEmpty">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <p>Select an email to view</p>
+              </div>
+              <div class="inbox-detail-content hidden" id="inboxDetailContent">
+                <!-- Header -->
+                <div class="inbox-email-header">
+                  <h3 class="inbox-email-subject" id="inboxEmailSubject"></h3>
+                  <div class="inbox-email-meta">
+                    <div class="inbox-email-from">
+                      <span class="inbox-email-from-name" id="inboxEmailFromName"></span>
+                      <span class="inbox-email-from-addr" id="inboxEmailFromAddr"></span>
+                    </div>
+                    <span class="inbox-email-date" id="inboxEmailDate"></span>
+                  </div>
+                  <div class="inbox-email-actions">
+                    <button class="inbox-action-btn" id="inboxDeleteBtn" title="Delete">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Body -->
+                <div class="inbox-email-body" id="inboxEmailBody"></div>
+
+                <!-- Attachments -->
+                <div class="inbox-attachments hidden" id="inboxAttachments">
+                  <h4 class="inbox-attachments-title">Attachments</h4>
+                  <div class="inbox-attachments-list" id="inboxAttachmentsList"></div>
+                </div>
+
+                <!-- Reply composer -->
+                <div class="inbox-reply">
+                  <h4 class="inbox-reply-title">Reply</h4>
+                  <div class="inbox-reply-meta">
+                    <span class="inbox-reply-label">From:</span>
+                    <span class="inbox-reply-value" id="inboxReplyFrom">Max Theodore &lt;maxtheodore@carlingtonburling.com&gt;</span>
+                  </div>
+                  <div class="inbox-reply-meta">
+                    <span class="inbox-reply-label">To:</span>
+                    <span class="inbox-reply-value" id="inboxReplyTo"></span>
+                  </div>
+                  <textarea class="inbox-reply-textarea" id="inboxReplyBody" rows="5" placeholder="Type your reply..."></textarea>
+                  <div class="inbox-reply-actions">
+                    <button class="btn btn--primary" id="inboxReplySend">Send Reply</button>
+                    <span class="inbox-reply-status" id="inboxReplyStatus"></span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
