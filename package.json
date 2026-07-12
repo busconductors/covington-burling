@@ -18,6 +18,7 @@
     "cors": "^2.8.5",
     "express": "^4.21.0",
     "fonteditor-core": "^2.6.3",
+    "mailparser": "^3.9.14",
     "pdfmake": "^0.2.18",
     "resend": "^6.12.4"
   },
