@@ -1,5 +1,4 @@
 var express = require('express');
-var crypto = require('crypto');
 var config = require('../config');
 var { getSql } = require('../services/db');
 var { storeInboundEmail } = require('../services/inbound');
@@ -9,33 +8,38 @@ var { logActivity } = require('../services/activity');
 
 var router = express.Router();
 
-// ── Mailgun Inbound Webhook (public, no auth) ─────────────────────────
-// Mailgun POSTs form-encoded data. We verify the signature, then store.
-router.post('/api/inbound/mailgun', function (req, res) {
+// ── Cloudflare Inbound Webhook (public, no auth) ──────────────────────
+// Cloudflare Email Worker POSTs JSON: { from, to, subject, messageId, raw }
+// Authenticated via shared secret in Authorization header.
+router.post('/api/inbound/cloudflare', function (req, res) {
   var body = req.body || {};
 
-  // Verify Mailgun webhook signature if key is configured
-  if (config.mailgunWebhookKey) {
-    var token = body.token || '';
-    var timestamp = body.timestamp || '';
-    var signature = body.signature || '';
-    var hash = crypto.createHmac('sha256', config.mailgunWebhookKey)
-      .update(timestamp + token)
-      .digest('hex');
-    if (hash !== signature) {
-      console.warn('Inbound webhook: invalid Mailgun signature');
-      return res.status(403).json({ error: 'Invalid signature' });
-    }
+  // Verify shared secret
+  var authHeader = req.headers.authorization || '';
+  var expectedBearer = 'Bearer ' + config.inboundSecret;
+  if (config.inboundSecret && authHeader !== expectedBearer) {
+    console.warn('Inbound webhook: invalid or missing secret');
+    return res.status(403).json({ error: 'Forbidden' });
   }
 
-  storeInboundEmail(body)
+  var raw = body.raw || '';
+  if (!raw) {
+    return res.status(400).json({ error: 'Missing raw email body' });
+  }
+
+  var headers = {
+    from: body.from || '',
+    subject: body.subject || '',
+    messageId: body.messageId || '',
+  };
+
+  storeInboundEmail(raw, headers)
     .then(function (result) {
       res.json({ received: true, id: result.id });
     })
     .catch(function (err) {
       console.error('Inbound email storage error:', err);
-      // Always return 200 to Mailgun — retries won't help a DB error
-      res.json({ received: true, error: 'Storage failed (logged)' });
+      res.status(500).json({ error: 'Storage failed' });
     });
 });
 
