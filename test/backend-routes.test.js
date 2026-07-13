@@ -45,14 +45,85 @@ const sqlCalls = [];
 const VALID_SESSION = 'test-session-token';
 const validSessionTokens = new Set();
 
+// Pre-compute bcrypt hash for mock admin user so validateCredentials passes
+const bcrypt = nodeRequire('bcryptjs');
+const MOCK_PASSWORD_HASH = bcrypt.hashSync('test-password', 10);
+const MOCK_USER_DB = {
+  id: 'mock-user-id',
+  username: 'admin',
+  display_name: 'Master Admin',
+  is_master: true,
+  permissions: '{}',
+  password_hash: MOCK_PASSWORD_HASH,
+  created_at: '2026-01-01T00:00:00Z',
+  last_login_at: null,
+};
+const MOCK_USER_DB_2 = {
+  id: 'mock-user-id-2',
+  username: 'editor',
+  display_name: 'Editor User',
+  is_master: false,
+  permissions: JSON.stringify({ requests: true, analytics: true }),
+  password_hash: MOCK_PASSWORD_HASH,
+  created_at: '2026-02-01T00:00:00Z',
+  last_login_at: null,
+};
+
 function sqlMock(strings, ...values) {
   const text = strings.join('$').replace(/\s+/g, ' ').trim();
+  // admin_users queries (must come before admin_sessions so JOIN queries are caught)
+  if (/admin_users/i.test(text)) {
+    sqlCalls.push({ text, values });
+    // getUserForSession: JOIN between admin_users and admin_sessions
+    if (/JOIN admin_sessions/i.test(text)) {
+      return Promise.resolve(validSessionTokens.has(values[0]) ? [{ ...MOCK_USER_DB }] : []);
+    }
+    // validateCredentials: SELECT by username
+    if (/WHERE username =/i.test(text)) {
+      if (values[0] === 'admin') return Promise.resolve([{ ...MOCK_USER_DB }]);
+      if (values[0] === 'editor') return Promise.resolve([{ ...MOCK_USER_DB_2 }]);
+      return Promise.resolve([]);
+    }
+    // INSERT INTO admin_users (createUser) — RETURNING *
+    if (/INSERT INTO admin_users/i.test(text)) {
+      const username = values[0];
+      return Promise.resolve([{ ...MOCK_USER_DB, username, id: 'new-user-id' }]);
+    }
+    // UPDATE admin_users (must be before SELECT WHERE id = to avoid false match)
+    if (/UPDATE admin_users/i.test(text)) {
+      return Promise.resolve([{ ...MOCK_USER_DB }]);
+    }
+    // DELETE FROM admin_users
+    if (/DELETE FROM admin_users/i.test(text)) {
+      return Promise.resolve();
+    }
+    // getUser: SELECT by id (only for SELECT, after INSERT/UPDATE/DELETE)
+    if (/WHERE id =/i.test(text) || /WHERE u\.id =/i.test(text)) {
+      if (values[0] === 'mock-user-id') return Promise.resolve([{ ...MOCK_USER_DB }]);
+      if (values[0] === 'mock-user-id-2') return Promise.resolve([{ ...MOCK_USER_DB_2 }]);
+      return Promise.resolve([]);
+    }
+    // listUsers: SELECT * FROM admin_users ORDER BY created_at
+    if (/ORDER BY created_at/i.test(text)) {
+      return Promise.resolve([{ ...MOCK_USER_DB }, { ...MOCK_USER_DB_2 }]);
+    }
+    // countUsers / countMasterUsers
+    if (/COUNT\(\*\)/i.test(text) || /COUNT/i.test(text)) {
+      if (/is_master = true/i.test(text)) return Promise.resolve([{ count: 1 }]);
+      return Promise.resolve([{ count: 2 }]);
+    }
+    return Promise.resolve([]);
+  }
   if (/admin_sessions/i.test(text)) {
     sqlCalls.push({ text, values });
     if (/^SELECT token FROM admin_sessions/i.test(text)) {
       return Promise.resolve(validSessionTokens.has(values[0]) ? [{ token: values[0] }] : []);
     }
-    return Promise.resolve([]); // CREATE TABLE / INSERT / DELETE on sessions
+    // DELETE FROM admin_sessions (user cleanup during deleteUser)
+    if (/DELETE FROM admin_sessions/i.test(text)) {
+      return Promise.resolve();
+    }
+    return Promise.resolve([]); // CREATE TABLE / INSERT on sessions
   }
   if (!/^(SELECT|INSERT|UPDATE|DELETE)/i.test(text)) {
     return { __fragment: text };
@@ -83,9 +154,12 @@ seedCache('resend', {
 });
 seedCache('pdfmake', class PdfPrinterMock {
   createPdfKitDocument() {
+    let stream = null;
     return {
-      pipe(res) { this._res = res; },
-      end() { this._res.end(Buffer.from('%PDF-fake')); },
+      pipe(res) { stream = res; },
+      end() {
+        if (stream) stream.end(Buffer.from('%PDF-fake'));
+      },
     };
   }
 });
@@ -229,10 +303,12 @@ describe('POST /api/admin/login', () => {
   it('200 issues a random session token (NOT the static API key)', async () => {
     const res = await request(app)
       .post('/api/admin/login')
-      .send({ password: 'test-password' });
+      .send({ username: 'admin', password: 'test-password' });
     expect(res.status).toBe(200);
     expect(res.body.token).toMatch(/^[0-9a-f]{64}$/);
     expect(res.body.token).not.toBe('test-api-key');
+    expect(res.body.user).toBeDefined();
+    expect(res.body.user.username).toBe('admin');
     const insert = sqlCalls.find((c) => /INSERT INTO admin_sessions/i.test(c.text));
     expect(insert).toBeDefined();
   });
@@ -240,14 +316,23 @@ describe('POST /api/admin/login', () => {
   it('401 on wrong password', async () => {
     const res = await request(app)
       .post('/api/admin/login')
-      .send({ password: 'wrong' });
+      .send({ username: 'admin', password: 'wrong' });
     expect(res.status).toBe(401);
-    expect(res.body.error).toBe('Invalid password.');
+    expect(res.body.error).toBe('Invalid username or password.');
   });
 
-  it('401 on empty body', async () => {
-    const res = await request(app).post('/api/admin/login').send({});
+  it('401 on non-existent user', async () => {
+    const res = await request(app)
+      .post('/api/admin/login')
+      .send({ username: 'nobody', password: 'test-password' });
     expect(res.status).toBe(401);
+    expect(res.body.error).toBe('Invalid username or password.');
+  });
+
+  it('400 on empty body', async () => {
+    const res = await request(app).post('/api/admin/login').send({});
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('Username and password are required.');
   });
 });
 
@@ -818,7 +903,7 @@ describe('rate limiting', () => {
     };
     const res = await request(app)
       .post('/api/admin/login')
-      .send({ password: 'test-password' });
+      .send({ username: 'admin', password: 'test-password' });
     expect(res.status).toBe(429);
     expect(res.body.error).toContain('Too many login attempts');
   });
@@ -832,7 +917,7 @@ describe('rate limiting', () => {
     };
     const res = await request(app)
       .post('/api/admin/login')
-      .send({ password: 'test-password' });
+      .send({ username: 'admin', password: 'test-password' });
     expect(res.status).toBe(200);
     const insert = sqlCalls.find((c) => /INSERT INTO rate_limit_events/i.test(c.text));
     expect(insert).toBeDefined();
@@ -863,7 +948,7 @@ describe('rate limiting', () => {
     };
     const res = await request(app)
       .post('/api/admin/login')
-      .send({ password: 'test-password' });
+      .send({ username: 'admin', password: 'test-password' });
     expect(res.status).toBe(200);
     errSpy.mockRestore();
   });
@@ -1000,6 +1085,144 @@ describe('body size limits', () => {
         attachment: { name: 'big.pdf', content: 'x'.repeat(1024 * 1024) },
       });
     expect(res.status).toBe(200);
+  });
+});
+
+// ── Admin /me endpoint ───────────────────────────────────────────────────
+describe('GET /api/admin/me', () => {
+  it('401 without auth', async () => {
+    const res = await request(app).get('/api/admin/me');
+    expect(res.status).toBe(401);
+  });
+
+  it('200 returns the authenticated user', async () => {
+    const res = await request(app).get('/api/admin/me').set(AUTH);
+    expect(res.status).toBe(200);
+    expect(res.body.username).toBe('admin');
+    expect(res.body.isMaster).toBe(true);
+  });
+});
+
+// ── User management (master only) ────────────────────────────────────────
+describe('GET /api/admin/users', () => {
+  it('401 without auth', async () => {
+    const res = await request(app).get('/api/admin/users');
+    expect(res.status).toBe(401);
+  });
+
+  it('200 returns user list', async () => {
+    const res = await request(app).get('/api/admin/users').set(AUTH);
+    expect(res.status).toBe(200);
+    expect(res.body.users).toHaveLength(2);
+    expect(res.body.users[0].username).toBe('admin');
+  });
+});
+
+describe('POST /api/admin/users', () => {
+  it('401 without auth', async () => {
+    const res = await request(app).post('/api/admin/users').send({});
+    expect(res.status).toBe(401);
+  });
+
+  it('400 when required fields are missing', async () => {
+    const res = await request(app)
+      .post('/api/admin/users')
+      .set(AUTH)
+      .send({ username: 'newguy' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('required');
+  });
+
+  it('400 when password is too short', async () => {
+    const res = await request(app)
+      .post('/api/admin/users')
+      .set(AUTH)
+      .send({ username: 'newguy', displayName: 'New Guy', password: '12345' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('6 characters');
+  });
+
+  it('201 creates a new user', async () => {
+    const res = await request(app)
+      .post('/api/admin/users')
+      .set(AUTH)
+      .send({ username: 'newguy', displayName: 'New Guy', password: 'password123', permissions: { requests: true } });
+    expect(res.status).toBe(201);
+    expect(res.body.username).toBe('newguy');
+    expect(res.body.id).toBe('new-user-id');
+  });
+});
+
+describe('PUT /api/admin/users/:id', () => {
+  it('401 without auth', async () => {
+    const res = await request(app).put('/api/admin/users/some-id').send({});
+    expect(res.status).toBe(401);
+  });
+
+  it('400 when no updatable fields provided', async () => {
+    const res = await request(app)
+      .put('/api/admin/users/mock-user-id')
+      .set(AUTH)
+      .send({});
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('No updatable fields');
+  });
+
+  it('200 updates user displayName', async () => {
+    const res = await request(app)
+      .put('/api/admin/users/mock-user-id')
+      .set(AUTH)
+      .send({ displayName: 'Updated Admin' });
+    expect(res.status).toBe(200);
+    expect(res.body.displayName).toBe('Master Admin');
+  });
+});
+
+describe('DELETE /api/admin/users/:id', () => {
+  it('401 without auth', async () => {
+    const res = await request(app).delete('/api/admin/users/some-id');
+    expect(res.status).toBe(401);
+  });
+
+  it('403 cannot delete own account', async () => {
+    const res = await request(app)
+      .delete('/api/admin/users/mock-user-id')
+      .set(AUTH);
+    expect(res.status).toBe(403);
+    expect(res.body.error).toContain('Cannot delete your own account');
+  });
+
+  it('200 deletes another user', async () => {
+    const res = await request(app)
+      .delete('/api/admin/users/mock-user-id-2')
+      .set(AUTH);
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe('User deleted.');
+  });
+});
+
+describe('POST /api/admin/users/:id/reset-password', () => {
+  it('401 without auth', async () => {
+    const res = await request(app).post('/api/admin/users/some-id/reset-password').send({});
+    expect(res.status).toBe(401);
+  });
+
+  it('400 when no password provided', async () => {
+    const res = await request(app)
+      .post('/api/admin/users/mock-user-id/reset-password')
+      .set(AUTH)
+      .send({});
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe('New password is required.');
+  });
+
+  it('200 resets user password', async () => {
+    const res = await request(app)
+      .post('/api/admin/users/mock-user-id/reset-password')
+      .set(AUTH)
+      .send({ password: 'newpassword123' });
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe('Password reset successfully.');
   });
 });
 
