@@ -44,7 +44,11 @@
         <p class="admin-login__subtitle">Carlington &amp; Burling LLP</p>
         <form id="loginForm">
           <div class="form-group">
-            <label for="adminPassword" class="form-label">Admin Password</label>
+            <label for="adminUsername" class="form-label">Username</label>
+            <input type="text" id="adminUsername" class="form-input" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label for="adminPassword" class="form-label">Password</label>
             <input type="password" id="adminPassword" class="form-input" required autocomplete="current-password">
             <span class="form-error-msg" id="login-error" role="alert"></span>
           </div>
@@ -96,6 +100,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-1l-2-3H8L6 7H5a2 2 0 00-2 2z"/><path d="M18 22H6a2 2 0 01-2-2V9"/></svg>
             Inbox
             <span class="admin-sidebar__badge admin-sidebar__badge--zero" id="inboxBadge">0</span>
+          </button>
+          <button class="admin-sidebar__link hidden" data-section="adminUsersSection" id="usersTabLink">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+            Users
           </button>
         </nav>
         <div class="admin-sidebar__footer">
@@ -566,6 +574,28 @@ Carlington & Burling LLP" required></textarea>
             </div>
           </div>
         </section>
+        <!-- ── Users Section (master only) ────────────────────────────── -->
+        <section class="admin-section" id="adminUsersSection">
+          <div class="admin-table-wrap" role="region" aria-live="polite" aria-label="Admin users">
+            <div id="usersLoading" class="admin-loading" aria-busy="true">Loading users...</div>
+            <div id="usersEmpty" class="admin-empty hidden">
+              <p class="admin-empty__title">No users found.</p>
+            </div>
+            <table class="admin-table hidden" id="usersTable">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Display Name</th>
+                  <th>Role</th>
+                  <th>Last Login</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
       </div><!-- /.admin-main -->
     </div><!-- /.admin-shell -->
   </main>

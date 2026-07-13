@@ -16,7 +16,19 @@
     'adminBuilderSection': 'Document Builder',
     'adminEmailSection': 'Email',
     'adminInboxSection': 'Inbox',
+    'adminUsersSection': 'Users',
   };
+
+  // Permission-to-section mapping
+  var sectionPermissions = {
+    'adminAnalyticsSection': 'analytics',
+    'adminRequestsSection': 'requests',
+    'adminBuilderSection': 'builder',
+    'adminEmailSection': 'email',
+    'adminInboxSection': 'inbox',
+  };
+
+  var currentPermissions = {};
 
   function switchSection(targetId) {
     sections.forEach(function (s) {
@@ -42,17 +54,17 @@
       window.AdminInbox.stop();
     }
 
-    // Lazy-load section content on first visit
+    // Lazy-load section content on first visit, passing permissions
     if (targetId === 'adminRequestsSection' && window.AdminRequests) {
-      window.AdminRequests.load();
+      window.AdminRequests.load(currentPermissions);
     } else if (targetId === 'adminAnalyticsSection' && window.AdminAnalytics) {
-      window.AdminAnalytics.load();
+      window.AdminAnalytics.load(currentPermissions);
     } else if (targetId === 'adminEmailSection' && window.AdminEmail) {
-      window.AdminEmail.init();
+      window.AdminEmail.init(currentPermissions);
     } else if (targetId === 'adminBuilderSection' && window.AdminBuilder) {
-      window.AdminBuilder.init();
+      window.AdminBuilder.init(currentPermissions);
     } else if (targetId === 'adminInboxSection' && window.AdminInbox) {
-      window.AdminInbox.init();
+      window.AdminInbox.init(currentPermissions);
     }
 
     // Close mobile sidebar
@@ -92,9 +104,73 @@
     });
   }
 
-  // Init — default to analytics
+  // Apply permission-based tab visibility
+  function applyPermissions(user) {
+    currentPermissions = (user && user.permissions) ? user.permissions : {};
+
+    // Store globally for tab modules to access
+    window._adminPermissions = currentPermissions;
+
+    sidebarLinks.forEach(function (link) {
+      var sectionId = link.getAttribute('data-section');
+      var permKey = sectionPermissions[sectionId];
+      if (permKey) {
+        // Hide tab if user doesn't have the required permission
+        var allowed = user && (user.isMaster || currentPermissions[permKey]);
+        link.classList.toggle('hidden', !allowed);
+      }
+    });
+
+    // Show Users tab for master admins
+    var usersTab = document.getElementById('usersTabLink');
+    if (usersTab) {
+      usersTab.classList.toggle('hidden', !(user && user.isMaster));
+    }
+
+    // Update topbar with display name
+    if (user && user.displayName) {
+      var topbarUserSpan = document.querySelector('.admin-topbar__user span');
+      if (topbarUserSpan) {
+        topbarUserSpan.textContent = user.displayName;
+        if (user.isMaster) {
+          topbarUserSpan.textContent += ' (Master)';
+        }
+      }
+    }
+  }
+
+  // Init — fetch user, then default to first visible section
   function init() {
-    switchSection('adminAnalyticsSection');
+    var apiBase = window.AdminAuth ? window.AdminAuth.apiBase : '/api/admin';
+    var authToken = window.AdminAuth ? window.AdminAuth.getToken() : null;
+
+    if (authToken) {
+      fetch(apiBase + '/me', {
+        headers: { 'Authorization': 'Bearer ' + authToken }
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error('Failed to fetch user');
+          return r.json();
+        })
+        .then(function (user) {
+          applyPermissions(user);
+
+          // Default to first visible section
+          var firstVisible = null;
+          sidebarLinks.forEach(function (link) {
+            if (!firstVisible && !link.classList.contains('hidden')) {
+              firstVisible = link.getAttribute('data-section');
+            }
+          });
+          switchSection(firstVisible || 'adminAnalyticsSection');
+        })
+        .catch(function () {
+          // Fallback: show all tabs, default to analytics
+          switchSection('adminAnalyticsSection');
+        });
+    } else {
+      switchSection('adminAnalyticsSection');
+    }
   }
 
   window.AdminDashboard = {

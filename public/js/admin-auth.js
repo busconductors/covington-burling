@@ -49,8 +49,9 @@
   if (loginForm) {
     loginForm.addEventListener('submit', function (e) {
       e.preventDefault();
+      var username = document.getElementById('adminUsername').value.trim();
       var pw = document.getElementById('adminPassword').value;
-      if (!pw) return;
+      if (!username || !pw) return;
 
       var btn = loginForm.querySelector('button[type="submit"]');
       var origText = btn.textContent;
@@ -60,7 +61,7 @@
       fetch(API_BASE + '/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pw })
+        body: JSON.stringify({ username: username, password: pw })
       })
         .then(function (r) {
           var status = r.status;
@@ -76,6 +77,10 @@
         .then(function (data) {
           token = data.token;
           sessionStorage.setItem('admin_token', token);
+          var user = data.user || null;
+          if (user) {
+            sessionStorage.setItem('admin_user', JSON.stringify(user));
+          }
           if (loginError) loginError.textContent = '';
           btn.textContent = origText;
           btn.disabled = false;
@@ -103,14 +108,33 @@
         }).catch(function () {});
       }
       sessionStorage.removeItem('admin_token');
+      sessionStorage.removeItem('admin_user');
       delete window._analyticsStarted;
       token = null;
       showLogin();
     }
   });
 
+  function getUser() {
+    try {
+      var raw = sessionStorage.getItem('admin_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function hasPermission(key) {
+    var user = getUser();
+    if (!user) return false;
+    if (user.isMaster) return true;
+    return !!(user.permissions && user.permissions[key]);
+  }
+
   window.AdminAuth = {
     getToken: getToken,
+    getUser: getUser,
+    hasPermission: hasPermission,
     isLoggedIn: isLoggedIn,
     showError: showError,
     apiBase: API_BASE
