@@ -1,9 +1,9 @@
 var db = require('./db');
+var { simpleParser } = require('mailparser');
 
 /**
  * Simple HTML sanitizer — strips script tags, event handlers, and
- * javascript: URLs. Not a replacement for a full sanitizer like DOMPurify,
- * but sufficient for email bodies rendered in a sandboxed context.
+ * javascript: URLs.
  */
 function sanitizeHtml(html) {
   if (!html) return '';
@@ -20,53 +20,54 @@ function sanitizeHtml(html) {
 }
 
 /**
- * Parse a Mailgun "from" header like "Client Name <client@example.com>"
- * into { name, email }.
- */
-function parseFromHeader(from) {
-  if (!from) return { name: '', email: '' };
-  var match = from.match(/^\s*(.+?)\s*<(.+?)>\s*$/);
-  if (match) return { name: match[1].trim(), email: match[2] };
-  return { name: '', email: from.trim() };
-}
-
-/**
- * Store an inbound email from a Mailgun webhook payload.
- * Deduplicates on message_id (Mailgun retries).
+ * Store an inbound email from a Cloudflare Email Worker.
+ * Parses raw RFC 2822 email via mailparser, sanitizes HTML body,
+ * deduplicates on message_id.
  *
- * @param {Object} payload — raw Mailgun webhook form-encoded payload
+ * @param {string} rawEmail — raw RFC 2822 email source
+ * @param {Object} headers — pre-extracted headers from Worker
+ * @param {string} headers.messageId — Message-ID header value
+ * @param {string} headers.from — From header value
+ * @param {string} headers.subject — Subject header value
  * @returns {Promise<{id: string, message_id: string}>}
  */
-function storeInboundEmail(payload) {
+function storeInboundEmail(rawEmail, headers) {
   var s = db.getSql();
-  var messageId = payload['Message-Id'] || payload['message-id'] || '';
-  var fromHeader = payload['from'] || '';
-  var parsed = parseFromHeader(fromHeader);
-  var subject = (payload['subject'] || '').substring(0, 500);
-  var bodyHtml = sanitizeHtml(payload['body-html'] || payload['html'] || '');
-  var bodyPlain = (payload['body-plain'] || payload['text'] || '').substring(0, 50000);
-  var receivedAt = payload['Received'] ? new Date(payload['Received']).toISOString() : new Date().toISOString();
+  var messageId = headers.messageId || '';
 
-  var attachments;
-  try {
-    attachments = JSON.parse(payload['attachments'] || '[]');
-  } catch (e) {
-    attachments = [];
-  }
+  return simpleParser(rawEmail)
+    .then(function (parsed) {
+      var fromEmail = parsed.from ? parsed.from.value[0].address || '' : '';
+      var fromName = parsed.from ? parsed.from.value[0].name || '' : '';
+      var subject = (parsed.subject || headers.subject || '').substring(0, 500);
+      var bodyHtml = sanitizeHtml(parsed.html || parsed.textAsHtml || '');
+      var bodyPlain = (parsed.text || '').substring(0, 50000);
+      var receivedAt = parsed.date ? parsed.date.toISOString() : new Date().toISOString();
 
-  // Dedup: if message_id already exists, return the existing row
-  return s`SELECT id, message_id FROM inbound_emails WHERE message_id = ${messageId}`
-    .then(function (existing) {
-      if (existing.length > 0) {
-        return { id: existing[0].id, message_id: existing[0].message_id };
-      }
-      return s`INSERT INTO inbound_emails (message_id, from_email, from_name, subject, body_html, body_plain, received_at, attachments)
-        VALUES (${messageId}, ${parsed.email}, ${parsed.name}, ${subject}, ${bodyHtml}, ${bodyPlain}, ${receivedAt}, ${JSON.stringify(attachments)})
-        RETURNING id, message_id`
-        .then(function (rows) {
-          return rows[0];
+      var attachments = (parsed.attachments || []).map(function (att) {
+        var buf = att.content;
+        return {
+          name: att.filename || 'attachment',
+          contentType: att.contentType || 'application/octet-stream',
+          size: buf ? buf.length : 0,
+          content: buf ? buf.toString('base64') : null,
+        };
+      });
+
+      // Dedup on message_id
+      return s`SELECT id, message_id FROM inbound_emails WHERE message_id = ${messageId}`
+        .then(function (existing) {
+          if (existing.length > 0) {
+            return { id: existing[0].id, message_id: existing[0].message_id };
+          }
+          return s`INSERT INTO inbound_emails (message_id, from_email, from_name, subject, body_html, body_plain, received_at, attachments)
+            VALUES (${messageId}, ${fromEmail}, ${fromName}, ${subject}, ${bodyHtml}, ${bodyPlain}, ${receivedAt}, ${JSON.stringify(attachments)})
+            RETURNING id, message_id`
+            .then(function (rows) {
+              return rows[0];
+            });
         });
     });
 }
 
-module.exports = { storeInboundEmail, sanitizeHtml, parseFromHeader };
+module.exports = { storeInboundEmail, sanitizeHtml };
