@@ -5,6 +5,7 @@ var { storeInboundEmail } = require('../services/inbound');
 var email = require('../services/email');
 var { requireAuth } = require('../middleware/auth');
 var { logActivity } = require('../services/activity');
+var { sendTelegramMessage, escapeTelegram } = require('../services/telegram');
 
 var router = express.Router();
 
@@ -36,6 +37,11 @@ router.post('/api/inbound/cloudflare', function (req, res) {
   storeInboundEmail(raw, headers)
     .then(function (result) {
       res.json({ received: true, id: result.id });
+      // Fire-and-forget Telegram notification
+      var telegramMsg = '<b>📬 New Email</b>\n' +
+        '<b>From:</b> ' + escapeTelegram(headers.from) + '\n' +
+        '<b>Subject:</b> ' + escapeTelegram(headers.subject);
+      sendTelegramMessage(telegramMsg).catch(function () {});
     })
     .catch(function (err) {
       console.error('Inbound email storage error:', err);
