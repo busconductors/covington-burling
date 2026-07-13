@@ -1,0 +1,431 @@
+/* ============================================================
+   Carlington & Burling LLP — Admin Users Tab
+   Design tokens from styles.css: --navy, --gold, --burgundy, --cream
+   ============================================================ */
+
+/* ----- Users header bar ----- */
+.users-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.users-header__title {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin: 0;
+}
+
+.users-header__count {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-left: 0.5rem;
+  font-weight: 400;
+}
+
+/* ----- Add User Button ----- */
+.users-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: var(--navy);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.users-add-btn:hover {
+  background: #142340;
+  transform: translateY(-1px);
+}
+
+.users-add-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ----- User Cards List ----- */
+.users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ----- Individual User Card ----- */
+.user-card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(10, 22, 40, 0.06);
+  padding: 1.125rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.user-card:hover {
+  box-shadow: 0 8px 24px rgba(10, 22, 40, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Fallback for browsers without backdrop-filter */
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .user-card {
+    background: rgba(255, 255, 255, 0.95);
+  }
+}
+
+/* ----- User Card Info ----- */
+.user-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-card__name {
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--navy);
+  margin: 0 0 0.125rem;
+}
+
+.user-card__username {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-bottom: 0.375rem;
+}
+
+.user-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.user-card__last-login {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--text-light);
+  white-space: nowrap;
+}
+
+/* ----- User Card Badges ----- */
+.user-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-family: var(--font-sans);
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+}
+
+.user-badge--master {
+  background: #F5F0E6;
+  color: var(--gold-dark, #8B6914);
+}
+
+.user-badge--staff {
+  background: #EDF2F9;
+  color: var(--navy);
+}
+
+/* ----- User Card Actions ----- */
+.user-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+}
+
+.user-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border, rgba(0,0,0,0.1));
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.user-action-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold-dark, #8B6914);
+  background: var(--cream-dark, #F5F0E6);
+}
+
+.user-action-btn--danger:hover {
+  border-color: var(--error);
+  color: var(--error);
+  background: var(--rejected-bg, rgba(107, 28, 46, 0.08));
+}
+
+.user-action-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ----- Users Modal (reuses .modal-overlay / .modal from admin-dashboard.css) ----- */
+
+/* Wider modal for permission grid */
+.users-modal {
+  background: var(--white);
+  border-radius: 16px;
+  max-width: 520px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(10, 22, 40, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* ----- Modal Form Fields ----- */
+.users-form-group {
+  margin-bottom: 1.125rem;
+}
+
+.users-form-label {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 0.375rem;
+}
+
+.users-form-input {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--border, rgba(0,0,0,0.12));
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  color: var(--text-body);
+  background: var(--white);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+}
+
+.users-form-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(176, 141, 87, 0.15);
+}
+
+.users-form-input::placeholder {
+  color: var(--text-light);
+}
+
+/* ----- Permission Checkbox Grid ----- */
+.users-permissions {
+  margin-bottom: 1.125rem;
+}
+
+.users-permissions__title {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin-bottom: 0.625rem;
+}
+
+.users-permissions__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.users-permission-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  background: var(--cream-dark, #F9F8F6);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.users-permission-item:hover {
+  background: #F5F0E6;
+}
+
+.users-permission-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--gold);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.users-permission-item label {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--text-body);
+  cursor: pointer;
+  user-select: none;
+  flex: 1;
+}
+
+/* Send-as permission section */
+.users-permissions__section-label {
+  font-family: var(--font-sans);
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 0.75rem 0 0.5rem;
+  grid-column: 1 / -1;
+}
+
+/* ----- Modal Footer ----- */
+.users-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem 1.5rem;
+}
+
+.users-btn-cancel {
+  padding: 0.5625rem 1.125rem;
+  border: 1px solid var(--border, rgba(0,0,0,0.12));
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.users-btn-cancel:hover {
+  border-color: var(--navy);
+  color: var(--navy);
+}
+
+.users-btn-save {
+  padding: 0.5625rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--navy);
+  color: var(--white);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.users-btn-save:hover {
+  background: #142340;
+}
+
+.users-btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ----- Delete Confirmation ----- */
+.users-delete-warning {
+  background: var(--rejected-bg, rgba(107, 28, 46, 0.08));
+  border: 1px solid rgba(107, 28, 46, 0.15);
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  margin-bottom: 1.25rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  color: var(--error);
+  line-height: 1.5;
+}
+
+.users-delete-warning strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.users-btn-delete-confirm {
+  padding: 0.5625rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--error);
+  color: var(--white);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.users-btn-delete-confirm:hover {
+  background: #5A1828;
+}
+
+/* ----- Modal error / status ----- */
+.users-form-error {
+  background: var(--rejected-bg, rgba(107, 28, 46, 0.08));
+  color: var(--error);
+  padding: 0.625rem 0.875rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  margin-bottom: 1rem;
+  display: none;
+}
+
+.users-form-error--visible {
+  display: block;
+}
+
+/* ----- Responsive ----- */
+@media (max-width: 768px) {
+  .user-card {
+    flex-wrap: wrap;
+  }
+
+  .user-card__actions {
+    width: 100%;
+    justify-content: flex-end;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(0,0,0,0.04);
+  }
+
+  .users-permissions__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .users-modal {
+    max-width: 100%;
+    margin: 1rem;
+    max-height: 90vh;
+  }
+}

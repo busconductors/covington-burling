@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/css/admin.css?v=4">
   <link rel="stylesheet" href="/css/admin-dashboard.css?v=7">
   <link rel="stylesheet" href="/css/admin-inbox.css?v=1">
+  <link rel="stylesheet" href="/css/admin-users.css?v=1">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <!-- PDF generation deps (needed by Document Builder section) -->
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js" defer></script>
@@ -29,6 +30,7 @@
   <script src="/js/admin-builder.js?v=8" defer></script>
   <script src="/js/admin-email.js?v=9" defer></script>
   <script src="/js/admin-inbox.js?v=1" defer></script>
+  <script src="/js/admin-users.js?v=1" defer></script>
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -576,24 +578,20 @@ Carlington & Burling LLP" required></textarea>
         </section>
         <!-- ── Users Section (master only) ────────────────────────────── -->
         <section class="admin-section" id="adminUsersSection">
-          <div class="admin-table-wrap" role="region" aria-live="polite" aria-label="Admin users">
-            <div id="usersLoading" class="admin-loading" aria-busy="true">Loading users...</div>
-            <div id="usersEmpty" class="admin-empty hidden">
-              <p class="admin-empty__title">No users found.</p>
-            </div>
-            <table class="admin-table hidden" id="usersTable">
-              <thead>
-                <tr>
-                  <th>Username</th>
-                  <th>Display Name</th>
-                  <th>Role</th>
-                  <th>Last Login</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="usersTableBody"></tbody>
-            </table>
+          <div class="users-header">
+            <h2 class="users-header__title">Admin Users</h2>
+            <button class="users-add-btn" id="addUserBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add User
+            </button>
           </div>
+
+          <div id="usersLoading" class="admin-loading" aria-busy="true">Loading users...</div>
+          <div id="usersEmpty" class="admin-empty hidden">
+            <p class="admin-empty__title">No users found.</p>
+            <p>Create the first admin user to get started.</p>
+          </div>
+          <div class="users-list" id="adminUsersList" role="region" aria-live="polite" aria-label="Admin users"></div>
         </section>
 
       </div><!-- /.admin-main -->

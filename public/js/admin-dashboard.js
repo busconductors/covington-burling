@@ -65,6 +65,8 @@
       window.AdminBuilder.init(currentPermissions);
     } else if (targetId === 'adminInboxSection' && window.AdminInbox) {
       window.AdminInbox.init(currentPermissions);
+    } else if (targetId === 'adminUsersSection' && window.AdminUsers) {
+      window.AdminUsers.init();
     }
 
     // Close mobile sidebar
