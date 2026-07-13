@@ -8,6 +8,9 @@ const nodeRequire = createRequire(import.meta.url);
 const express = nodeRequire('express');
 const assert = nodeRequire('assert');
 
+// Set INBOUND_SECRET before any module that requires config is loaded
+process.env.INBOUND_SECRET = 'test-secret';
+
 // Mock the db service
 const db = nodeRequire('../backend/services/db');
 const origGetSql = db.getSql;
@@ -21,10 +24,6 @@ function mockSql() {
   };
 }
 
-// Mock email service
-const email = nodeRequire('../backend/services/email');
-const origSendComposed = email.sendComposedEmail;
-
 describe('Inbound Routes', function () {
   let app;
 
@@ -34,9 +33,6 @@ describe('Inbound Routes', function () {
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json());
 
-    // Override config for tests
-    process.env.MAILGUN_WEBHOOK_KEY = 'test-key';
-
     // Mock the db for all tests
     db.getSql = function () { return mockSql()(); };
 
@@ -45,7 +41,6 @@ describe('Inbound Routes', function () {
 
   afterEach(function () {
     db.getSql = origGetSql;
-    delete process.env.MAILGUN_WEBHOOK_KEY;
   });
 
   describe('GET /api/admin/inbox', function () {
@@ -55,35 +50,50 @@ describe('Inbound Routes', function () {
     });
   });
 
-  describe('POST /api/inbound/mailgun', function () {
-    it('accepts Mailgun webhook form data and returns 200', async function () {
+  describe('POST /api/inbound/cloudflare', function () {
+    it('accepts Cloudflare Worker JSON and returns 200', async function () {
       db.getSql = function () {
         const s = function () {
           return {
-            then: function (cb) { return Promise.resolve([]).then(cb); }
+            then: function (cb) { return Promise.resolve([{ id: 'new-123', message_id: '<test-001@mail.example.com>' }]).then(cb); }
           };
         };
         return s;
       };
 
+      const rawEmail = [
+        'From: Test <test@example.com>',
+        'To: maxtheodore@carlingtonburling.com',
+        'Subject: Test inbound',
+        'Date: Sat, 11 Jul 2026 20:00:00 +0000',
+        'Message-ID: <test-001@mail.example.com>',
+        'Content-Type: text/plain; charset=utf-8',
+        '',
+        'Hello',
+      ].join('\r\n');
+
       const res = await request(app)
-        .post('/api/inbound/mailgun')
-        .type('form')
+        .post('/api/inbound/cloudflare')
+        .set('Authorization', 'Bearer test-secret')
         .send({
-          'Message-Id': '<test-001@mailgun>',
-          from: 'Test User <test@example.com>',
+          from: 'Test <test@example.com>',
+          to: 'maxtheodore@carlingtonburling.com',
           subject: 'Test inbound',
-          'body-html': '<p>Hello</p>',
-          'body-plain': 'Hello',
-          Received: 'Sat, 11 Jul 2026 20:00:00 +0000',
-          attachments: '[]',
-          token: 'abc',
-          timestamp: '1234567890',
-          signature: 'abc',
+          messageId: '<test-001@mail.example.com>',
+          raw: rawEmail,
         });
 
       assert.strictEqual(res.status, 200);
       assert.strictEqual(res.body.received, true);
+    });
+
+    it('rejects requests without valid secret', async function () {
+      const res = await request(app)
+        .post('/api/inbound/cloudflare')
+        .set('Authorization', 'Bearer wrong-secret')
+        .send({ raw: 'test', from: '', subject: '', messageId: '' });
+
+      assert.strictEqual(res.status, 403);
     });
   });
 });
