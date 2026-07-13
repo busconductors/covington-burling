@@ -12,6 +12,9 @@ const path = require('path');
 const config = require('./config');
 
 const app = express();
+
+var sessions = require('./services/sessions');
+sessions.seedMasterAdmin().catch(function (err) { console.error('Master seed error:', err); });
 // Vercel terminates TLS in front of Express; trust the forwarded IP so
 // rate limiting sees the real client, not the proxy.
 app.set('trust proxy', 1);
