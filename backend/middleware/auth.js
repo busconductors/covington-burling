@@ -1,21 +1,37 @@
-const { validateSession } = require('../services/sessions');
+var { getUserForSession } = require('../services/sessions');
 
 function requireAuth(req, res, next) {
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.replace('Bearer ', '');
+  var authHeader = req.headers.authorization || '';
+  var token = authHeader.replace('Bearer ', '');
   if (!token) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  validateSession(token)
-    .then(function (valid) {
-      if (!valid) return res.status(401).json({ error: 'Unauthorized' });
+  getUserForSession(token)
+    .then(function (user) {
+      if (!user) return res.status(401).json({ error: 'Unauthorized' });
+      req.user = user;
       next();
     })
     .catch(function (err) {
-      // fail closed: an auth-store outage must not grant access
-      console.error('Session validation error:', err);
+      console.error('Auth error:', err);
       res.status(401).json({ error: 'Unauthorized' });
     });
 }
 
-module.exports = { requireAuth };
+function requirePermission(key) {
+  return function (req, res, next) {
+    if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+    if (req.user.isMaster) return next(); // master bypass
+    var perms = req.user.permissions || {};
+    if (perms[key]) return next();
+    res.status(403).json({ error: 'Forbidden — insufficient permissions' });
+  };
+}
+
+function requireMaster(req, res, next) {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+  if (req.user.isMaster) return next();
+  res.status(403).json({ error: 'Forbidden — master admin only' });
+}
+
+module.exports = { requireAuth, requirePermission, requireMaster };
