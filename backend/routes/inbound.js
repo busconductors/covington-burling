@@ -3,7 +3,7 @@ var config = require('../config');
 var { getSql } = require('../services/db');
 var { storeInboundEmail } = require('../services/inbound');
 var email = require('../services/email');
-var { requireAuth } = require('../middleware/auth');
+var { requireAuth, requirePermission } = require('../middleware/auth');
 var { logActivity } = require('../services/activity');
 var { sendTelegramMessage, escapeTelegram } = require('../services/telegram');
 
@@ -67,7 +67,7 @@ function toApiEmail(r) {
 }
 
 // List inbox emails — paginated, newest first, includes unread count
-router.get('/api/admin/inbox', requireAuth, function (req, res) {
+router.get('/api/admin/inbox', requireAuth, requirePermission('inbox'), function (req, res) {
   try {
     var s = getSql();
     var limit = parseInt(req.query.limit || '50', 10);
@@ -99,7 +99,7 @@ router.get('/api/admin/inbox', requireAuth, function (req, res) {
 });
 
 // Get single email
-router.get('/api/admin/inbox/:id', requireAuth, function (req, res) {
+router.get('/api/admin/inbox/:id', requireAuth, requirePermission('inbox'), function (req, res) {
   try {
     var s = getSql();
     s`SELECT * FROM inbound_emails WHERE id = ${req.params.id}`
@@ -118,7 +118,7 @@ router.get('/api/admin/inbox/:id', requireAuth, function (req, res) {
 });
 
 // Mark as read
-router.post('/api/admin/inbox/:id/read', requireAuth, function (req, res) {
+router.post('/api/admin/inbox/:id/read', requireAuth, requirePermission('inbox'), function (req, res) {
   try {
     var s = getSql();
     s`UPDATE inbound_emails SET read = true WHERE id = ${req.params.id}`
@@ -136,7 +136,7 @@ router.post('/api/admin/inbox/:id/read', requireAuth, function (req, res) {
 });
 
 // Reply to email via Resend
-router.post('/api/admin/inbox/reply', requireAuth, function (req, res) {
+router.post('/api/admin/inbox/reply', requireAuth, requirePermission('inbox'), function (req, res) {
   try {
     var body = req.body || {};
     var toEmail = body.toEmail;
@@ -171,7 +171,7 @@ router.post('/api/admin/inbox/reply', requireAuth, function (req, res) {
 });
 
 // Delete email
-router.delete('/api/admin/inbox/:id', requireAuth, function (req, res) {
+router.delete('/api/admin/inbox/:id', requireAuth, requirePermission('inbox'), function (req, res) {
   try {
     var s = getSql();
     s`DELETE FROM inbound_emails WHERE id = ${req.params.id}`
