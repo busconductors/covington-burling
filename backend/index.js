@@ -18,8 +18,8 @@ app.set('trust proxy', 1);
 app.use(cors({ origin: config.siteUrl }));
 // Only the email routes carry base64 PDF attachments; everything else —
 // including the unauthenticated public forms — gets the small default.
-app.use(['/api/admin/send-email', '/api/admin/send-email-attachment', '/api/inbound/mailgun'], express.json({ limit: '5mb' }));
-app.use(express.urlencoded({ extended: true, limit: '5mb' })); // Mailgun sends form-encoded
+app.use(['/api/admin/send-email', '/api/admin/send-email-attachment', '/api/inbound/cloudflare'], express.json({ limit: '5mb' }));
+
 app.use(express.json({ limit: '100kb' }));
 app.use(function (err, req, res, next) {
   if (err.type === 'entity.parse.failed') {
